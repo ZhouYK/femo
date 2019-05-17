@@ -1,0 +1,81 @@
+{
+  "description": "frontend data management",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "dist/es/index.js",
+  "name": "femo",
+  "publishConfig": {
+    "access": "public"
+  },
+  "jest": {
+    "coverageDirectory": "./coverage/",
+    "collectCoverage": true,
+    "verbose": true,
+    "transform": {
+      "^.+\\.(ts|js)x?$": "ts-jest"
+    },
+    "moduleNameMapper": {
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/__mocks__/fileMock.js",
+      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js"
+    },
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "./test/tsconfig.fortest.json"
+      }
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 10 version",
+    "not dead",
+    "ie >= 9"
+  ],
+  "scripts": {
+    "build": "npm run tsc && npm run cj && npm run es && npm run umd",
+    "tsc": "tsc --outDir src --outDir ts",
+    "cj": "cross-env NODE_ENV=cj babel ts/src --out-dir dist/cj",
+    "es": "babel ts/src --out-dir dist/es",
+    "start": "webpack-dev-server --config webpack.dev.config.js",
+    "test": "jest --no-cache",
+    "umd": "webpack --config webpack.config.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.4.0",
+    "@babel/plugin-proposal-class-properties": "^7.4.0",
+    "@babel/preset-env": "^7.4.2",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.5",
+    "cross-env": "^5.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.2.1",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.3.3333",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-loader": "^2.1.2",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-jest": "^22.4.1",
+    "eslint-plugin-react": "^7.12.4",
+    "eslint-plugin-react-hooks": "^1.6.0",
+    "jest": "^24.5.0",
+    "ts-jest": "^24.0.0"
+  },
+  "files": [
+    "src",
+    "dist/es",
+    "dist/cj",
+    "dist/umd",
+    "package.json"
+  ],
+  "dependencies": {
+    "@babel/polyfill": "~7.4.4",
+    "core-js": "~3.0.1"
+  }
+}

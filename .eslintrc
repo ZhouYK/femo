@@ -1,0 +1,61 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": false
+    },
+    "useJSXTextNode": true,
+    "project": "./tsconfig.json",
+    "tsconfigRootDir": "./"
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".d.ts"]
+      }
+    },
+    "react": {
+      "version": "detect"
+    }
+  },
+  "env": {
+    "jest/globals": true
+  },
+  "globals": {
+    "window": false,
+    "document": false
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "react-hooks",
+    "jest"
+  ],
+  "extends": [
+    "airbnb-base",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "prettier/@typescript-eslint",
+    "plugin:react/recommended",
+    "plugin:jest/recommended"
+  ],
+  "rules": {
+    "import/prefer-default-export": 1,
+    "@typescript-eslint/no-empty-interface": [
+      "warn",
+      {
+        "allowSingleExtends": true
+      }
+    ],
+    "@typescript-eslint/explicit-function-return-type": [
+      "off"
+    ],
+    "@typescript-eslint/explicit-member-accessibility": [
+      "off"
+    ],
+    "@typescript-eslint/camelcase": ["warn"],
+    "@typescript-eslint/no-var-requires": ["off"],
+    "global-require": "off",
+    "no-param-reassign": "off",
+    "class-methods-use-this": "off"
+  }
+}
