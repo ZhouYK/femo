@@ -1,3 +1,4 @@
+
 import {
   gluerUniqueFlagKey,
   gluerUniqueFlagValue,
@@ -12,7 +13,8 @@ import {
 } from './constants'
 import { glueAction } from './glueAction';
 import isPlainObject from './tools/isPlainObject';
-import femo from './femo';
+import { genReferencesMap } from './genProxy';
+import referToState from './referToState';
 
 const defineInitStatePropsToFnc = (fnc, initState) => {
   if (isPlainObject(initState)) {
@@ -95,10 +97,12 @@ const actionError = (actionFn, obj, key) => {
 
 /**
  * 递归对象，生成标准的action以及链接reducer对象的键值与action的type
- * @returns {function(*=, *=, *=): {}}
- * @param dispatch
  */
-const degrade = (dispatch) => {
+const degrade = (model) =>{
+  const femo = {
+    [globalState]: {},
+    [referencesMap]: genReferencesMap()
+  };
   const fn = (curObj, keyStr = [], topNode = curObj, df = femo[globalState], originalNode = null, originalKey = '') => {
     if (isPlainObject(curObj)) {
       // 设置整个对象的索引
@@ -128,7 +132,8 @@ const degrade = (dispatch) => {
             const action = glueAction({
               type: acType,
               action: actionFn,
-              reducer: nodeReducer
+              reducer: nodeReducer,
+              femo
             });
             // 重新赋值
             /* eslint no-param-reassign:0 */
@@ -137,8 +142,9 @@ const degrade = (dispatch) => {
             // 设置初始值
             // 当初始值作为数据来源时，引用会冲突（因为它还做action触发），需要进行复制
             df[key] = isPlainObject(initState) ? { ...initState } : initState;
-            if (originalNode) {
+            if (originalKey) {
               const originalAction = originalNode[originalKey];
+              const originalReducerInAction = originalAction[reducerInAction];
               // eslint-disable-next-line no-useless-escape
               const subKeysStr = acType.replace(new RegExp(`${originalKey}\.`), '');
               const keyArr = subKeysStr.split(uniqueTypeConnect);
@@ -151,14 +157,14 @@ const degrade = (dispatch) => {
                   const subReducer = curObj[key][reducerInAction];
                   stateInit = subReducer({ type, data: result }, state);
                 }
-                return originalAction[reducerInAction](ac, stateInit);
+                return originalReducerInAction(ac, stateInit);
               };
             }
             // 索引引用的键值路径
             femo[referencesMap].set(action, str);
             // 遍历初始值，获取初始值中的结构信息
             // eslint-disable-next-line max-len
-            const initStateDestructure = fn(initState, [...keyStr], initState, df[key], originalNode || curObj, key);
+            const initStateDestructure = fn(initState, [...keyStr], initState, df[key], curObj, key);
             if (initStateDestructure) {
               // 在gluer中已经进行了一次赋值，这次是真的生效
               defineInitStatePropsToFnc(action, initState);
@@ -194,11 +200,15 @@ const degrade = (dispatch) => {
       // 非普通对象的initialState暂不处理
       return null;
     }
+    const reToStateFn = referToState(femo);
     return {
-      stagedStructure: curObj,
+      getState: () => femo[globalState],
+      referToState: (m) => reToStateFn(m),
+      hasModel: (m) => femo[referencesMap].has(m),
+      model: curObj
     };
   };
-  return fn;
+  return fn(model);
 };
 export { degrade };
 export default degrade;

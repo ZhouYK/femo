@@ -19,7 +19,7 @@
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "typeRoots": ["node_modules/@types", "typings"]
+    "typeRoots": ["../node_modules/@types", "../typings"]
   },
-  "exclude": ["node_modules", "dist", "html", "config", "scripts"]
+  "exclude": ["../node_modules", "../dist"]
 }

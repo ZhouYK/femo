@@ -1,7 +1,6 @@
 import { uniqueTypeConnect, referencesMap, globalState } from './constants';
-import femo from './femo';
 
-const referToState = (model) => {
+const referToState = (femo) => (model) => {
   const map = femo[referencesMap];
   if (!map.has(model)) {
     return undefined;

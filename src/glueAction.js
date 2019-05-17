@@ -1,8 +1,7 @@
 import { syncActionFnFlag, syncActionFnFlagValue, actionType, reducerInAction, globalState } from './constants';
-import femo from './femo';
 
 export const glueAction = (params) => {
-  const { action, reducer, type } = params;
+  const { action, reducer, type, femo } = params;
   const actionDispatch = function (...args) {
     const data = action(...args);
     // 处理state数据
@@ -27,7 +26,7 @@ export const glueAction = (params) => {
     [reducerInAction]: {
       value: reducer,
       configurable: false,
-      writable: false,
+      writable: true,
       enumerable: false
     }
   });
