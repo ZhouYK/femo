@@ -9,12 +9,17 @@ import {
   development,
   reducerInAction,
   globalState,
-  referencesMap
+  referencesMap,
+  referenceToDepsMap,
+  depsToCallbackMap,
+  rootNodeMapKey,
+  model as femoModel
 } from './constants'
 import { glueAction } from './glueAction';
 import isPlainObject from './tools/isPlainObject';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
+import subscribe from './subscribe';
 
 const defineInitStatePropsToFnc = (fnc, initState) => {
   if (isPlainObject(initState)) {
@@ -101,7 +106,10 @@ const actionError = (actionFn, obj, key) => {
 const degrade = (model) =>{
   const femo = {
     [globalState]: {},
-    [referencesMap]: genReferencesMap()
+    [referencesMap]: genReferencesMap(),
+    [referenceToDepsMap]: new Map(),
+    [depsToCallbackMap]: new Map(),
+    [femoModel]: model
   };
   const fn = (curObj, keyStr = [], topNode = curObj, df = femo[globalState], originalNode = null, originalKey = '') => {
     if (isPlainObject(curObj)) {
@@ -109,7 +117,7 @@ const degrade = (model) =>{
       // 整个model的引用
       // 第一次执行时
       if (curObj === topNode && keyStr.length === 0) {
-        femo[referencesMap].set(curObj, '');
+        femo[referencesMap].set(curObj, rootNodeMapKey);
       }
       const keys = Object.keys(curObj);
       keys.forEach((key) => {
@@ -205,6 +213,7 @@ const degrade = (model) =>{
       getState: () => femo[globalState],
       referToState: (m) => reToStateFn(m),
       hasModel: (m) => femo[referencesMap].has(m),
+      subscribe: subscribe(femo, reToStateFn),
       model: curObj
     };
   };

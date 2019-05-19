@@ -1,13 +1,19 @@
-import { syncActionFnFlag, syncActionFnFlagValue, actionType, reducerInAction, globalState } from './constants';
+import { syncActionFnFlag, syncActionFnFlagValue, actionType, reducerInAction, globalState, depsToCallbackMap } from './constants';
 
 export const glueAction = (params) => {
   const { action, reducer, type, femo } = params;
   const actionDispatch = function (...args) {
     const data = action(...args);
+    const actionObj = { type, data };
     // 处理state数据
-    const result = actionDispatch[reducerInAction]({ type, data }, femo[globalState]);
-    femo[globalState] = result;
-    console.log(`触发: ${type}，数据: ${data}，结果：${result}`);
+    const result = actionDispatch[reducerInAction](actionObj, femo[globalState]);
+    const state = femo[globalState];
+    if (!Object.is(result, state)) {
+      femo[globalState] = result;
+      femo[depsToCallbackMap].forEach((value, key) => {
+        value(...key);
+      });
+    }
     return data;
   };
   Object.defineProperties(actionDispatch, {

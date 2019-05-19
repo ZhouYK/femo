@@ -10,6 +10,11 @@ export const development = 'development';
 export const reducerInAction = Symbol('reducerInAction');
 export const globalState = Symbol('globalState');
 export const referencesMap = Symbol('referencesMap');
+export const referenceToDepsMap = Symbol('referenceToDepsMap');
+export const depsToCallbackMap = Symbol('depsToCallbackMap');
+export const nodesRecord = Symbol('nodesRecord');
+export const rootNodeMapKey = Symbol('rootNodeMapKey');
+export const model = Symbol('model');
 
 export default {
   uniqueTypeConnect,
@@ -23,5 +28,10 @@ export default {
   development,
   reducerInAction,
   globalState,
-  referencesMap
+  referencesMap,
+  referenceToDepsMap,
+  depsToCallbackMap,
+  nodesRecord,
+  rootNodeMapKey,
+  model
 };

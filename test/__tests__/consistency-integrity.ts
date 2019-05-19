@@ -1,6 +1,17 @@
-import store from '../../example/store';
+import femo from '../../src';
+import familyModel from '../models/family';
 
-describe('Data consistency and integrity test', () => {
+const store = femo({ family: familyModel });
+
+// @ts-ignore
+store.model.family({
+  papa: {
+    name: '小李'
+  }
+});
+
+
+describe('Data consistency and integrity tests', () => {
   test('if one node has been udpated, the whole state will be update', () => {
     const name = '小刘';
     // @ts-ignore

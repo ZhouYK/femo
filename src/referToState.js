@@ -1,4 +1,4 @@
-import { uniqueTypeConnect, referencesMap, globalState } from './constants';
+import { rootNodeMapKey, uniqueTypeConnect, referencesMap, globalState } from './constants';
 
 const referToState = (femo) => (model) => {
   const map = femo[referencesMap];
@@ -8,7 +8,7 @@ const referToState = (femo) => (model) => {
   const pathStr = map.get(model);
   const currentState = femo[globalState];
   // 返回整个state
-  if (pathStr === '') {
+  if (pathStr === rootNodeMapKey) {
     return currentState;
   }
   const keys = pathStr.split(uniqueTypeConnect);
