@@ -27,7 +27,6 @@ const subscribe = (femo, reToStateFn) => {
         throw new Error(`Error: the first param must be an array！${ deps }`);
       }
       copyDeps = deps.length === 0 ? [femo[femoModel]] : [...deps];
-
     }
     const wrapCallback = () => {
       // @ts-ignore
