@@ -1,4 +1,4 @@
-const validateInOperator = (key, target) => {
+const validateInOperator = (key: string, target: any) => {
   let flag;
   try {
     flag = key in target;

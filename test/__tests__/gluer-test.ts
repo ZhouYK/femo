@@ -31,17 +31,13 @@ describe('gluer normal test',  () => {
   test('gluer`s return => return => reducer & action', () => {
     const gr = gluer();
     const result = gr();
+    // @ts-ignore
     const mockReducer = jest.fn(result.reducer);
-    mockReducer({
-      data: 10,
-      type: 'model.js'
-    }, 100);
-    expect(mockReducer).toBeCalledWith({
-      data: expect.anything(),
-      type: expect.any(String)
-    }, expect.anything());
+    mockReducer(10, 100);
+    expect(mockReducer).toBeCalledWith(expect.any(Number), expect.anything());
     expect(mockReducer).toReturnWith(10);
 
+    // @ts-ignore
     const mockAction = jest.fn(result.action);
     mockAction(99);
     expect(mockAction).toBeCalledWith(expect.anything());
@@ -50,6 +46,7 @@ describe('gluer normal test',  () => {
 });
 describe('gluer exception test', () => {
   test('when pass two arguments, but the first isn`t function', () => {
+    // @ts-ignore
     expect(() => gluer('123', 123)).toThrow('first argument must be function');
   });
 });

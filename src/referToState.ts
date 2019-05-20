@@ -1,6 +1,16 @@
-import { rootNodeMapKey, uniqueTypeConnect, referencesMap, globalState } from './constants';
+import {
+  rootNodeMapKey,
+  uniqueTypeConnect,
+  referencesMap,
+  globalState
+} from './constants';
+import { InnerFemo } from "./glueAction";
 
-const referToState = (femo) => (model) => {
+export interface ReferToState {
+  (femo: InnerFemo): (model: any) => any;
+}
+
+const referToState: ReferToState = (femo: InnerFemo) => (model: any) => {
   const map = femo[referencesMap];
   if (!map.has(model)) {
     return undefined;
@@ -11,7 +21,7 @@ const referToState = (femo) => (model) => {
   if (pathStr === rootNodeMapKey) {
     return currentState;
   }
-  const keys = pathStr.split(uniqueTypeConnect);
+  const keys = (pathStr as string).split(uniqueTypeConnect);
   return keys.reduce((pre, cur) => {
     try {
       return pre[cur];

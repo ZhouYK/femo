@@ -11,6 +11,10 @@ const App = () => {
     family
   });
 
+  store_1.model.family({
+    count: 5
+  });
+
   // @ts-ignore
   console.log(store_1.referToState(store_1.model.family.papa.name));
 

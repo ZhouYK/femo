@@ -1,9 +1,11 @@
 import { gluerUniqueFlagKey, gluerUniqueFlagValue, development } from './constants';
 
-const defaultReducer = (action, state) => action.data;
-const genReducer = rd => (action, state) => rd(action.data, state);
+import { HandleFunc, GluerReturn } from '../index';
+
+
+const defaultReducer = (data: any, _state: any) => data;
 const warning = 'highly recommend setting the initial state with the reducer：';
-const getWarning = rd => `${warning}${rd.toString()}`;
+const getWarning = (rd: HandleFunc<any, any>) => `${warning}${rd.toString()}`;
 
 /**
  * 同步节点生成函数
@@ -11,10 +13,14 @@ const getWarning = rd => `${warning}${rd.toString()}`;
  * @param initialState 非必需
  * @returns {function(): {action: *, reducer: *, initState: *}}
  */
-const gluer = (...args) => {
+// @ts-ignore
+function gluer<S, D = S>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S, D>;
+// @ts-ignore
+function gluer<S, D = S>(onlyOne?: HandleFunc<S, D> | S) : GluerReturn<S, D>;
+function gluer(...args: any[]) {
   const [rd, initialState] = args;
   // 默认生成action creator
-  const actionCreator = (...params) => {
+  const actionCreator: ActionCreatorFn = (...params: any[]) => {
     if (process.env.NODE_ENV === development) {
       if (params.length === 0) {
         console.warn('you have dispatched an action whose data is undefined！');
@@ -24,15 +30,12 @@ const gluer = (...args) => {
     }
     return params[0];
   };
-  let reducerFnc;
+  let reducerFnc: Reducer;
   let initState = initialState;
   // 没有传入任何参数则默认生成一个reducer
   if (args.length === 0) {
     // 默认值reducer
     reducerFnc = defaultReducer;
-    if (process.env.NODE_ENV === development) {
-      throw new Error(getWarning(rd));
-    }
   } else if (args.length === 1) {
     // 会被当做初始值处理
     if (typeof rd !== 'function') {
@@ -41,7 +44,7 @@ const gluer = (...args) => {
       // 初始值
       initState = rd;
     } else {
-      reducerFnc = genReducer(rd);
+      reducerFnc = rd;
       if (process.env.NODE_ENV === development) {
         throw new Error(getWarning(rd));
       }
@@ -50,7 +53,7 @@ const gluer = (...args) => {
     if (typeof rd !== 'function') {
       throw new Error('first argument must be function');
     }
-    reducerFnc = genReducer(rd);
+    reducerFnc = rd;
     if (process.env.NODE_ENV === development) {
       if (initialState === undefined) {
         throw new Error(getWarning(rd));

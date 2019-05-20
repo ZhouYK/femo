@@ -1,43 +1,23 @@
-interface Glue {
-  [index:string]: any;
-}
+// gluer
+export type HandleFunc<S, D = S> = (data: D, state: S) => S;
 
-interface DestructResult {
-  reducers: {[index:string]: any},
-  actions: {[index:string]: any},
-  referToState: (model: any) => any,
-  hasModel: (model: any) => boolean,
-}
-
-interface Dispatch {
-  (p: any): any;
-}
-
-interface GetState {
-  (p?: any): any;
-}
-
-interface DestructParams {
-  dispatch: Dispatch;
-  getState: GetState;
-  [index: string]: any;
-}
-interface DestructReturn {
-  (structure: Glue): DestructResult;
-}
-interface Destruct {
-  (p: DestructParams): DestructReturn;
-}
-type HandleFunc<T> = (data: any, state: T) => T;
-
-type fnc<T> = (data?: T) => T;
-type GluerReturn<T>  = {
-  readonly [P in keyof T]: T[P];
-} & fnc<T> & {
+type fnc<D> = (data?: D) => D;
+export type GluerReturn<S, D = S>  = {
+  readonly [P in keyof S]: S[P];
+} & fnc<D> & {
   actionType: string
 };
 
-export declare function gluer(fn: HandleFunc<any> ) : GluerReturn<{}>;
-export declare function gluer<T>(initialState: T) : GluerReturn<T>;
-export declare function gluer<T>(fn: HandleFunc<T>, initialState: T) : GluerReturn<T>;
-export const destruct: Destruct;
+
+export interface Femo<T> {
+  getState: () => { [index: string]: any },
+  referToState: (m: any) => any,
+  hasModel: (m: any) => boolean,
+  subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => any,
+  model: T
+}
+
+export function gluer<S, D = S>(onlyOne: HandleFunc<S, D> | S) : GluerReturn<S, D>;
+export function gluer<S, D = S>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S, D>;
+
+export default function femo<T>(structure: T): Femo<T>;

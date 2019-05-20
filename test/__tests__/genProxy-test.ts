@@ -1,4 +1,4 @@
-import { duplicatedError } from '../constants';
+import { mapTraceError } from '../constants';
 import { genReferencesMap } from '../../src/genProxy';
 
 describe('Proxy polyfill tests', () => {
@@ -11,12 +11,12 @@ describe('Proxy polyfill tests', () => {
     // 在node和浏览器中，对map做原型链延伸会报当前对象和map的方法不兼容
     // 而在jest中则不会有这个问题
     expect(map.get('name')).toBe('lily');
-    expect(() => map.set('name', 'lilei')).toThrow(duplicatedError);
+    expect(() => map.set('name', 'lilei')).toThrow(mapTraceError);
   });
   test('when Proxy is supported', () => {
     const map = genReferencesMap();
     map.set('name', 'lily');
     expect(map.get('name')).toBe('lily');
-    expect(() => map.set('name', 'lilei')).toThrow(duplicatedError);
+    expect(() => map.set('name', 'lilei')).toThrow(mapTraceError);
   });
 });

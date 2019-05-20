@@ -1,8 +1,39 @@
-import { syncActionFnFlag, syncActionFnFlagValue, actionType, reducerInAction, globalState, depsToCallbackMap } from './constants';
+import {
+  syncActionFnFlag,
+  syncActionFnFlagValue,
+  actionType,
+  reducerInAction,
+  globalState,
+  depsToCallbackMap, referencesMap, referenceToDepsMap, model as femoModel
+} from './constants';
 
-export const glueAction = (params) => {
+type fnc = (...params: any[]) => any;
+
+export interface InnerFemo {
+  [globalState]: {
+    [index: string]: any;
+  },
+  [referencesMap]: Map<any, string|symbol> | WrapMap,
+  [referenceToDepsMap]: Map<any, any[]>,
+  [depsToCallbackMap]: Map<any[], fnc>,
+  [femoModel]: { [index: string]: any }
+}
+
+interface GlueActionParams {
+  type: string;
+  action: ActionCreatorFn,
+  reducer: Reducer,
+  femo: InnerFemo
+}
+export type ActionDispatch = {
+  [reducerInAction]: Reducer,
+  readonly [syncActionFnFlag]: symbol,
+  readonly [actionType]: string,
+} & ActionCreatorFn;
+
+export const glueAction = (params: GlueActionParams) => {
   const { action, reducer, type, femo } = params;
-  const actionDispatch = function (...args) {
+  const actionDispatch: ActionDispatch = function (...args) {
     const data = action(...args);
     const actionObj = { type, data };
     // 处理state数据
@@ -15,7 +46,7 @@ export const glueAction = (params) => {
       });
     }
     return data;
-  };
+  } as ActionDispatch;
   Object.defineProperties(actionDispatch, {
     [syncActionFnFlag]: {
       value: syncActionFnFlagValue,

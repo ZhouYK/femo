@@ -1,22 +1,20 @@
 import { referenceToDepsMap, depsToCallbackMap, model as femoModel } from "./constants";
-// @ts-ignore
-const subscribe = (femo, reToStateFn) => {
+import { InnerFemo } from "./glueAction";
+import { ReferToState } from './referToState';
+
+const subscribe = (femo: InnerFemo, reToStateFn: ReferToState) => {
   const refToDepsMap = femo[referenceToDepsMap];
   const depsToFnMap = femo[depsToCallbackMap];
-  // @ts-ignore
-  // eslint-disable-next-line consistent-return
   return (...args: any[]) => {
-    // @ts-ignore
-    let callback;
-    // @ts-ignore
-    let copyDeps;
+    let callback: (...p: any[]) => void;
+    let copyDeps: any[];
     if (args.length === 0) {
       throw new Error(`Error: please input some params in subscribe function!`)
     } else if (args.length === 1) {
       if (typeof args[0] !== 'function') {
         throw new Error(`Error: the only param must be function! ${args[0]}`)
       }
-      // 没有写明依赖，只穿了一个函数
+      // 没有写明依赖，只传了一个函数
       // 默认依赖整个state
       [callback] = args;
       copyDeps = [femo[femoModel]];
@@ -29,12 +27,10 @@ const subscribe = (femo, reToStateFn) => {
       copyDeps = deps.length === 0 ? [femo[femoModel]] : [...deps];
     }
     const wrapCallback = () => {
-      // @ts-ignore
       let cacheDepsValue = copyDeps.map(dep => {
         return reToStateFn(dep);
       });
-      // @ts-ignore
-      return (...params) => {
+      return (...params: any[]) => {
         let flag = false;
         const res = params.map((dp, i) => {
           const value = reToStateFn(dp);
@@ -45,7 +41,6 @@ const subscribe = (femo, reToStateFn) => {
         });
         if (flag) {
           cacheDepsValue = res;
-          // @ts-ignore
           callback(...res);
         }
       }
@@ -56,20 +51,15 @@ const subscribe = (femo, reToStateFn) => {
     copyDeps.forEach(dep => {
       if (refToDepsMap.has(dep)) {
         const value = refToDepsMap.get(dep);
-        // @ts-ignore
-        value.push(copyDeps);
+        (value as any[]).push(copyDeps);
       } else {
-        // @ts-ignore
         refToDepsMap.set(dep, [copyDeps]);
       }
     });
     return function unsubscribe() {
-      // @ts-ignore
       depsToFnMap.delete(copyDeps);
-      // @ts-ignore
       refToDepsMap.forEach((value) => {
         for (let i = 0; i < value.length; i += 1) {
-          // @ts-ignore
           if (value[i] === copyDeps) {
             value.splice(1, i);
             break;

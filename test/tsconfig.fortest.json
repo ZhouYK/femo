@@ -21,5 +21,5 @@
     "noUnusedParameters": true,
     "typeRoots": ["../node_modules/@types", "../typings"]
   },
-  "exclude": ["../node_modules", "../dist"]
+  "include":["../typings", "../index.d.ts", "../test"]
 }

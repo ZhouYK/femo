@@ -1,30 +1,21 @@
-declare var intl: any;
-
-declare module "*.svg" {
-  const content: any;
-  export default content;
-}
-interface ConfigReturn {
-  install: () => void;
-}
-interface Raven {
-  config: (url: string, options: object) => ConfigReturn;
-}
 interface Window {
-  Raven: Raven;
+  Proxy: WindowProxy
 }
 
-interface ActionStruct {
+interface FemoAction {
   type: string;
-  payload?: any;
+  data: any;
 }
 
-declare module '*.less';
+interface WrapMap {
+  set: (key: any, value: any) => Map<any, any>,
+  get: (key: any) => Map<any, any>,
+  has: (key: any) => boolean
+}
 
-declare module '*.svg'
-declare module '*.png'
-declare module '*.jpg'
-declare module '*.jpeg'
-declare module '*.gif'
-declare module '*.bmp'
-declare module '*.tiff'
+interface ActionCreatorFn<T = any> {
+  (p: T): T;
+}
+interface Reducer {
+  (action: FemoAction, state: any): any;
+}

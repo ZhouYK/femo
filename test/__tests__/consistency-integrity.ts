@@ -14,20 +14,20 @@ store.model.family({
 describe('Data consistency and integrity tests', () => {
   test('if one node has been udpated, the whole state will be update', () => {
     const name = '小刘';
-    // @ts-ignore
+
     const state_1 = store.getState();
-    // @ts-ignore
+
     expect(state_1).toBe(store.referToState(store.model));
-    // @ts-ignore
+
     const result = store.model.family.papa.name(name);
     expect(result).toBe(name);
-    // @ts-ignore
+
     const state_2 = store.getState();
-    // @ts-ignore
+
     expect(state_2).toBe(store.referToState(store.model));
     expect(Object.is(state_1, state_2)).toBe(false);
 
-    // @ts-ignore
+
     expect(store.referToState(store.model.family.papa.name)).toBe(`蓝色的${name}`);
   });
 
@@ -36,22 +36,22 @@ describe('Data consistency and integrity tests', () => {
       name: '小王',
       age: 3
     };
-    // @ts-ignore
+
     const papa1 = store.referToState(store.model.family.papa);
-    // @ts-ignore
+
     const mama1 = store.referToState(store.model.family.mama);
-    // @ts-ignore
+
     const pets1 = store.referToState(store.model.family.pets);
 
-    // @ts-ignore
+
     const result = store.model.family.papa(newPapa);
     expect(Object.is(result, newPapa)).toBe(true);
 
-    // @ts-ignore
+
     const papa2 = store.referToState(store.model.family.papa);
-    // @ts-ignore
+
     const mama2 = store.referToState(store.model.family.mama);
-    // @ts-ignore
+
     const pets2 = store.referToState(store.model.family.pets);
 
     expect(papa2).toEqual({
@@ -75,18 +75,18 @@ describe('Data consistency and integrity tests', () => {
       }
     };
 
-    // @ts-ignore
+
     const family1 = store.referToState(store.model.family);
-    // @ts-ignore
+
     const pets1 = store.referToState(store.model.family.pets);
 
-    // @ts-ignore
+
     const result = store.model.family(family);
     expect(result).toBe(family);
 
-    // @ts-ignore
+
     const family2 = store.referToState(store.model.family);
-    // @ts-ignore
+
     const pets2 = store.referToState(store.model.family.pets);
 
     expect(family2).toEqual({

@@ -15,13 +15,15 @@ import {
   rootNodeMapKey,
   model as femoModel
 } from './constants'
-import { glueAction } from './glueAction';
+import {glueAction, ActionDispatch, InnerFemo} from './glueAction';
 import isPlainObject from './tools/isPlainObject';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
 import subscribe from './subscribe';
+import { Femo } from '../index';
 
-const defineInitStatePropsToFnc = (fnc, initState) => {
+
+const defineInitStatePropsToFnc = (fnc: ActionDispatch, initState: { [index: string]: any }) => {
   if (isPlainObject(initState)) {
     Object.keys(initState).forEach((propName) => {
       Object.defineProperty(fnc, propName, {
@@ -40,7 +42,7 @@ const defineInitStatePropsToFnc = (fnc, initState) => {
  * @param kes
  * @returns {{result: null, flag: boolean}}
  */
-const getSubState = (actionData, kes) => {
+const getSubState = (actionData: any, kes: string[]) => {
   let result = actionData;
   const final = {
     flag: false,
@@ -68,13 +70,20 @@ const getSubState = (actionData, kes) => {
  * @param redu
  * @returns {function(*, *=): {[p: string]: *}}
  */
-const transformReducerToNestFnc = (k, redu) => {
+const transformReducerToNestFnc = (k: string, redu: Reducer) => {
   const kArr = k.split(uniqueTypeConnect);
-  return kArr.reduceRight((pre, cur) => (ac, state) => {
+  const { length } = kArr;
+  return kArr.reduceRight((pre, cur, index) => (ac: FemoAction, state: { [index: string]: any }) => {
     // 这里做了一个优化，如果节点返回值与传入state一致则不更新
     // return { ...state, [`${cur}`]: pre(state[`${cur}`], ac) }
     const curValue = state[cur];
-    const temp = pre(ac, curValue);
+    let info = ac;
+    // 用户的reducer不处理 { type, data }，直接处理data
+    // 为了ts验证时数据一致
+    if (index === length - 1) {
+      info = ac.data;
+    }
+    const temp = pre(info, curValue);
     if (process.env.NODE_ENV === development) {
       if (Object.is(temp, undefined)) {
         console.error(`Warning：the reducer handling "${ac.type}" has returned "undefined"！`);
@@ -87,13 +96,17 @@ const transformReducerToNestFnc = (k, redu) => {
   }, redu);
 };
 
+interface PlainObject {
+  [index: string]: any;
+}
+
 /**
  * 判断action creator是否已经处理过
  * @param actionFn
  * @returns {boolean}
  */
-const isGlueAction = actionFn => (actionFn[syncActionFnFlag] === syncActionFnFlagValue);
-const actionError = (actionFn, obj, key) => {
+const isGlueAction = (actionFn: ActionDispatch) => (actionFn[syncActionFnFlag] === syncActionFnFlagValue);
+const actionError = (actionFn: ActionDispatch, obj: { [index: string]: any } | { [index: number]: any }, key: string) => {
   if (isGlueAction(actionFn)) {
     console.trace();
     throw new Error(`the "${key}" of ${obj}, which only can be processed only once, is already processed`);
@@ -103,15 +116,15 @@ const actionError = (actionFn, obj, key) => {
 /**
  * 递归对象，生成标准的action以及链接reducer对象的键值与action的type
  */
-const degrade = (model) =>{
-  const femo = {
+const degrade = <T = PlainObject>(model: T): Femo<T> => {
+  const femo: InnerFemo = {
     [globalState]: {},
     [referencesMap]: genReferencesMap(),
     [referenceToDepsMap]: new Map(),
     [depsToCallbackMap]: new Map(),
     [femoModel]: model
   };
-  const fn = (curObj, keyStr = [], topNode = curObj, df = femo[globalState], originalNode = null, originalKey = '') => {
+  const fn = (curObj: PlainObject, keyStr: string[] = [], topNode = curObj, df = femo[globalState], originalNode: PlainObject = {}, originalKey = '') => {
     if (isPlainObject(curObj)) {
       // 设置整个对象的索引
       // 整个model的引用
@@ -161,7 +174,7 @@ const degrade = (model) =>{
               const subKeysStr = acType.replace(new RegExp(`${originalKey}\.`), '');
               const keyArr = subKeysStr.split(uniqueTypeConnect);
               // 重写action的reducer
-              originalAction[reducerInAction] = (ac, state) => {
+              originalAction[reducerInAction] = (ac: FemoAction | any, state: any) => {
                 const { data, type } = ac;
                 const { flag, result } = getSubState(data, keyArr);
                 let stateInit = state;
@@ -205,22 +218,20 @@ const degrade = (model) =>{
           keyStr.pop();
         }
       });
-    } else if (!originalNode) {
+    } else if (!originalKey) {
       throw new Error('the argument muse be plain object!');
-    } else {
-      // 非普通对象的initialState暂不处理
-      return null;
     }
-    const reToStateFn = referToState(femo);
-    return {
-      getState: () => femo[globalState],
-      referToState: (m) => reToStateFn(m),
-      hasModel: (m) => femo[referencesMap].has(m),
-      subscribe: subscribe(femo, reToStateFn),
-      model: curObj
-    };
   };
-  return fn(model);
+  fn(model);
+  const reToStateFn = referToState(femo);
+  const finalResult = {
+    getState: () => femo[globalState],
+    referToState: (m: any) => reToStateFn(m),
+    hasModel: (m: any) => femo[referencesMap].has(m),
+    subscribe: subscribe(femo, reToStateFn),
+    model
+  };
+  return finalResult;
 };
 export { degrade };
 export default degrade;
