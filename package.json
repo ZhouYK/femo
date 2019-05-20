@@ -35,9 +35,9 @@
   ],
   "scripts": {
     "build": "npm run tsc && npm run cj && npm run es && npm run umd",
-    "tsc": "tsc --outDir src --outDir ts",
-    "cj": "cross-env NODE_ENV=cj babel ts/src --out-dir dist/cj",
-    "es": "babel ts/src --out-dir dist/es",
+    "tsc": "tsc -p ./",
+    "cj": "cross-env NODE_ENV=cj babel src --out-dir dist/cj",
+    "es": "babel src --out-dir dist/es",
     "start": "webpack-dev-server --config webpack.dev.config.js",
     "test": "jest --no-cache",
     "umd": "webpack --config webpack.config.js"
@@ -79,7 +79,8 @@
     "dist/es",
     "dist/cj",
     "dist/umd",
-    "package.json"
+    "package.json",
+    "index.d.ts"
   ],
   "dependencies": {
     "@babel/polyfill": "~7.4.4",
