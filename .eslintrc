@@ -40,6 +40,7 @@
   ],
   "rules": {
     "import/prefer-default-export": 1,
+    "import/no-extraneous-dependencies": ["warn"],
     "@typescript-eslint/no-empty-interface": [
       "warn",
       {

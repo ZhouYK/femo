@@ -1,6 +1,6 @@
 import gluer from "../../src/gluer";
 import femo from "../../src";
-import { duplicatedError } from '../constants';
+import { mapTraceError, duplicatedError } from '../constants';
 
 describe('state edge case test', () => {
   // 主要测试不能使用in操作符的属性类型
@@ -26,7 +26,7 @@ describe('state edge case test', () => {
       person: {}
     };
     model.person = model;
-    expect(() => femo(model)).toThrow(duplicatedError);
+    expect(() => femo(model)).toThrow(mapTraceError);
   });
   // 两个或两个以上的地方使用了同一个model的reference
   test('one model is used more than one place', () => {
@@ -42,6 +42,13 @@ describe('state edge case test', () => {
       person
     };
     const wholeModel = { model, human };
-    expect(() => femo(wholeModel)).toThrow(duplicatedError);
+    expect(() => femo(wholeModel)).toThrow(mapTraceError);
+    const pet = {
+      name: gluer('小狗')
+    };
+    const mo = { pet };
+    femo(mo);
+    expect(() => femo(wholeModel)).toThrow(duplicatedError)
   });
+
 });
