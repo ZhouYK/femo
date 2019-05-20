@@ -24,5 +24,10 @@ module.exports = {
         loader: 'ts-loader',
       }]
     }],
-  }
+  },
+  resolve: {
+    alias: {},
+    mainFiles: ['index'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.d.ts'],
+  },
 }
