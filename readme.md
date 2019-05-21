@@ -20,11 +20,9 @@ yarn add femo
 
 ### Overview
 
-*model*
+*model derives state*
 
 ![model](./assets/model.jpg)
-
-model derived state
 ___
 
 *retrieve the "p3"*
