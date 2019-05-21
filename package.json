@@ -1,7 +1,12 @@
 {
   "description": "frontend data management",
   "version": "0.0.1",
-  "keywords": ["functional program", "frontend", "data management", "redux"],
+  "keywords": [
+    "functional program",
+    "frontend",
+    "data management",
+    "redux"
+  ],
   "license": "MIT",
   "main": "dist/es/index.js",
   "name": "femo",
@@ -35,6 +40,7 @@
     "ie >= 9"
   ],
   "scripts": {
+    "codecov": "codecov -t 49032a93-7d9a-4205-b14f-2ce81b8a8662",
     "clean-js": "rm -f src/*.js",
     "build": "npm run test && npm run tsc && npm run cj && npm run es && npm run umd",
     "tsc": "tsc -p ./",
@@ -56,6 +62,7 @@
     "@typescript-eslint/eslint-plugin": "~1.9.0",
     "@typescript-eslint/parser": "~1.9.0",
     "babel-loader": "^8.0.5",
+    "codecov": "~3.5.0",
     "cross-env": "^5.2.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
