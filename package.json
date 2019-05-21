@@ -1,6 +1,7 @@
 {
   "description": "frontend data management",
   "version": "0.0.1",
+  "keywords": ["functional program", "frontend", "data management", "redux"],
   "license": "MIT",
   "main": "dist/es/index.js",
   "name": "femo",
@@ -15,8 +16,8 @@
       "^.+\\.(ts|js)x?$": "ts-jest"
     },
     "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/__mocks__/fileMock.js",
-      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js"
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/__mocks__/fileMock.ts",
+      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.ts"
     },
     "moduleDirectories": [
       "node_modules"
@@ -34,12 +35,13 @@
     "ie >= 9"
   ],
   "scripts": {
-    "build": "npm run tsc && npm run cj && npm run es && npm run umd",
+    "clean-js": "rm -f src/*.js",
+    "build": "npm run test && npm run tsc && npm run cj && npm run es && npm run umd",
     "tsc": "tsc -p ./",
     "cj": "cross-env NODE_ENV=cj babel src --out-dir dist/cj",
     "es": "babel src --out-dir dist/es",
     "start": "webpack-dev-server --config webpack.dev.config.js",
-    "test": "jest --no-cache",
+    "test": "npm run clean-js && jest --no-cache",
     "umd": "webpack --config webpack.config.js"
   },
   "devDependencies": {

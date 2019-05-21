@@ -16,7 +16,7 @@ import {
   model as femoModel
 } from './constants'
 import {glueAction, ActionDispatch, InnerFemo} from './glueAction';
-import isPlainObject from './tools/isPlainObject';
+import { isPlainObject } from './tools';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
 import subscribe from './subscribe';
