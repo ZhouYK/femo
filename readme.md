@@ -5,12 +5,11 @@
 [![NPM downloads](http://img.shields.io/npm/dm/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
 ![package size](https://img.shields.io/bundlephobia/minzip/femo.svg?style=flat)
 ![license](https://img.shields.io/github/license/ZhouYK/glue-redux.svg)
-## femo
+# femo
 
 *function-centric data management inspired by [redux](https://github.com/reduxjs/redux)*
 
-### release
-[![NPM version](https://img.shields.io/npm/v/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
+### Release [![NPM version](https://img.shields.io/npm/v/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
 
 ```bash
 npm i femo
