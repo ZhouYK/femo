@@ -109,4 +109,4 @@ unsubscribe();
 ```
 
 ### More
-*more docs and illustration are coming soon
+*more docs and illustration are coming soon*
