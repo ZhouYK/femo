@@ -12,7 +12,7 @@ module.exports = {
   },
   module: {
     rules: [{
-      test: /\.(ts|js)x?$/,
+      test: /\.tsx?$/,
       exclude: /node_modules/,
       use: [{
         loader:'babel-loader',
@@ -25,7 +25,7 @@ module.exports = {
     }],
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
   },
   devServer: {
     host: '0.0.0.0',
