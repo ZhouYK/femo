@@ -51,4 +51,7 @@ describe('state edge case test', () => {
     expect(() => femo(wholeModel)).toThrow(duplicatedError)
   });
 
+  test('the argument muse be plain object!', () => {
+    expect(() => femo([])).toThrow('the argument muse be plain object!');
+  });
 });
