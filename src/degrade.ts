@@ -116,7 +116,7 @@ const actionError = (actionFn: ActionDispatch, obj: { [index: string]: any } | {
 /**
  * 递归对象，生成标准的action以及链接reducer对象的键值与action的type
  */
-const degrade = <T = PlainObject>(model: T): Femo<T> => {
+const degrade = <T = PlainObject>(model: T, helpers: any[]): Femo<T> => {
   const femo: InnerFemo = {
     [globalState]: {},
     [referencesMap]: genReferencesMap(),
@@ -224,13 +224,21 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
   };
   fn(model);
   const reToStateFn = referToState(femo);
-  const finalResult = {
+  const finalResult: Femo<T> = {
     getState: () => femo[globalState],
     referToState: (m: any) => reToStateFn(m),
     hasModel: (m: any) => femo[referencesMap].has(m),
     subscribe: subscribe(femo, reToStateFn),
-    model
+    model,
   };
+  const reservedKeys = ['getState', 'referToState', 'hasModel', 'subscribe', 'model'];
+  if (helpers && helpers.length > 0) {
+    helpers.forEach((help) => {
+      if (!reservedKeys.includes(help.exposeName)) {
+        finalResult[help.exposeName] = help(finalResult);
+      }
+    });
+  }
   return finalResult;
 };
 export { degrade };

@@ -1,5 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
+// @ts-ignore
+import connect from 'femo-react-helper';
 import femo, { gluer } from '../src';
 
 const computer = gluer((data, state) => {
@@ -11,7 +13,7 @@ const electronicDevice = {
   surface: computer,
   mbp: computer
 };
-const store = femo(electronicDevice);
+const store = femo(electronicDevice, [connect]);
 
 console.log(store.getState());
 // { computer: { cpu: 'intl', monitor: 'dell' }, surface: { cpu: 'intl', monitor: 'dell' }, mbp: { cpu: 'intl', monitor: 'dell' } }
@@ -33,8 +35,23 @@ console.log(store.hasModel('index')) // false
 // unsubscribe
 unsubscribe();
 
-const App = () => {
+const App = (props: any) => {
+  console.log(props);
   return null;
 };
 
-render(<App />, document.getElementById('bd'));
+// @ts-ignore
+const WrappedApp = store.react([store.model.surface], (surface: any) => {
+  return {
+    surface
+  }
+})(App);
+
+setTimeout(() => {
+  store.model.surface({
+    cpu: 'ausu',
+    monitor: 'acer'
+  });
+}, 2000);
+
+render(<WrappedApp />, document.getElementById('bd'));

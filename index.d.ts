@@ -2,7 +2,7 @@
 export type HandleFunc<S, D = S> = (data: D, state: S) => S;
 
 type fnc<D> = (data?: D) => D;
-export type GluerReturn<S, D = S>  = {
+export type GluerReturn<S, D = S>  = S & {
   readonly [P in keyof S]: S[P];
 } & fnc<D> & {
   actionType: string
@@ -14,7 +14,8 @@ export interface Femo<T> {
   referToState: (m: any) => any,
   hasModel: (m: any) => boolean,
   subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => any,
-  model: T
+  model: T,
+  [index: string]: any;
 }
 
 export function gluer<S, D = S>(onlyOne: HandleFunc<S, D> | S) : GluerReturn<S, D>;

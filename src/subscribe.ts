@@ -30,6 +30,8 @@ const subscribe = (femo: InnerFemo, reToStateFn: ReferToState) => {
       let cacheDepsValue = copyDeps.map(dep => {
         return reToStateFn(dep);
       });
+      // 初始化时，执行一次回调，注入初始值
+      callback(...cacheDepsValue);
       return (...params: any[]) => {
         let flag = false;
         const res = params.map((dp, i) => {
