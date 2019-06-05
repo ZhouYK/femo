@@ -8,13 +8,17 @@ export type GluerReturn<S, D = S>  = S & {
   actionType: string
 };
 
+interface PlainObject {
+  [index: string]: any;
+}
 
 export interface Femo<T> {
-  getState: () => { [index: string]: any },
-  referToState: (m: any) => any,
-  hasModel: (m: any) => boolean,
-  subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => any,
-  model: T,
+  getState: () => { [index: string]: any };
+  referToState: (m: any) => any;
+  hasModel: (m: any) => boolean;
+  subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => any;
+  model: T;
+  react?: (deps: any[], callback: (...args: any[]) => PlainObject) => (component: any) => any;
   [index: string]: any;
 }
 

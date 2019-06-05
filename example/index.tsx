@@ -40,7 +40,6 @@ const App = (props: any) => {
   return null;
 };
 
-// @ts-ignore
 const WrappedApp = store.react([store.model.surface], (surface: any) => {
   return {
     surface

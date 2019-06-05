@@ -224,6 +224,7 @@ const degrade = <T = PlainObject>(model: T, helpers: any[]): Femo<T> => {
   };
   fn(model);
   const reToStateFn = referToState(femo);
+
   const finalResult: Femo<T> = {
     getState: () => femo[globalState],
     referToState: (m: any) => reToStateFn(m),
