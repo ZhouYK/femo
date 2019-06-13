@@ -1,4 +1,3 @@
-
 import {
   gluerUniqueFlagKey,
   gluerUniqueFlagValue,
@@ -13,14 +12,15 @@ import {
   referenceToDepsMap,
   depsToCallbackMap,
   rootNodeMapKey,
-  model as femoModel
+  model as femoModel, registerFlag
 } from './constants'
-import {glueAction, ActionDispatch, InnerFemo} from './glueAction';
+import {glueAction, ActionDispatch } from './glueAction';
 import { isPlainObject } from './tools';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
 import subscribe from './subscribe';
-import { Femo } from '../index';
+import genRegister from './genRegister';
+import {Femo, InnerFemo} from './interface';
 
 
 const defineInitStatePropsToFnc = (fnc: ActionDispatch, initState: { [index: string]: any }) => {
@@ -116,14 +116,18 @@ const actionError = (actionFn: ActionDispatch, obj: { [index: string]: any } | {
 /**
  * 递归对象，生成标准的action以及链接reducer对象的键值与action的type
  */
-const degrade = <T = PlainObject>(model: T, helpers: any[]): Femo<T> => {
+const degrade = <T = PlainObject>(model: T): Femo<T> => {
   const femo: InnerFemo = {
     [globalState]: {},
     [referencesMap]: genReferencesMap(),
     [referenceToDepsMap]: new Map(),
     [depsToCallbackMap]: new Map(),
-    [femoModel]: model
-  };
+    [femoModel]: model,
+    [registerFlag]: () => {
+      console.error('There is no any connect plugin, please register one!');
+      return () => '';
+    }
+};
   const fn = (curObj: PlainObject, keyStr: string[] = [], topNode = curObj, df = femo[globalState], originalNode: PlainObject = {}, originalKey = '') => {
     if (isPlainObject(curObj)) {
       // 设置整个对象的索引
@@ -230,16 +234,12 @@ const degrade = <T = PlainObject>(model: T, helpers: any[]): Femo<T> => {
     referToState: (m: any) => reToStateFn(m),
     hasModel: (m: any) => femo[referencesMap].has(m),
     subscribe: subscribe(femo, reToStateFn),
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define,no-use-before-define
+    registerConnect: genRegister(femo, finalResult),
+    connect: femo[registerFlag],
     model,
   };
-  const reservedKeys = ['getState', 'referToState', 'hasModel', 'subscribe', 'model'];
-  if (helpers && helpers.length > 0) {
-    helpers.forEach((help) => {
-      if (!reservedKeys.includes(help.exposeName)) {
-        finalResult[help.exposeName] = help(finalResult);
-      }
-    });
-  }
   return finalResult;
 };
 export { degrade };
