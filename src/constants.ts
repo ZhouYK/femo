@@ -15,7 +15,6 @@ export const depsToCallbackMap = Symbol('depsToCallbackMap');
 export const nodesRecord = Symbol('nodesRecord');
 export const rootNodeMapKey = Symbol('rootNodeMapKey');
 export const model = Symbol('model');
-export const registerFlag = Symbol('registerConnect');
 
 export default {
   uniqueTypeConnect,
@@ -35,5 +34,4 @@ export default {
   nodesRecord,
   rootNodeMapKey,
   model,
-  registerFlag
 };

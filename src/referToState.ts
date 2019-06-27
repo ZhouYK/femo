@@ -4,7 +4,7 @@ import {
   referencesMap,
   globalState
 } from './constants';
-import { InnerFemo } from "./glueAction";
+import { InnerFemo } from "./interface";
 
 export interface ReferToState {
   (femo: InnerFemo): (model: any) => any;

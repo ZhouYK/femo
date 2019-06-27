@@ -4,15 +4,14 @@ import {
   model as femoModel,
   referencesMap,
   referenceToDepsMap,
-  registerFlag
 } from "./constants";
 
-interface PlainObject {
-  [index: string]: any;
+interface ReactionFn<T = any, R = any>  {
+  (data: T): R;
 }
 
-export interface Connect {
-  (deps: any[], callback: (...args: any[]) => PlainObject): (consumer: any) => any;
+export interface Connect<T = any, R = any> {
+  (deps: any[], callback: (...args: any[]) => T): (reactionFn: ReactionFn<T, R>) => R;
 }
 
 export interface ConnectPlugin {
@@ -29,8 +28,6 @@ export interface Femo<T> {
   hasModel: (m: any) => boolean;
   subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => any;
   model: T;
-  registerConnect: ConnectRegister;
-  connect: Connect;
 }
 
 type fnc = (...params: any[]) => any;
@@ -43,6 +40,5 @@ export interface InnerFemo {
   [referenceToDepsMap]: Map<any, any[]>,
   [depsToCallbackMap]: Map<any[], fnc>,
   [femoModel]: { [index: string]: any },
-  [registerFlag]: Connect;
 }
 

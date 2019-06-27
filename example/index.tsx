@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { render } from 'react-dom';
 // @ts-ignore
 import femo, { gluer } from '../src';
@@ -34,17 +34,20 @@ console.log(store.hasModel('index')); // false
 // unsubscribe
 unsubscribe();
 
-const App = (props: any) => {
-  console.log(props);
+const App = () => {
+  const [state, stateUpdator] = useState(() => {
+    let temp;
+    store.subscribe([store.model.surface], (surface) => {
+      temp = surface;
+      if (stateUpdator) {
+        stateUpdator(surface);
+      }
+    });
+    return temp;
+  });
+  console.log(state);
   return null;
 };
-
-const WrappedApp = store.react([store.model.surface], (surface: any) => {
-  return {
-    surface
-  }
-})(App);
-
 setTimeout(() => {
   store.model.surface({
     cpu: 'ausu',
@@ -52,4 +55,4 @@ setTimeout(() => {
   });
 }, 2000);
 
-render(<WrappedApp />, document.getElementById('bd'));
+render(<App />, document.getElementById('bd'));

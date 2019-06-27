@@ -1,5 +1,5 @@
 import { referenceToDepsMap, depsToCallbackMap, model as femoModel } from "./constants";
-import { InnerFemo } from "./glueAction";
+import { InnerFemo } from "./interface";
 import { ReferToState } from './referToState';
 
 const subscribe = (femo: InnerFemo, reToStateFn: ReferToState) => {

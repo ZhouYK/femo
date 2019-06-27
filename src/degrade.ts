@@ -12,14 +12,13 @@ import {
   referenceToDepsMap,
   depsToCallbackMap,
   rootNodeMapKey,
-  model as femoModel, registerFlag
+  model as femoModel
 } from './constants'
 import {glueAction, ActionDispatch } from './glueAction';
 import { isPlainObject } from './tools';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
 import subscribe from './subscribe';
-import genRegister from './genRegister';
 import {Femo, InnerFemo} from './interface';
 
 
@@ -123,10 +122,6 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
     [referenceToDepsMap]: new Map(),
     [depsToCallbackMap]: new Map(),
     [femoModel]: model,
-    [registerFlag]: () => {
-      console.error('There is no any connect plugin, please register one!');
-      return () => '';
-    }
 };
   const fn = (curObj: PlainObject, keyStr: string[] = [], topNode = curObj, df = femo[globalState], originalNode: PlainObject = {}, originalKey = '') => {
     if (isPlainObject(curObj)) {
@@ -234,10 +229,6 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
     referToState: (m: any) => reToStateFn(m),
     hasModel: (m: any) => femo[referencesMap].has(m),
     subscribe: subscribe(femo, reToStateFn),
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define,no-use-before-define
-    registerConnect: genRegister(femo, finalResult),
-    connect: femo[registerFlag],
     model,
   };
   return finalResult;
