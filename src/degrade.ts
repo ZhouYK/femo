@@ -107,7 +107,6 @@ interface PlainObject {
 const isGlueAction = (actionFn: ActionDispatch) => (actionFn[syncActionFnFlag] === syncActionFnFlagValue);
 const actionError = (actionFn: ActionDispatch, obj: { [index: string]: any } | { [index: number]: any }, key: string) => {
   if (isGlueAction(actionFn)) {
-    console.trace();
     throw new Error(`the "${key}" of ${obj}, which only can be processed only once, is already processed`);
   }
 };
