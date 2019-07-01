@@ -106,5 +106,4 @@ describe('subscribe tests', () => {
     expect(subMock_1.mock.calls.length).toBe(3); // 解绑成功
 
   });
-
 });

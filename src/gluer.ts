@@ -8,14 +8,12 @@ const warning = 'highly recommend setting the initial state with the reducer：'
 const getWarning = (rd: HandleFunc<any, any>) => `${warning}${rd.toString()}`;
 
 /**
- * 同步节点生成函数
+ * 节点生成函数
  * @param rd 非必需
  * @param initialState 非必需
  * @returns {function(): {action: *, reducer: *, initState: *}}
  */
-// @ts-ignore
 function gluer<S, D = S>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S, D>;
-// @ts-ignore
 function gluer<S, D = S>(onlyOne?: HandleFunc<S, D> | S) : GluerReturn<S, D>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;

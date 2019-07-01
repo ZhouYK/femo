@@ -22,11 +22,11 @@ export type ActionDispatch = {
 
 export const glueAction = (params: GlueActionParams) => {
   const { action, reducer, type, femo } = params;
-  const actionDispatch: ActionDispatch = function (...args) {
-    const data = action(...args);
+  const actionDispatch: ActionDispatch = function (payload: any, customHandler?: typeof reducer) {
+    const data = action(payload);
     const actionObj = { type, data };
     // 处理state数据
-    const result = actionDispatch[reducerInAction](actionObj, femo[globalState]);
+    const result = actionDispatch[reducerInAction](actionObj, femo[globalState], customHandler);
     const state = femo[globalState];
     if (!Object.is(result, state)) {
       femo[globalState] = result;

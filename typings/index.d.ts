@@ -17,5 +17,5 @@ interface ActionCreatorFn<T = any> {
   (p: T): T;
 }
 interface Reducer {
-  (action: FemoAction, state: any): any;
+  (action: FemoAction, state: any, customHandler?: Reducer): any;
 }

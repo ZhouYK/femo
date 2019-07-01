@@ -28,5 +28,18 @@ test('referToState test', () => {
   expect(mama_1).toBe(mama_2);
   expect(mama_1).toEqual(mama_2);
 
+  const pets = store.referToState(store.model.family.pets);
+  expect(pets).toEqual({
+    name: '张三',
+    age: 10
+  });
+  store.model.family.pets({
+    age: 20
+  });
+  expect(store.referToState(store.model.family.pets)).toEqual({
+    name: '张三',
+    age: 200
+  });
+
 });
 
