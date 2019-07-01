@@ -110,6 +110,21 @@ console.log(store.referToState(store.model.surface)); // { cpu: 'intl', monitor:
 console.log(store.hasModel(store.model.surface)) // true
 console.log(store.hasModel('index')) // false
 
+// custom handler
+// It will hijack the data process
+// The original data handler will not be executed
+store.model.surface({
+	cpu: 'i7',
+	monitor: 'asus'
+}, (data, state) => {
+  const temp = { ...data };
+  temp.cpu = `surface-${temp.cpu}`;
+  temp.monitor = `surface-${temp.monitor}`;
+  return { ...state, ...temp };
+});
+
+console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
+
 // unsubscribe
 unsubscribe();
 ```
