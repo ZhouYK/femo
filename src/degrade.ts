@@ -15,11 +15,13 @@ import {
   model as femoModel
 } from './constants'
 import {glueAction, ActionDispatch } from './glueAction';
-import { isPlainObject } from './tools';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// @ts-ignore
+import {isAsyncFunction, isPlainObject} from './tools';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
 import subscribe from './subscribe';
-import {Femo, InnerFemo} from './interface';
+import {Femo, InnerFemo, Bridge} from './interface';
 
 
 const defineInitStatePropsToFnc = (fnc: ActionDispatch, initState: { [index: string]: any }) => {
@@ -69,7 +71,7 @@ const getSubState = (actionData: any, kes: string[]) => {
  * @param redu
  * @returns {function(*, *=): {[p: string]: *}}
  */
-const transformReducerToNestFnc = (k: string, redu: Reducer) => {
+const transformReducerToNestFnc = (k: string, redu: Reducer, bridge: Bridge) => {
   const kArr = k.split(uniqueTypeConnect);
   const { length } = kArr;
   return kArr.reduceRight((pre, cur, index) => (ac: FemoAction, state: { [index: string]: any }, customHandler?: Reducer) => {
@@ -84,6 +86,12 @@ const transformReducerToNestFnc = (k: string, redu: Reducer) => {
       info = ac.data;
       pre = customHandler || pre;
       temp = pre(info, curValue);
+      bridge.result = temp;
+      // 如果是异步函数，则不更新state
+      // 这个会在actionDispatch中再去调用一次，从而更新数据
+      // if (isAsyncFunction(customHandler)) {
+      //     return state;
+      // }
     } else {
       temp = pre(info, curValue, customHandler)
     }
@@ -146,7 +154,8 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
           if (value[gluerUniqueFlagKey] === gluerUniqueFlagValue) {
             const { action: actionFn, reducer, initState } = value();
             const syncActionType = key === str ? key : str;
-            const nodeReducer = transformReducerToNestFnc(str, reducer);
+            const bridge = {};
+            const nodeReducer = transformReducerToNestFnc(str, reducer, bridge);
             // 进行类似bindActionCreators的动作
             // 此处向action函数添加其对应的type属性，以便可以和其他以type为判断条件的中间件协同工作，比如redux-saga
             const acType = `${glueStatePrefix}${syncActionType}`;
@@ -154,7 +163,8 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
               type: acType,
               action: actionFn,
               reducer: nodeReducer,
-              femo
+              femo,
+              bridge,
             });
             // 重新赋值
             /* eslint no-param-reassign:0 */
@@ -172,7 +182,7 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
             if (originalKey) {
               const originalAction = originalNode[originalKey];
               const originalReducerInAction = originalAction[reducerInAction];
-              // eslint-disable-next-line no-useless-escape
+                // eslint-disable-next-line no-useless-escape
               const subKeysStr = acType.replace(new RegExp(`^${originalKey}\.`), '');
               const keyArr = subKeysStr.split(uniqueTypeConnect);
               // 重写action的reducer

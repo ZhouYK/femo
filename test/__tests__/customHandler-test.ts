@@ -23,7 +23,7 @@ describe('customHandler test', () => {
     expect(mockFn.mock.calls.length).toBe(1);
 
     const customMockFn = jest.fn((data, state) => {
-      return { ...data, ...state, flag: 'custom' }
+      return { ...state, ...data,  flag: 'custom' }
     });
 
     const data = {
@@ -32,7 +32,12 @@ describe('customHandler test', () => {
     };
     const returnResult = store.model.mobilePhone(data, customMockFn);
 
-    expect(returnResult).toEqual(data);
+    expect(returnResult).toBe(store.referToState(store.model.mobilePhone));
+    expect(returnResult).toEqual({
+        name: '小天',
+        number: '18023482345',
+        flag: 'custom'
+    });
     expect(mockFn.mock.calls.length).toBe(1);
     expect(customMockFn.mock.calls.length).toBe(1);
 

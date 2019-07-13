@@ -42,3 +42,7 @@ export interface InnerFemo {
   [femoModel]: { [index: string]: any },
 }
 
+export interface Bridge {
+    result?: any;
+}
+

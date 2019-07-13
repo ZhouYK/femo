@@ -20,7 +20,7 @@ describe('Data consistency and integrity tests', () => {
     expect(state_1).toBe(store.referToState(store.model));
 
     const result = store.model.family.papa.name(name);
-    expect(result).toBe(name);
+    expect(result).toBe('蓝色的小刘');
 
     const state_2 = store.getState();
 
@@ -45,7 +45,13 @@ describe('Data consistency and integrity tests', () => {
 
 
     const result = store.model.family.papa(newPapa);
-    expect(Object.is(result, newPapa)).toBe(true);
+    expect(Object.is(result, newPapa )).toBe(false);
+    expect(result).toBe(store.referToState(store.model.family.papa));
+    expect(result).toEqual({
+        name: '蓝色的小王',
+        job: '法官',
+        age: 30
+    });
 
 
     const papa2 = store.referToState(store.model.family.papa);
@@ -82,7 +88,7 @@ describe('Data consistency and integrity tests', () => {
 
 
     const result = store.model.family(family);
-    expect(result).toBe(family);
+    expect(result).toBe(store.referToState(store.model.family));
 
 
     const family2 = store.referToState(store.model.family);
