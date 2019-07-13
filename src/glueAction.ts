@@ -29,25 +29,35 @@ export const glueAction = (params: GlueActionParams) => {
         const actionObj = { type, data };
         const handleFunc = actionDispatch[reducerInAction];
         // 处理state数据
-        const handleAndPublish = () => {
-            const result = handleFunc(actionObj, femo[globalState], customHandler);
-            const state = femo[globalState];
-            // reducer里面对async做了处理：不更新数据，原样返回state
-            // 不会进入下面的条件
-            if (!Object.is(result, state)) {
-                femo[globalState] = result;
-                femo[depsToCallbackMap].forEach((value, key) => {
-                    value(...key);
-                });
-            }
-        }
-        handleAndPublish();
+        const result = handleFunc(actionObj, femo[globalState], customHandler);
         if (isAsyncFunction(customHandler)) {
             return bridge.result.then((res: any) => {
                 actionObj.data = res;
-                handleAndPublish();
-                return res;
+                // 这里不传入customHandler
+                console.log('actionObj：', actionObj, femo[globalState]);
+                const innerResult = handleFunc(actionObj, femo[globalState]);
+                console.log('innerResult：', innerResult);
+                const state = femo[globalState];
+                // reducer里面对async做了处理：不更新数据，原样返回state
+                // 不会进入下面的条件
+                if (!Object.is(innerResult, state)) {
+                    femo[globalState] = innerResult;
+                    console.log('femo[globalState]:', femo[globalState]);
+                    femo[depsToCallbackMap].forEach((value, key) => {
+                        value(...key);
+                    });
+                }
+                return bridge.result;
             })
+        }
+        const state = femo[globalState];
+        // reducer里面对async做了处理：不更新数据，原样返回state
+        // 不会进入下面的条件
+        if (!Object.is(result, state)) {
+            femo[globalState] = result;
+            femo[depsToCallbackMap].forEach((value, key) => {
+                value(...key);
+            });
         }
         return bridge.result;
     } as ActionDispatch;

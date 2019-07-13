@@ -47,5 +47,32 @@ describe('customHandler test', () => {
       number: '18023482345'
     });
     console.log(store.referToState(store.model.mobilePhone));
+  });
+  test('async customHandler test with async', async () => {
+      const name = gluer('小明');
+      const store = femo({
+          name
+      });
+      const final = await store.model.name('入参', async () => {
+          return '哈哈哈';
+      });
+      expect(final).toEqual('哈哈哈');
+      expect(store.referToState(store.model.name)).toBe('哈哈哈');
+  });
+  test('async customerHandler test with promise', () => {
+      const name = gluer('小明');
+      const store = femo({
+          name
+      });
+      const final = store.model.name('入参', async () => {
+          return '哈哈哈';
+      });
+      expect(final).toEqual(Promise.resolve('哈哈哈'));
+      // 异步更新，此时还未执行
+      expect(store.referToState(store.model.name)).toBe('小明');
+      (final as Promise<string>).then((data: string) => {
+          expect(store.referToState(store.model.name)).toBe('哈哈哈');
+          return Promise.resolve(data);
+      }).catch((err: any) => Promise.reject(err))
   })
 })
