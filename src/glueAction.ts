@@ -6,7 +6,7 @@ import {
     globalState,
     depsToCallbackMap,
 } from './constants';
-import { isAsyncFunction } from './tools';
+import { isAsync } from './tools';
 import { InnerFemo, Bridge } from './interface';
 
 interface GlueActionParams {
@@ -29,25 +29,32 @@ export const glueAction = (params: GlueActionParams) => {
         const actionObj = { type, data };
         const handleFunc = actionDispatch[reducerInAction];
         // 处理state数据
-        const handleAndPublish = () => {
-            const result = handleFunc(actionObj, femo[globalState], customHandler);
-            const state = femo[globalState];
-            // reducer里面对async做了处理：不更新数据，原样返回state
-            // 不会进入下面的条件
-            if (!Object.is(result, state)) {
-                femo[globalState] = result;
-                femo[depsToCallbackMap].forEach((value, key) => {
-                    value(...key);
-                });
-            }
-        }
-        handleAndPublish();
-        if (isAsyncFunction(customHandler)) {
+        const result = handleFunc(actionObj, femo[globalState], customHandler);
+        if (isAsync(customHandler) || isAsync(bridge.result)) {
             return bridge.result.then((res: any) => {
                 actionObj.data = res;
-                handleAndPublish();
-                return res;
+                // 这里不传入customHandler
+                const innerResult = handleFunc(actionObj, femo[globalState]);
+                const state = femo[globalState];
+                // reducer里面对async做了处理：不更新数据，原样返回state
+                // 不会进入下面的条件
+                if (!Object.is(innerResult, state)) {
+                    femo[globalState] = innerResult;
+                    femo[depsToCallbackMap].forEach((value, key) => {
+                        value(...key);
+                    });
+                }
+                return bridge.result;
             })
+        }
+        const state = femo[globalState];
+        // reducer里面对async做了处理：不更新数据，原样返回state
+        // 不会进入下面的条件
+        if (!Object.is(result, state)) {
+            femo[globalState] = result;
+            femo[depsToCallbackMap].forEach((value, key) => {
+                value(...key);
+            });
         }
         return bridge.result;
     } as ActionDispatch;

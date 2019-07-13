@@ -17,7 +17,7 @@ import {
 import {glueAction, ActionDispatch } from './glueAction';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 // @ts-ignore
-import {isAsyncFunction, isPlainObject} from './tools';
+import {isAsync, isPlainObject} from './tools';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
 import subscribe from './subscribe';
@@ -84,14 +84,17 @@ const transformReducerToNestFnc = (k: string, redu: Reducer, bridge: Bridge) => 
     // 为了ts验证时数据一致
     if (index === length - 1) {
       info = ac.data;
-      pre = customHandler || pre;
-      temp = pre(info, curValue);
+      // 这种写法会有问题：导致pre的值会被重写，并且之后所有的pre都将是重写过后的
+      // pre 在这里是一个闭包里面局部变量，一旦被重写，后续将不会还原
+      // pre = customHandler || pre;
+      const final = customHandler || pre;
+      temp = final(info, curValue);
       bridge.result = temp;
       // 如果是异步函数，则不更新state
       // 这个会在actionDispatch中再去调用一次，从而更新数据
-      // if (isAsyncFunction(customHandler)) {
-      //     return state;
-      // }
+      if (isAsync(customHandler) || isAsync(temp)) {
+          return state;
+      }
     } else {
       temp = pre(info, curValue, customHandler)
     }

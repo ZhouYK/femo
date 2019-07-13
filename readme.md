@@ -125,6 +125,23 @@ store.model.surface({
 
 console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
 
+// support async effects
+// async function or return any Promise result will cause async update
+store.model.surface({
+	id: '123'
+}, async (data, state) => {
+    // data { id: '123' }
+    // state { cpu: 'surface-i7', monitor: 'surface-asus' }
+    // do effects here
+    // then return the result to update the state
+    return {
+        cpu: 'i9',
+        monitor: 'Huawei'
+    }
+}).then((res) => {
+    console.log(store.referToState(store.model.surface)); // { cpu: 'i9', monitor: 'Huawei' }
+});
+console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
 // unsubscribe
 unsubscribe();
 ```
