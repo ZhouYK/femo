@@ -4,10 +4,11 @@ describe('customHandler test', () => {
   test('customHandler should be called', () => {
     const mockFn = jest.fn((data, state) => {
       return { ...state, ...data };
-    })
+    });
+    const number = gluer('17212349851');
     const mobilePhone = gluer(mockFn, {
       name: '小王',
-      number: '17212349851'
+      number
     });
 
     const store = femo({
@@ -38,7 +39,7 @@ describe('customHandler test', () => {
     expect(customMockFn.mock.calls[0][0]).toEqual(data);
     expect(customMockFn.mock.calls[0][1]).toEqual({
       name: '小文',
-      number: '10998762345'
+      number: '18023482345'
     });
     console.log(store.referToState(store.model.mobilePhone));
   })

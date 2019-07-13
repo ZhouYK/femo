@@ -77,13 +77,16 @@ const transformReducerToNestFnc = (k: string, redu: Reducer) => {
     // return { ...state, [`${cur}`]: pre(state[`${cur}`], ac) }
     const curValue = state[cur];
     let info = ac;
+    let temp;
     // 用户的reducer不处理 { type, data }，直接处理data
     // 为了ts验证时数据一致
     if (index === length - 1) {
       info = ac.data;
       pre = customHandler || pre;
+      temp = pre(info, curValue);
+    } else {
+      temp = pre(info, curValue, customHandler)
     }
-    const temp = pre(info, curValue, customHandler);
     if (process.env.NODE_ENV === development) {
       if (Object.is(temp, undefined)) {
         console.error(`Warning：the reducer handling "${ac.type}" has returned "undefined"！`);
@@ -173,7 +176,7 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
               const subKeysStr = acType.replace(new RegExp(`^${originalKey}\.`), '');
               const keyArr = subKeysStr.split(uniqueTypeConnect);
               // 重写action的reducer
-              originalAction[reducerInAction] = (ac: FemoAction | any, state: any) => {
+              originalAction[reducerInAction] = (ac: FemoAction | any, state: any, customHandler?: Reducer) => {
                 const { data, type } = ac;
                 const { flag, result } = getSubState(data, keyArr);
                 let stateInit = state;
@@ -181,7 +184,7 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
                   const subReducer = curObj[key][reducerInAction];
                   stateInit = subReducer({ type, data: result }, state);
                 }
-                return originalReducerInAction(ac, stateInit);
+                return originalReducerInAction(ac, stateInit, customHandler);
               };
             }
             // 索引引用的键值路径
