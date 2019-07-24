@@ -67,6 +67,7 @@ console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', mo
     console.log(store.referToState(store.model.surface)); // { cpu: 'i9', monitor: 'Huawei' }
 });
 
+// Promise is async. So here the state is the same as before!
 console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
 // unsubscribe
 unsubscribe();
