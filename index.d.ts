@@ -2,10 +2,12 @@ import { Femo } from "./src/interface";
 
 type Data<T = any> = T;
 
+type Result<T = any> = T;
+
 // gluer
 export type HandleFunc<S, D, R = S> = (data: Data<D>, state: S) => R;
 
-type fnc<S, D, R = Promise<S> | S> = (data?: Data<D>, customHandler?: HandleFunc<S, R>) => R
+type fnc<S, D, R = Promise<S> | S> = (data?: Data<D>, customHandler?: HandleFunc<S, D, R>) => Result<R>
 export type GluerReturn<S, D>  = {
     readonly [P in keyof S]: S[P];
 } & fnc<S, D> & {
