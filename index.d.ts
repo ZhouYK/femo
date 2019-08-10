@@ -1,17 +1,19 @@
 import { Femo } from "./src/interface";
 
-// gluer
-export type HandleFunc<D, S = D, R = S> = (data: {[P in keyof D]?: D[P] }, state: S) => R;
+type Data<T = any> = T;
 
-type fnc<D, S, R = Promise<S> | S> = (data?: {[P in keyof D]?: D[P] }, customHandler?: HandleFunc<D, S, R>) => R
-export type GluerReturn<S, D = S>  = {
-  readonly [P in keyof S]: S[P];
-} & fnc<D, S> & {
-  actionType: string
+// gluer
+export type HandleFunc<S, D, R = S> = (data: Data<D>, state: S) => R;
+
+type fnc<S, D, R = Promise<S> | S> = (data?: Data<D>, customHandler?: HandleFunc<S, R>) => R
+export type GluerReturn<S, D>  = {
+    readonly [P in keyof S]: S[P];
+} & fnc<S, D> & {
+    actionType: string
 };
 
-export function gluer<D, S = D>(onlyOne: HandleFunc<D, S> | D) : GluerReturn<D, S>;
-export function gluer<D, S = D>(fn: HandleFunc<D, S>, initialState: D) : GluerReturn<D, S>;
+export function gluer<S, D>(onlyOne: HandleFunc<S, D> | S) : GluerReturn<S, D>;
+export function gluer<S, D>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S, D>;
 export default function femo<T>(structure: T): Femo<T>;
 
 export { Connect, ConnectPlugin, ConnectRegister, Femo } from './src/interface';
