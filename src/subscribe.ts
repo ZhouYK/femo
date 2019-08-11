@@ -65,6 +65,7 @@ const subscribe = (femo: InnerFemo, reToStateFn: ReferToState) => {
     // 映射建立完毕之后，初始化时，执行一次回调，注入初始值
     // 为什么是映射建立完之后再执行？因为需要引起更新，否则第一次初始化的时候无论如何都不会引起更新，这样行为就不一致
     callback(...initialBundle.initialDepsValue);
+
     return function unsubscribe() {
       depsToFnMap.delete(copyDeps);
       refToDepsMap.forEach((value) => {
