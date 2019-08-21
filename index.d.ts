@@ -14,8 +14,8 @@ export type GluerReturn<S, D>  = {
     actionType: string
 };
 
-export function gluer<S, D>(onlyOne: HandleFunc<S, D> | S) : GluerReturn<S, D>;
-export function gluer<S, D>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S, D>;
+export function gluer<S, D = any>(onlyOne: HandleFunc<S, D> | S) : GluerReturn<S, D>;
+export function gluer<S, D = any>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S, D>;
 export default function femo<T>(structure: T): Femo<T>;
 
 export { Connect, ConnectPlugin, ConnectRegister, Femo } from './src/interface';
