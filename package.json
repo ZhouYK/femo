@@ -75,6 +75,7 @@
     "eslint-plugin-react": "^7.12.4",
     "eslint-plugin-react-hooks": "^1.6.0",
     "femo-react-helper": "0.0.6",
+    "file-loader": "~4.2.0",
     "html-webpack-plugin": "^3.2.0",
     "jest": "^24.5.0",
     "react": "~16.8.6",
@@ -82,6 +83,7 @@
     "ts-jest": "^24.0.0",
     "ts-loader": "^5.3.3",
     "typescript": "^3.3.3333",
+    "url-loader": "~2.1.0",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0",
     "webpack-dev-server": "^3.2.1"

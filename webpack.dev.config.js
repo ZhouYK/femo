@@ -22,7 +22,17 @@ module.exports = {
       }, {
         loader: 'ts-loader',
       }]
-    }],
+    }, {
+        test: /\.(png|jp(e)?g|gif)$/i,
+        use: [
+            {
+                loader: 'url-loader',
+                options: {
+                    limit: 8192,
+                },
+            },
+        ],
+    },],
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
