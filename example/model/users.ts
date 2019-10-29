@@ -1,5 +1,5 @@
-import { gluer } from "../src";
-import { Users } from "./interface";
+import { gluer } from "../../src";
+import { Users } from "../interface";
 
 const initialUsers: Users = {
     list: [],

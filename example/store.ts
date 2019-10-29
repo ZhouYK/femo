@@ -1,5 +1,5 @@
 import femo from "../src";
-import users from "./model";
+import users from "./model/users";
 
 const store = femo({
     users,

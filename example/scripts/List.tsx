@@ -1,8 +1,8 @@
 import React, {ChangeEvent} from 'react';
-import store from './store';
-import {Status, User, Users} from "./interface";
+import store from '../store';
+import {Status, User, Users} from "../interface";
 // @ts-ignore
-import avatar from './avatar.jpeg';
+import avatar from '../assets/avatar.jpeg';
 
 interface State {
     users: Users;
