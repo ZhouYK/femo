@@ -22,6 +22,7 @@ export interface ConnectRegister {
   (connectFn: ConnectPlugin): void;
 }
 
+
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export interface Femo<T> {
@@ -29,7 +30,7 @@ export interface Femo<T> {
   // @ts-ignore
   referToState: <T>(m: T) => Omit<T, 'actionType'>;
   hasModel: (m: any) => boolean;
-  subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => any;
+  subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => () => void;
   model: T;
 }
 

@@ -15,8 +15,8 @@ class List extends React.Component<any, State> {
 
     constructor(props: any) {
         super(props);
-        this.unsubscribe = store.subscribe([store.model.users], (users: Users) => {
-            if (!this.state) {
+        this.unsubscribe = store.subscribe([store.model.users, store.model], (users, state) => {
+          if (!this.state) {
                 // eslint-disable-next-line react/no-direct-mutation-state
                 this.state = {
                     users,
@@ -90,7 +90,7 @@ class List extends React.Component<any, State> {
 
     confirm = (user: User) => (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         evt.preventDefault();
-        store.model.users(user, (data: User, state) => {
+        store.model.users(user, (data, state) => {
             data.status = Status.DEFAULT;
             return { ...state };
         })

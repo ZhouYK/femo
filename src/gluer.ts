@@ -13,8 +13,8 @@ const getWarning = (rd: HandleFunc<any, any>) => `${warning}${rd.toString()}`;
  * @param initialState 非必需
  * @returns {function(): {action: *, reducer: *, initState: *}}
  */
-function gluer<S, D = any>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S, D>;
-function gluer<S, D = any>(onlyOne?: HandleFunc<S, D> | S) : GluerReturn<S, D>;
+function gluer<S, D = any>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S>;
+function gluer<S, D = any>(onlyOne?: HandleFunc<S, D> | S) : GluerReturn<S>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;
   // 默认生成action creator
