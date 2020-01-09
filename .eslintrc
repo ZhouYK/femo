@@ -57,6 +57,16 @@
     "@typescript-eslint/no-var-requires": ["off"],
     "global-require": "off",
     "no-param-reassign": "off",
-    "class-methods-use-this": "off"
+    "class-methods-use-this": "off",
+	"import/extensions": [
+	  "error",
+	  "ignorePackages",
+	  {
+		"js": "never",
+		"jsx": "never",
+		"ts": "never",
+		"tsx": "never"
+	  }
+	]
   }
 }
