@@ -64,7 +64,7 @@
     "@typescript-eslint/eslint-plugin": "~1.9.0",
     "@typescript-eslint/parser": "~1.9.0",
     "babel-loader": "^8.0.5",
-    "codecov": "~3.5.0",
+    "codecov": "~3.6.5",
     "cross-env": "~5.2.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "~13.2.0",
