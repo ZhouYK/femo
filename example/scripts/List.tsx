@@ -82,7 +82,7 @@ class List extends React.Component<any, State> {
 
     markUserEdit = (user: User) => (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         evt.preventDefault();
-        store.model.users(user, (data: User, state) => {
+        store.model.users(user, (data, state) => {
             data.status = Status.EDIT;
             return { ...state }
         })
@@ -98,7 +98,7 @@ class List extends React.Component<any, State> {
 
     deleteUser = (user: User) => (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       evt.preventDefault();
-      store.model.users(user, (data: User, state) => {
+      store.model.users(user, (data, state) => {
           const { list, total } = state;
           let index;
           list.find((us: User, i: number) => {
