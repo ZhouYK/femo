@@ -29,6 +29,7 @@
     "moduleDirectories": [
       "node_modules"
     ],
+	"transformIgnorePatterns": [],
     "globals": {
       "ts-jest": {
         "tsConfig": "<rootDir>/test/tsconfig.fortest.json"
