@@ -74,5 +74,12 @@ describe('customHandler test', () => {
           expect(store.referToState(store.model.name)).toBe('哈哈哈');
           return Promise.resolve(data);
       }).catch((err: any) => Promise.reject(err))
+
+    const rejectPromise = store.model.name('promise reject', async () => {
+      await Promise.reject('promise reject');
+      return 'promise reject';
+    });
+
+    expect(rejectPromise).toEqual(Promise.reject('promise reject'));
   })
 })
