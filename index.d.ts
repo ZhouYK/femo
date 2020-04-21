@@ -1,13 +1,13 @@
 import { Femo } from "./src/interface";
 
 // gluer
-export type HandleFunc<S, D, R = S> = (data: D, state: S) => R;
+export type HandleFunc<S, D, R = Partial<S> | Promise<Partial<S>>> = (data: D, state: S) => R;
 
-type fnc<S, R = Promise<S> | S> = <D>(data?: D, handler?: HandleFunc<S, D, R>) => R
+type fnc<S> = <D, R = D>(data?: D, customHandler?: HandleFunc<S, D, R>) => R;
 export type GluerReturn<S>  = {
-    readonly [P in keyof S]: S[P];
+  readonly [P in keyof S]: S[P];
 } & fnc<S> & {
-    actionType: string
+  actionType: string
 };
 
 export function gluer<S, D = any>(onlyOne: HandleFunc<S, D> | S) : GluerReturn<S>;
