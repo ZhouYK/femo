@@ -10,7 +10,7 @@
   "repository": "https://github.com/ZhouYK/femo.git",
   "author": "zhouyk",
   "license": "MIT",
-  "main": "dist/es/index.js",
+  "main": "dist/cj/index.js",
   "name": "femo",
   "publishConfig": {
     "access": "public"
