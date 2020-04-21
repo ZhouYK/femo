@@ -1,6 +1,6 @@
 {
   "description": "frontend data management",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "keywords": [
     "functional program",
     "frontend",
@@ -29,7 +29,7 @@
     "moduleDirectories": [
       "node_modules"
     ],
-	"transformIgnorePatterns": [],
+    "transformIgnorePatterns": [],
     "globals": {
       "ts-jest": {
         "tsConfig": "<rootDir>/test/tsconfig.fortest.json"
