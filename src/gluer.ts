@@ -13,8 +13,8 @@ const getWarning = (rd: HandleFunc<any, any>) => `${warning}${rd.toString()}`;
  * @param initialState 非必需
  * @returns {function(): {action: *, reducer: *, initState: *}}
  */
-function gluer<S, D = any>(fn: HandleFunc<S, D>, initialState: S) : GluerReturn<S>;
-function gluer<S, D = any>(onlyOne?: HandleFunc<S, D> | S) : GluerReturn<S>;
+function gluer<S, D = S, R = Partial<S>>(fn: HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
+function gluer<S, D = S, R = Partial<S>>(onlyOne?: HandleFunc<S, D, R> | S) : GluerReturn<S, R>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;
   // 默认生成action creator
@@ -59,7 +59,7 @@ function gluer(...args: any[]) {
     }
   }
   // 为了和最终的使用行为保持一致，所以返回一个普通函数
-  const gf = () => ({
+  const gf: any = () => ({
     reducer: reducerFnc,
     action: actionCreator,
     initState,

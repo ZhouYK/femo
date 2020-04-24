@@ -18,7 +18,7 @@ describe('gluer normal test',  () => {
 
   test('gluer`s return => return => structure', () => {
     const gr = gluer();
-    const result = gr();
+    const result = gr('any');
     expect(result).toMatchObject(
       expect.objectContaining({
         reducer: expect.any(Function),
@@ -30,7 +30,7 @@ describe('gluer normal test',  () => {
 
   test('gluer`s return => return => reducer & action', () => {
     const gr = gluer();
-    const result = gr();
+    const result = gr('any');
     // @ts-ignore
     const mockReducer = jest.fn(result.reducer);
     mockReducer(10, 100);

@@ -46,23 +46,50 @@ describe('customHandler test', () => {
       name: '小文',
       number: '18023482345'
     });
-    console.log(store.referToState(store.model.mobilePhone));
   });
   test('async customHandler test with async', async () => {
       const name = gluer('小明');
+      const age = gluer((data) => {
+        return data + 2;
+      }, 10);
+      const weight = gluer(async (data) => {
+        return data * 10;
+      }, 100);
       const store = femo({
-          name
+          name,
+          age,
+          weight,
       });
       const final = await store.model.name('入参', async () => {
           return '哈哈哈';
       });
       expect(final).toEqual('哈哈哈');
       expect(store.referToState(store.model.name)).toBe('哈哈哈');
+
+      const newAge = await store.model.age(5, async (data) => {
+        return data + 1;
+      });
+      expect(newAge).toEqual(6);
+      expect(store.referToState(store.model.age)).toBe(6);
+
+      const newWeight = await store.model.weight(5);
+      expect(newWeight).toBe(50);
+      expect(store.referToState(store.model.weight)).toBe(50);
+
   });
+
   test('async customerHandler test with promise', () => {
       const name = gluer('小明');
+      const age = gluer((data) => {
+        return data + 2;
+      }, 10);
+      const weight = gluer(async (data) => {
+        return data * 10;
+      }, 100);
       const store = femo({
-          name
+          name,
+          age,
+          weight,
       });
       const final = store.model.name('入参', async () => {
           return '哈哈哈';
@@ -81,5 +108,15 @@ describe('customHandler test', () => {
     });
 
     expect(rejectPromise).toEqual(Promise.reject('promise reject'));
+
+    const newAge = store.model.age(5, async (data) => {
+      return data + 1;
+    });
+    expect(newAge).toEqual(Promise.resolve(6));
+    expect(store.referToState(store.model.age)).toBe(10);
+
+    const newWeight = store.model.weight(5);
+    expect(newWeight).toEqual(Promise.resolve(100));
+    expect(store.referToState(store.model.weight)).toBe(100);
   })
 })

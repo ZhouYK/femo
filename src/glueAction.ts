@@ -33,11 +33,10 @@ export const glueAction = (params: GlueActionParams) => {
         if (isAsync(customHandler) || isAsync(bridge.result)) {
             return bridge.result.then((res: any) => {
                 actionObj.data = res;
-                // 这里不传入customHandler
-                const innerResult = handleFunc(actionObj, femo[globalState]);
+                // 这里不传入customHandler，已经在这里调过一次 const result = handleFunc(actionObj, femo[globalState], customHandler);
+                // 需要传入一个简单的reducer函数: f(x) = x。为了避免gluer定义的处理函数被调用
+                const innerResult = handleFunc(actionObj, femo[globalState], (data) => data);
                 const state = femo[globalState];
-                // reducer里面对async做了处理：不更新数据，原样返回state
-                // 不会进入下面的条件
                 if (!Object.is(innerResult, state)) {
                     femo[globalState] = innerResult;
                     femo[depsToCallbackMap].forEach((value, key) => {
@@ -48,8 +47,6 @@ export const glueAction = (params: GlueActionParams) => {
             })
         }
         const state = femo[globalState];
-        // reducer里面对async做了处理：不更新数据，原样返回state
-        // 不会进入下面的条件
         if (!Object.is(result, state)) {
             femo[globalState] = result;
             femo[depsToCallbackMap].forEach((value, key) => {
