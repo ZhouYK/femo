@@ -17,30 +17,29 @@ or
 yarn add femo
 ```
 
+---
 ### 概览
 
-**对象的模型**
+#### 对象的模型
 
 ![model](./assets/model.jpg)
-___
 
-**获取对象的属性**
+#### 获取对象的属性
 
 ![retrieve](./assets/retrieve.jpg)
 ```js
 referToState(model.p1.p3)
 ```
-___
 
-**更新对象的属性**
+#### 更新对象的属性
 
 ![update](./assets/update.jpg)
 
 ```js
 model.p1.p3(data)
 ```
----
-**发现**
+
+#### 发现
 
 调用模式和原始的对象操作非常类似。看到这或许回想到mobx或者vuex。是的，和mobx、vuex在形上是很一致的，区别在于femo没有使用属性劫持或代理。
 
@@ -48,6 +47,8 @@ femo内部维护了一个抽象层。抽象层是树状结构，非对象类型(
 可以通过记录抽象层每个节点来获取数据、操作数据、监听每个数据变化。
 
 那么如何创建抽象层呢？抽象层是由一个个节点组成的，那么先来看如何创建一个节点。
+
+---
 
 ### 创建一个节点
 
@@ -62,7 +63,8 @@ const computer = gluer((data, state) => {
 * 节点由gluer定义
 * 节点包括两部分: 处理函数和初始值
 
-##### 处理函数
+
+#### 处理函数
 
 **处理函数**的入参:
 
@@ -71,6 +73,7 @@ const computer = gluer((data, state) => {
 | 节点从外部接收的入参 | 节点当前的数据 |
 
 **处理函数**的返回会作为节点新的值。
+
 
 ##### 初始值
 
@@ -89,6 +92,8 @@ const computer = gluer((data, state) => {
 节点创建好了并不能直接当做数据来使用，需要通过节点来生成对象，通过对象才能被当做数据来使用。
 
 > 这里隐含了一个信息，那就是节点可以被复用
+
+---
 
 ### 创建对象
 
@@ -127,6 +132,8 @@ const electronicDevice = {
 }
 
 ```
+
+---
 
 ### 应用对象
 
@@ -200,6 +207,8 @@ const surfaceState_3 = store.model.surface({
 });
 console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
 ```
+
+---
 
 ### 类型支持
 
