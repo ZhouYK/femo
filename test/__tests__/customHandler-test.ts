@@ -97,7 +97,7 @@ describe('customHandler test', () => {
       expect(final).toEqual(Promise.resolve('哈哈哈'));
       // 异步更新，此时还未执行
       expect(store.referToState(store.model.name)).toBe('小明');
-      (final as Promise<string>).then((data: string) => {
+      final.then((data: string) => {
           expect(store.referToState(store.model.name)).toBe('哈哈哈');
           return Promise.resolve(data);
       }).catch((err: any) => Promise.reject(err))
