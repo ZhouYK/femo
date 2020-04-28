@@ -7,29 +7,29 @@ describe('gluer normal test',  () => {
   });
 
   test('gluer`s return => function', () => {
-    const gr = gluer();
+    const gr = gluer(0);
     expect(gr).toBeInstanceOf(Function);
   });
   test('gluer`s return => uniqueFlag', () => {
-    const gr = gluer();
+    const gr = gluer(0);
     // @ts-ignore
     expect(gr[gluerUniqueFlagKey]).toBe(gluerUniqueFlagValue);
   });
 
   test('gluer`s return => return => structure', () => {
-    const gr = gluer();
+    const gr = gluer(0);
     const result = gr('any');
     expect(result).toMatchObject(
       expect.objectContaining({
         reducer: expect.any(Function),
         action: expect.any(Function),
-        initState: undefined
+        initState: 0
       })
     )
   });
 
   test('gluer`s return => return => reducer & action', () => {
-    const gr = gluer();
+    const gr = gluer(0);
     const result = gr('any');
     // @ts-ignore
     const mockReducer = jest.fn(result.reducer);
