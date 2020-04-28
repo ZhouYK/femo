@@ -5,16 +5,16 @@ import { HandleFunc, GluerReturn } from '../index';
 
 const defaultReducer = (data: any, _state: any) => data;
 const warning = 'highly recommend setting the initial state with the reducer：';
-const getWarning = (rd: HandleFunc<any, any>) => `${warning}${rd.toString()}`;
+const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
 
 /**
  * 节点生成函数
- * @param rd 非必需
- * @param initialState 非必需
  * @returns {function(): {action: *, reducer: *, initState: *}}
+ * @param fn
  */
-function gluer<S, D = S, R = Partial<S>>(fn: HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
-function gluer<S, D = S, R = Partial<S>>(onlyOne?: HandleFunc<S, D, R> | S) : GluerReturn<S, R>;
+function gluer<S = any, D = S, R = Partial<S>>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
+function gluer<S, D, R = any>(initialState: S) : GluerReturn<S, R>;
+function gluer<S = any, D = S, R = Partial<S>>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;
   // 默认生成action creator
