@@ -15,7 +15,7 @@ class List extends React.Component<any, State> {
 
     constructor(props: any) {
         super(props);
-        this.unsubscribe = store.subscribe([store.model.users, store.model], (users, state) => {
+        this.unsubscribe = store.subscribe([store.model.users, store.model], (users) => {
           if (!this.state) {
                 // eslint-disable-next-line react/no-direct-mutation-state
                 this.state = {

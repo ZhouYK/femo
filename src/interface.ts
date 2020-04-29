@@ -1,7 +1,7 @@
 import {
   depsToCallbackMap,
   globalState,
-  model as femoModel,
+  model as femoModel, promiseDeprecated,
   referencesMap,
   referenceToDepsMap,
 } from "./constants";
@@ -22,6 +22,8 @@ export interface ConnectRegister {
   (connectFn: ConnectPlugin): void;
 }
 
+export type RaceQueue = (Promise<any> & { [promiseDeprecated]?: boolean })[][];
+
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
@@ -32,6 +34,7 @@ export interface Femo<T> {
   hasModel: (m: any) => boolean;
   subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => () => void;
   model: T;
+  genRaceQueue: () => ({ push: (p: Promise<any>) => void; destroy: () => void });
 }
 
 type fnc = (...params: any[]) => any;
