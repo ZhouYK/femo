@@ -6,10 +6,10 @@ const Pannel: FC = () => {
 
   return (
     <section style={{ display: 'flex' }}>
-      <section style={{ flex:  '0 1 auto'}}>
+      <section style={{ flex:  '0 1 50%', display: 'flex', justifyContent: 'center', }}>
         <List />
       </section>
-      <section>
+      <section style={{ flex: '0 1 50%', display: 'flex', justifyContent: 'center' }}>
         <Profile />
       </section>
     </section>

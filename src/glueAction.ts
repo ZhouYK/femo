@@ -57,7 +57,8 @@ export const glueAction = (params: GlueActionParams) => {
       const result = handleFunc(actionObj, femo[globalState], customHandler);
       const { result: bridgeResult } = bridge;
 
-      if (isAsync(customHandler) || isAsync(bridge.result)) {
+      bridge.result = null;
+      if (isAsync(customHandler) || isAsync(bridgeResult)) {
         bridgeResult.catch((e: any) => {
           raceHandle(bridgeResult);
           return Promise.reject(e);

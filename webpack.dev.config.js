@@ -41,7 +41,8 @@ module.exports = {
     host: '0.0.0.0',
     port: 9999,
     disableHostCheck: true,
-    contentBase: path.resolve(__dirname, 'dist')
+    contentBase: path.resolve(__dirname, 'dist'),
+    open: true,
   },
   plugins: [
     new HtmlWebpackPlugin({

@@ -290,7 +290,9 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
             raceQueue.splice(0);
             raceQueue = null;
           }
-        }
+        },
+
+        __UNSAFE__getQueue: () => raceQueue,
       };
       raceQueuePool.set(obj, raceQueue);
       return obj;
