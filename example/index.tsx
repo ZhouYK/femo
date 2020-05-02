@@ -1,5 +1,5 @@
 import React  from 'react';
 import { render } from 'react-dom';
-import List from './scripts/List';
+import Pannel from "./scripts/Pannel";
 
-render(<List />, document.getElementById('bd'));
+render(<Pannel />, document.getElementById('bd'));

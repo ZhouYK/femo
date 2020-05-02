@@ -12,7 +12,8 @@ import {
   referenceToDepsMap,
   depsToCallbackMap,
   rootNodeMapKey,
-  model as femoModel
+  model as femoModel,
+  raceQueue as raceQueueKey, promiseDeprecated,
 } from './constants'
 import {glueAction, ActionDispatch } from './glueAction';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -21,7 +22,7 @@ import {isAsync, isPlainObject} from './tools';
 import { genReferencesMap } from './genProxy';
 import referToState from './referToState';
 import subscribe from './subscribe';
-import {Femo, InnerFemo, Bridge} from './interface';
+import {Femo, InnerFemo, Bridge, RaceQueue} from './interface';
 
 
 const defineInitStatePropsToFnc = (fnc: ActionDispatch, initState: { [index: string]: any }) => {
@@ -137,6 +138,8 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
     [depsToCallbackMap]: new Map(),
     [femoModel]: model,
 };
+  const raceQueuePool = new Map();
+
   const fn = (curObj: PlainObject, keyStr: string[] = [], topNode = curObj, df = femo[globalState], originalNode: PlainObject = {}, originalKey = '') => {
     if (isPlainObject(curObj)) {
       // 设置整个对象的索引
@@ -239,15 +242,68 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
   };
   fn(model);
   const reToStateFn = referToState(femo);
-
-  const finalResult: Femo<T> = {
+  return {
     getState: () => femo[globalState],
     referToState: (m: any) => reToStateFn(m),
     hasModel: (m: any) => femo[referencesMap].has(m),
     subscribe: subscribe(femo, reToStateFn),
     model,
+    genRaceQueue: () => {
+      let raceQueue: (Promise<any> & { [promiseDeprecated]?: boolean })[] | null = [];
+
+      const obj = {
+        push: (p: Promise<any> & { [raceQueueKey]?: RaceQueue } ) => {
+          if (!(p instanceof Promise)) {
+            throw "The race queue item should be Promise";
+          }
+          if (raceQueue) {
+            raceQueue.forEach((promise) => {
+              if (!(promiseDeprecated in promise)) {
+                promise[promiseDeprecated]  = true;
+              }
+            });
+            raceQueue.splice(0);
+            raceQueue.push(p);
+          } else {
+            console.warn('the race queue has been destroyed');
+            return;
+          }
+
+          // 如果已经属于一个异步队列了，则再加一个
+          if (raceQueueKey in p) {
+            const value = p[raceQueueKey];
+            if (value && value.indexOf(raceQueue) === -1) {
+              value.push(raceQueue);
+            }
+          } else {
+            // 打标记
+            Object.defineProperty(p, raceQueueKey, {
+              value: [raceQueue],
+              configurable: true, // 可删除
+              writable: false,
+              enumerable: true,
+            });
+          }
+        },
+
+        destroy: () => {
+          raceQueuePool.delete(obj);
+          if (raceQueue) {
+            // 摧毁的时候，所有的promise都置为废弃状态
+            raceQueue.forEach((rq) => {
+              rq[promiseDeprecated] = true;
+            });
+            raceQueue.splice(0);
+            raceQueue = null;
+          }
+        },
+
+        __UNSAFE__getQueue: () => raceQueue,
+      };
+      raceQueuePool.set(obj, raceQueue);
+      return obj;
+    }
   };
-  return finalResult;
 };
 export { degrade };
 export default degrade;

@@ -15,6 +15,8 @@ export const depsToCallbackMap = Symbol('depsToCallbackMap');
 export const nodesRecord = Symbol('nodesRecord');
 export const rootNodeMapKey = Symbol('rootNodeMapKey');
 export const model = Symbol('model');
+export const raceQueue = Symbol('raceQueue');
+export const promiseDeprecated = Symbol('promiseDeprecated');
 
 export default {
   uniqueTypeConnect,
@@ -34,4 +36,6 @@ export default {
   nodesRecord,
   rootNodeMapKey,
   model,
+  raceQueue,
+  promiseDeprecated,
 };
