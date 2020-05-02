@@ -257,6 +257,12 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
             throw "The race queue item should be Promise";
           }
           if (raceQueue) {
+            raceQueue.forEach((promise) => {
+              if (!(promiseDeprecated in promise)) {
+                promise[promiseDeprecated]  = true;
+              }
+            });
+            raceQueue.splice(0);
             raceQueue.push(p);
           } else {
             console.warn('the race queue has been destroyed');
