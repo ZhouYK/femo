@@ -34,9 +34,9 @@ describe('customHandler test', () => {
 
     expect(returnResult).toBe(store.referToState(store.model.mobilePhone));
     expect(returnResult).toEqual({
-        name: '小天',
-        number: '18023482345',
-        flag: 'custom'
+      name: '小天',
+      number: '18023482345',
+      flag: 'custom'
     });
     expect(mockFn.mock.calls.length).toBe(1);
     expect(customMockFn.mock.calls.length).toBe(1);
@@ -48,59 +48,60 @@ describe('customHandler test', () => {
     });
   });
   test('async customHandler test with async', async () => {
-      const name = gluer('小明');
-      const age = gluer((data) => {
-        return data + 2;
-      }, 10);
-      const weight = gluer(async (data) => {
-        return data * 10;
-      }, 100);
-      const store = femo({
-          name,
-          age,
-          weight,
-      });
-      const final = await store.model.name('入参', async () => {
-          return '哈哈哈';
-      });
-      expect(final).toEqual('哈哈哈');
-      expect(store.referToState(store.model.name)).toBe('哈哈哈');
+    const name = gluer('小明');
+    const age = gluer((data) => {
+      return data + 2;
+    }, 10);
+    const weight = gluer(async (data) => {
+      return data * 10;
+    }, 100);
+    const store = femo({
+      name,
+      age,
+      weight,
+    });
+    const final = await store.model.name('入参', async () => {
+      return '哈哈哈';
+    });
+    expect(final).toEqual('哈哈哈');
+    expect(store.referToState(store.model.name)).toBe('哈哈哈');
 
-      const newAge = await store.model.age(5, async (data) => {
-        return data + 1;
-      });
-      expect(newAge).toEqual(6);
-      expect(store.referToState(store.model.age)).toBe(6);
+    const newAge = await store.model.age(5, async (data) => {
+      return data + 1;
+    });
+    expect(newAge).toEqual(6);
+    expect(store.referToState(store.model.age)).toBe(6);
 
-      const newWeight = await store.model.weight(5);
-      expect(newWeight).toBe(50);
-      expect(store.referToState(store.model.weight)).toBe(50);
+    const newWeight = await store.model.weight(5);
+    expect(newWeight).toBe(50);
+    expect(store.referToState(store.model.weight)).toBe(50);
 
   });
 
   test('async customerHandler test with promise', () => {
-      const name = gluer('小明');
-      const age = gluer((data) => {
-        return data + 2;
-      }, 10);
-      const weight = gluer(async (data) => {
-        return data * 10;
-      }, 100);
-      const store = femo({
-          name,
-          age,
-          weight,
-      });
-      const final = store.model.name('入参', async () => {
-          return '哈哈哈';
-      });
-      expect(final).toEqual(Promise.resolve('哈哈哈'));
-      // 异步更新，此时还未执行
-      expect(store.referToState(store.model.name)).toBe('小明');
-      final.then((data: string) => {
-          expect(store.referToState(store.model.name)).toBe('哈哈哈');
-          return Promise.resolve(data);
-      }).catch((err: any) => Promise.reject(err))
+    const name = gluer('小明');
+    const age = gluer((data) => {
+      return data + 2;
+    }, 10);
+    const weight = gluer(async (data) => {
+      return data * 10;
+    }, 100);
+    const store = femo({
+      name,
+      age,
+      weight,
+    });
+    const final = store.model.name('入参', async () => {
+      return '哈哈哈';
+    });
+    expect(final).toEqual(Promise.resolve('哈哈哈'));
+    // 异步更新，此时还未执行
+    expect(store.referToState(store.model.name)).toBe('小明');
+
+    final.then((data: string) => {
+      expect(store.referToState(store.model.name)).toBe('哈哈哈');
+      return Promise.resolve(data);
+    }).catch((err: any) => Promise.reject(err))
 
     const rejectPromise = store.model.name('promise reject', async () => {
       await Promise.reject('promise reject');

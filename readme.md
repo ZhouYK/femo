@@ -204,11 +204,58 @@ const surfaceState_3 = store.model.surface({
     }
 }).then((res) => {
     console.log(store.referToState(store.model.surface) === res); //true { cpu: 'i9', monitor: 'Huawei' }
-});
+});``
 console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
 ```
 
 ---
+
+### 新增功能
+
+#### 异步竞争
+
+在实际开发过程中，会遇到一个比较隐晦问题：异步竞争。之所以说比较隐晦，是因为大部分情况下不会引起明显问题。开发人员大概率是知道有这个问题，
+但出于各种原因会去搁置它，最主要的原因可能是代码大部分情况下是正常运行的，缺乏动力去改。另外要解决异步竞争，还是需要做一些努力。
+
+代码有问题，一定会被发现。
+
+什么是异步竞争？
+
+常见的，先后发送了两个请求p1和p2，p1和p2都有各自的异步回调处理逻辑。一般情况下，先发出去的请求先回来，后发出去的请求后回来。
+这种情况下异步回调的处理逻辑的先后顺序是符合预期的。但存在另外的情况，p1请求先发送后返回，p2请求后发送先返回。那么异步回调的处理顺序就不再是
+p1的异步回调 => p2的异步回调，而是 p2的异步回调 => p1的异步回调。这种执行顺序显然是不符合预期的，会导致问题。
+
+femo中为了解决异步竞争，提供了基于promise的方案。
+
+```js
+// 首先创建一个异步队列
+const raceQueue = store.genRaceQueue();
+
+// 然后将会出现竞争的异步promise放到同一个异步队列中
+
+// ⚠️这里有个要求：放入异步队列的promise，在放入队列前不能定义then、catch、finally。
+// 比如
+// const p1 = store.model(params, async (data, state) => {
+//         return await fetchRemote(data);
+//       }).then(() => { //todo }).catch(() => { //todo }).finally(() => { //todo })
+// raceQueue.push(p1);
+// 这样是不会有作用的
+
+const p1 = store.model.someData(params, async (data, state) => {
+  return await fetchRemote(data);
+});
+
+// p2同理如p1
+const p2 = store.model.someData(async (data, state) => { return await fetchRemote() });
+
+raceQueue.push(p1);
+raceQueue.push(p2);
+// 放入竞争队列后，方可在p1、p2上进行操作
+// p1.then().catch().finally();
+// p2.then().catch().finally();
+
+```
+[具体的示例代码](https://github.com/ZhouYK/femo/tree/master/example/scripts/Profile.tsx)
 
 ### 类型支持
 

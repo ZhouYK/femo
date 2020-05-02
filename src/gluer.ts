@@ -71,6 +71,6 @@ function gluer(...args: any[]) {
     enumerable: true,
   });
   return gf;
-};
+}
 
 export default gluer;
