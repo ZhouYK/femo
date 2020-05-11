@@ -24,9 +24,6 @@ export interface ConnectRegister {
 
 export type RaceQueue = (Promise<any> & { [promiseDeprecated]?: boolean })[][];
 
-
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
 export interface Femo<T> {
   getState: () => { [index: string]: any };
   referToState: (m: any) => any;
