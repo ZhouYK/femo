@@ -29,8 +29,7 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export interface Femo<T> {
   getState: () => { [index: string]: any };
-  // @ts-ignore
-  referToState: <T>(m: T) => Omit<T, 'actionType'>;
+  referToState: (m: any) => any;
   hasModel: (m: any) => boolean;
   subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => () => void;
   model: T;
