@@ -24,6 +24,17 @@ import referToState from './referToState';
 import subscribe from './subscribe';
 import {Femo, InnerFemo, Bridge, RaceQueue} from './interface';
 
+// 深克隆对象，不克隆非对象的数据（比如数组）
+const deepClone = (target: any) => {
+  if (isPlainObject(target)) {
+    const result: { [index: string]: any } = {};
+    Object.keys(target).forEach((key: string) => {
+      result[key] = deepClone(target[key]);
+    });
+    return result;
+  }
+  return target;
+}
 
 const defineInitStatePropsToFnc = (fnc: ActionDispatch, initState: { [index: string]: any }) => {
   if (isPlainObject(initState)) {
@@ -180,7 +191,8 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
               /* eslint-disable no-param-reassign */
               // 设置初始值
               // 当初始值作为数据结构时，引用会冲突（因为它还做action触发），需要进行复制
-              df[key] = { ...initState };
+              // 浅复制会有问题，深层的initState的对象和asModel共享了。需要做个针对对象做深拷贝
+              df[key] = deepClone(initState);
             } else {
               df[key] = initState;
             }
@@ -205,6 +217,7 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
             }
             // 索引引用的键值路径
             femo[referencesMap].set(action, str);
+            // 对初始值进行遍历处理，因为可能包含gluer定义的节点
             if (isPlainObjectflag) {
               const asModel = { ...initState };
               // 遍历初始值，获取初始值中的结构信息
