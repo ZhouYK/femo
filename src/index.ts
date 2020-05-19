@@ -6,4 +6,5 @@ import { degrade } from './degrade';
 const femo = <T>(structure: T) => degrade(structure);
 
 export { default as gluer } from './gluer';
+export { promiseDeprecatedError } from './glueAction';
 export default femo;
