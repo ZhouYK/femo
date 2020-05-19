@@ -23,3 +23,4 @@ export function gluer<S = any, D = S, R = Partial<S>>(fn:  HandleFunc<S, D, R>, 
 export default function femo<T>(structure: T): Femo<T>;
 
 export { Connect, ConnectPlugin, ConnectRegister, Femo } from './src/interface';
+export { promiseDeprecatedError } from './src/glueAction';
