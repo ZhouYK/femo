@@ -30,7 +30,7 @@ export interface Femo<T> {
   hasModel: (m: any) => boolean;
   subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => () => void;
   model: T;
-  genRaceQueue: () => ({ push: (p: Promise<any>) => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null });
+  genRaceQueue: () => ({ push: (p: Promise<any>) => void; clear: () => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null });
 }
 
 type fnc = (...params: any[]) => any;

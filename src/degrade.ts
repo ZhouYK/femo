@@ -299,6 +299,15 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
           }
         },
 
+        clear: () => {
+          if (raceQueue) {
+            raceQueue.forEach((rq) => {
+              rq[promiseDeprecated] = true;
+            });
+            raceQueue.splice(0);
+          }
+        },
+
         destroy: () => {
           raceQueuePool.delete(obj);
           if (raceQueue) {
