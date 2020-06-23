@@ -22,7 +22,7 @@ describe('glue action test', () => {
       balance: 1000
     }
     store.model.bankAccount(account_1);
-    expect(store.referToState(store.model.bankAccount)).toEqual(account_1);
+    expect(store.model.bankAccount()).toEqual(account_1);
 
     const account_2 = {
       name: 'account_2',
@@ -41,7 +41,7 @@ describe('glue action test', () => {
       return state;
     });
 
-    expect(store.referToState(store.model.bankAccount)).toEqual({
+    expect(store.model.bankAccount()).toEqual({
       ...account_2,
       balance: 0,
     });
@@ -64,7 +64,7 @@ describe('glue action test', () => {
       balance: 9000
     });
 
-    expect(store.referToState(store.model.bankAccount)).toEqual({
+    expect(store.model.bankAccount()).toEqual({
       ...account_3,
       balance: 9000
     });
@@ -77,7 +77,7 @@ describe('glue action test', () => {
       }
     });
 
-    expect(store.referToState(store.model.bankAccount)).toEqual({
+    expect(store.model.bankAccount()).toEqual({
       ...account_3,
       balance: 12000,
     });
@@ -93,7 +93,7 @@ describe('glue action test', () => {
       balance: 20000,
     });
 
-    expect(store.referToState(store.model.bankAccount)).toEqual({
+    expect(store.model.bankAccount()).toEqual({
       ...account_3,
       balance: 20000,
     });

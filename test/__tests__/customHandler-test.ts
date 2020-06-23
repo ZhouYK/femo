@@ -32,7 +32,7 @@ describe('customHandler test', () => {
     };
     const returnResult = store.model.mobilePhone(data, customMockFn);
 
-    expect(returnResult).toBe(store.referToState(store.model.mobilePhone));
+    expect(returnResult).toBe(store.model.mobilePhone());
     expect(returnResult).toEqual({
       name: '小天',
       number: '18023482345',
@@ -64,17 +64,17 @@ describe('customHandler test', () => {
       return '哈哈哈';
     });
     expect(final).toEqual('哈哈哈');
-    expect(store.referToState(store.model.name)).toBe('哈哈哈');
+    expect(store.model.name()).toBe('哈哈哈');
 
     const newAge = await store.model.age(5, async (data) => {
       return data + 1;
     });
     expect(newAge).toEqual(6);
-    expect(store.referToState(store.model.age)).toBe(6);
+    expect(store.model.age()).toBe(6);
 
     const newWeight = await store.model.weight(5);
     expect(newWeight).toBe(50);
-    expect(store.referToState(store.model.weight)).toBe(50);
+    expect(store.model.weight()).toBe(50);
 
   });
 
@@ -96,10 +96,10 @@ describe('customHandler test', () => {
     });
     expect(final).toEqual(Promise.resolve('哈哈哈'));
     // 异步更新，此时还未执行
-    expect(store.referToState(store.model.name)).toBe('小明');
+    expect(store.model.name()).toBe('小明');
 
     final.then((data: string) => {
-      expect(store.referToState(store.model.name)).toBe('哈哈哈');
+      expect(store.model.name()).toBe('哈哈哈');
       return Promise.resolve(data);
     }).catch((err: any) => Promise.reject(err))
 
@@ -114,10 +114,10 @@ describe('customHandler test', () => {
       return data + 1;
     });
     expect(newAge).toEqual(Promise.resolve(6));
-    expect(store.referToState(store.model.age)).toBe(10);
+    expect(store.model.age()).toBe(10);
 
     const newWeight = store.model.weight(5);
     expect(newWeight).toEqual(Promise.resolve(100));
-    expect(store.referToState(store.model.weight)).toBe(100);
+    expect(store.model.weight()).toBe(100);
   })
 })

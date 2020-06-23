@@ -28,7 +28,7 @@ describe('Data consistency and integrity tests', () => {
     expect(Object.is(state_1, state_2)).toBe(false);
 
 
-    expect(store.referToState(store.model.family.papa.name)).toBe(`蓝色的${name}`);
+    expect(store.model.family.papa.name()).toBe(`蓝色的${name}`);
   });
 
   test('if one node has been updated, its parents will be also updated except its siblings', () => {
@@ -37,16 +37,16 @@ describe('Data consistency and integrity tests', () => {
       age: 3
     };
 
-    const papa1 = store.referToState(store.model.family.papa);
+    const papa1 = store.model.family.papa();
 
-    const mama1 = store.referToState(store.model.family.mama);
+    const mama1 = store.model.family.mama();
 
-    const pets1 = store.referToState(store.model.family.pets);
+    const pets1 = store.model.family.pets();
 
 
     const result = store.model.family.papa(newPapa);
     expect(Object.is(result, newPapa )).toBe(false);
-    expect(result).toBe(store.referToState(store.model.family.papa));
+    expect(result).toBe(store.model.family.papa());
     expect(result).toEqual({
         name: '蓝色的小王',
         job: '法官',
@@ -54,11 +54,11 @@ describe('Data consistency and integrity tests', () => {
     });
 
 
-    const papa2 = store.referToState(store.model.family.papa);
+    const papa2 = store.model.family.papa();
 
-    const mama2 = store.referToState(store.model.family.mama);
+    const mama2 = store.model.family.mama();
 
-    const pets2 = store.referToState(store.model.family.pets);
+    const pets2 = store.model.family.pets();
 
     expect(papa2).toEqual({
       name: '蓝色的小王',
@@ -82,18 +82,18 @@ describe('Data consistency and integrity tests', () => {
     };
 
 
-    const family1 = store.referToState(store.model.family);
+    const family1 = store.model.family();
 
-    const pets1 = store.referToState(store.model.family.pets);
+    const pets1 = store.model.family.pets();
 
 
     const result = store.model.family(family);
-    expect(result).toBe(store.referToState(store.model.family));
+    expect(result).toBe(store.model.family());
 
 
-    const family2 = store.referToState(store.model.family);
+    const family2 = store.model.family();
 
-    const pets2 = store.referToState(store.model.family.pets);
+    const pets2 = store.model.family.pets();
 
     expect(family2).toEqual({
       ...family1,
