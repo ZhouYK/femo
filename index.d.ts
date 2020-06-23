@@ -9,6 +9,7 @@ interface fnc<S, R> {
   <D = Partial<S>, CR = R>(data: D): CR;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<Partial<S>>>): Promise<Partial<S>>;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Partial<S>>): Partial<S>;
+  (): S;
 }
 
 export type GluerReturn<S, R>  = {

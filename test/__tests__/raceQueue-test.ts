@@ -49,7 +49,7 @@ describe('Correctness test', () => {
     expect.assertions(1);
     await Promise.all([p1, p2]);
 
-    expect(store.referToState(store.model.profile)).toBe(newProfile_1);
+    expect(store.model.profile()).toBe(newProfile_1);
   });
 
   test('two race promises', async () => {
@@ -63,7 +63,7 @@ describe('Correctness test', () => {
       await Promise.all([p1, p2]);
     } catch (e) {
       console.log('e', e);
-      expect(store.referToState(store.model.profile)).toBe(newProfile_2);
+      expect(store.model.profile()).toBe(newProfile_2);
       expect(e).toBe(promiseDeprecatedError);
       expect(p1).rejects.toBe(promiseDeprecatedError);
       expect(p2).resolves.toBe(newProfile_2);
@@ -94,7 +94,7 @@ describe('Correctness test', () => {
       expect(e).toBe('something wrong');
     }
 
-    expect(store.referToState(store.model.profile)).toEqual({
+    expect(store.model.profile()).toEqual({
       id: '',
       name: '',
       desc: ''

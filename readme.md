@@ -28,7 +28,7 @@ yarn add femo
 
 ![retrieve](./assets/retrieve.jpg)
 ```js
-referToState(model.p1.p3)
+model.p1.p3();
 ```
 
 #### 更新对象的属性
@@ -137,6 +137,8 @@ const electronicDevice = {
 
 ### 应用对象
 
+[codesandbox 代码](https://codesandbox.io/s/vigilant-goldberg-82jfj?file=/src/index.js)
+
 由节点生成的对象已经准备好了，现在需要让这些对象生效
 
 ```js
@@ -161,7 +163,11 @@ const unsubscribeSurface = store.subscribe([store.model.surface], (surface) => {
 unsubscribeSurface();
 
 // 获取某个节点的数据
-console.log(store.referToState(store.model.surface)); // { cpu: 'intl', monitor: 'dell' }
+// @deprecated
+// console.log(store.referToState(store.model.surface)); // { cpu: 'intl', monitor: 'dell' }
+// 可直接调用节点函数获取节点当前的值
+console.log(store.model.surface()); // { cpu: 'intl', monitor: 'dell' }
+
 
 // 判断节点是否存在
 console.log(store.hasModel(store.model.surface)) // true
@@ -188,7 +194,9 @@ const surfaceState_2 = store.model.surface({
   return { ...state, ...temp };
 });
 
-console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
+// @deprecated
+// console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
+console.log(store.model.surface()); // { cpu: 'surface-i7', monitor: 'surface-asus' }
 
 // 支持异步的自定义处理函数
 // surfaceState_3 是一个promise，surface节点的数据更新会延后
@@ -203,9 +211,9 @@ const surfaceState_3 = store.model.surface({
         monitor: 'Huawei'
     }
 }).then((res) => {
-    console.log(store.referToState(store.model.surface) === res); //true { cpu: 'i9', monitor: 'Huawei' }
+    console.log(store.model.surface() === res); //true { cpu: 'i9', monitor: 'Huawei' }
 });``
-console.log(store.referToState(store.model.surface)); // { cpu: 'surface-i7', monitor: 'surface-asus' }
+console.log(store.model.surface()); // { cpu: 'surface-i7', monitor: 'surface-asus' }
 ```
 
 ---

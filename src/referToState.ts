@@ -11,6 +11,7 @@ export interface ReferToState {
 }
 
 const referToState: ReferToState = (femo: InnerFemo) => (model: any) => {
+  console.warn('Deprecated warning：referToState will be deprecated in next major version. Details in https://github.com/ZhouYK/femo/issues/12')
   const map = femo[referencesMap];
   if (!map.has(model)) {
     return undefined;

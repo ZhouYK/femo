@@ -78,16 +78,16 @@ describe('subscribe tests', () => {
     // 第一次监听
     const unsub_1 = store.subscribe([store.model.family.papa, store.model.family.mama], subMock_1);
     store.model.family.papa.name('小金鱼');
-    const papa_1 = store.referToState(store.model.family.papa);
-    const mama_1 = store.referToState(store.model.family.mama);
+    const papa_1 = store.model.family.papa();
+    const mama_1 = store.model.family.mama();
     store.model.family.mama.name('小鲤鱼');
-    const papa_2 = store.referToState(store.model.family.papa);
+    const papa_2 = store.model.family.papa();
 
-    const mama_2 = store.referToState(store.model.family.mama);
+    const mama_2 = store.model.family.mama();
 
-    expect(store.referToState(store.model.family.papa.name)).toBe('蓝色的小金鱼');
+    expect(store.model.family.papa.name()).toBe('蓝色的小金鱼');
 
-    expect(store.referToState(store.model.family.mama.name)).toBe('蓝色的小鲤鱼');
+    expect(store.model.family.mama.name()).toBe('蓝色的小鲤鱼');
 
     expect(subMock_1.mock.calls.length).toBe(3); // 注册监听的时候就会执行一次
     expect(subMock_1.mock.calls[1][0]).toBe(papa_1);
@@ -102,7 +102,7 @@ describe('subscribe tests', () => {
     unsub_1();
 
     store.model.family.mama.name('小仙女');
-    expect(store.referToState(store.model.family.mama.name)).toBe('蓝色的小仙女');
+    expect(store.model.family.mama.name()).toBe('蓝色的小仙女');
     expect(subMock_1.mock.calls.length).toBe(3); // 解绑成功
 
   });

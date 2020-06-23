@@ -26,6 +26,7 @@ export type RaceQueue = (Promise<any> & { [promiseDeprecated]?: boolean })[][];
 
 export interface Femo<T> {
   getState: () => { [index: string]: any };
+  // @deprecated
   referToState: (m: any) => any;
   hasModel: (m: any) => boolean;
   subscribe: (...args: [any[], (...p: any[]) => any] | [(...p: any[]) => any]) => () => void;

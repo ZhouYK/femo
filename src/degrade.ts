@@ -257,6 +257,7 @@ const degrade = <T = PlainObject>(model: T): Femo<T> => {
   const reToStateFn = referToState(femo);
   return {
     getState: () => femo[globalState],
+    // @deprecated
     referToState: (m: any) => reToStateFn(m),
     hasModel: (m: any) => femo[referencesMap].has(m),
     subscribe: subscribe(femo, reToStateFn),

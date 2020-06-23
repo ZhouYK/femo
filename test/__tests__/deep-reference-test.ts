@@ -68,24 +68,24 @@ describe('deep reference consistence test', () => {
     expect(floor_object_2.number.child.number).toBe(store.model.floor_object_2.number.child.number);
     expect(floor_object_1.number).toBe(floor_object_2.number.child.number);
 
-    expect(store.referToState(floor_object_1.number)).toBe(1);
-    expect(store.referToState(floor_object_2.number.child.number)).toBe(1);
-    expect(store.referToState(store.model.floor_object_2.number.child.number)).toBe(1);
+    expect(floor_object_1.number()).toBe(1);
+    expect(floor_object_2.number.child.number()).toBe(1);
+    expect(store.model.floor_object_2.number.child.number()).toBe(1);
 
     floor_object_1.number(2);
-    expect(store.referToState(floor_object_1.number)).toBe(2);
-    expect(store.referToState(floor_object_2.number.child.number)).toBe(2);
-    expect(store.referToState(store.model.floor_object_2.number.child.number)).toBe(2);
+    expect(floor_object_1.number()).toBe(2);
+    expect(floor_object_2.number.child.number()).toBe(2);
+    expect(store.model.floor_object_2.number.child.number()).toBe(2);
 
     floor_object_2.number.child.number(3);
-    expect(store.referToState(floor_object_1.number)).toBe(3);
-    expect(store.referToState(floor_object_2.number.child.number)).toBe(3);
-    expect(store.referToState(store.model.floor_object_2.number.child.number)).toBe(3);
+    expect(floor_object_1.number()).toBe(3);
+    expect(floor_object_2.number.child.number()).toBe(3);
+    expect(store.model.floor_object_2.number.child.number()).toBe(3);
 
     store.model.floor_object_2.number.child.number(4);
-    expect(store.referToState(floor_object_1.number)).toBe(4);
-    expect(store.referToState(floor_object_2.number.child.number)).toBe(4);
-    expect(store.referToState(store.model.floor_object_2.number.child.number)).toBe(4);
+    expect(floor_object_1.number()).toBe(4);
+    expect(floor_object_2.number.child.number()).toBe(4);
+    expect(store.model.floor_object_2.number.child.number()).toBe(4);
 
     expect(store.getState()).toEqual({
       floor_object_2: {
