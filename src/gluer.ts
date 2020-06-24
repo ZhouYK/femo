@@ -1,6 +1,9 @@
 import {
   development,
-  raceQueue, promiseDeprecated
+  raceQueue,
+  promiseDeprecated,
+  gluerUniqueFlagKey,
+  gluerUniqueFlagValue,
 } from './constants';
 
 import { HandleFunc, GluerReturn } from '../index';
@@ -98,13 +101,12 @@ function gluer(...args: any[]) {
         const innerResult = reducerFnc(data, gluerState);
         if (!(Object.is(innerResult, gluerState))) {
           gluerState = innerResult;
-          const targetDeps: GluerReturn<any, any>[] = refToDepsMap.get(fn);
+          const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
           if (targetDeps) {
-            const callback = depsToFnMap.get(targetDeps);
-            const values = targetDeps.map((value: GluerReturn<any, any>) => {
-              return value();
-            });
-            callback(...values);
+            targetDeps.forEach((target: GluerReturn<any, any>[]) => {
+              const callback = depsToFnMap.get(target);
+              callback(...target);
+            })
           }
         }
         return data;
@@ -115,13 +117,12 @@ function gluer(...args: any[]) {
 
     if (!(Object.is(tempResult, gluerState))) {
       gluerState = tempResult;
-      const targetDeps: GluerReturn<any, any>[] = refToDepsMap.get(fn);
+      const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
       if (targetDeps) {
-        const callback = depsToFnMap.get(targetDeps);
-        const values = targetDeps.map((value: GluerReturn<any, any>) => {
-          return value();
-        });
-        callback(...values);
+        targetDeps.forEach((target: GluerReturn<any, any>[]) => {
+          const callback = depsToFnMap.get(target);
+          callback(...target);
+        })
       }
     }
     // 返回函数处理结果
@@ -131,6 +132,13 @@ function gluer(...args: any[]) {
   fn.reset = () => {
     fn(initState);
   }
+
+  Object.defineProperty(fn, gluerUniqueFlagKey, {
+    value: gluerUniqueFlagValue,
+    writable: false,
+    configurable: true,
+    enumerable: true,
+  });
   return fn;
 }
 
