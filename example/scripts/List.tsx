@@ -1,4 +1,4 @@
-import { subscribe } from "../../src";
+import {gluer, subscribe} from "../../src";
 import usersModel from "../model/users";
 import React, {ChangeEvent} from 'react';
 import {Status, User, Users} from "../interface";
@@ -146,3 +146,12 @@ class List extends React.Component<any, State> {
 };
 
 export default List;
+const name = gluer('');
+const unsubscribe = subscribe([name], (nameData) => {
+  console.log(nameData);
+})
+name(async () => {
+  return '王二2';
+});
+
+
