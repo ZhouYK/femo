@@ -56,7 +56,7 @@ describe('gluer update data test', () => {
 
     expect(age()).toBe(7);
 
-    age((_data, state) => {
+    age((_data: any, state: number) => {
       if (state === 7) {
         return 7 - 2;
       }
