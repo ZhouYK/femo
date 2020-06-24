@@ -98,9 +98,8 @@ function gluer(...args: any[]) {
         return Promise.reject(e);
       }).then((data) => {
         raceHandle(promise);
-        const innerResult = reducerFnc(data, gluerState);
-        if (!(Object.is(innerResult, gluerState))) {
-          gluerState = innerResult;
+        if (!(Object.is(data, gluerState))) {
+          gluerState = data;
           const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
           if (targetDeps) {
             targetDeps.forEach((target: GluerReturn<any, any>[]) => {
