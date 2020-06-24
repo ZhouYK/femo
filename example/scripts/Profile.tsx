@@ -1,8 +1,9 @@
 import React, {FC, useCallback, useEffect, useState} from "react";
-import store from "../store";
+import { genRaceQueue, subscribe } from "../../src";
+import profileModel from "../model/profile";
 import {Profile} from "../interface";
 let count = 0;
-const profileRaceQueue = store.genRaceQueue();
+const profileRaceQueue = genRaceQueue();
 
 const Profile: FC = () => {
   const [profile, setProfile] = useState({ name: '空', desc: '空', id: '空' });
@@ -22,9 +23,9 @@ const Profile: FC = () => {
       id: '3'
     }];
     const id = 'id';
-    profileRaceQueue.push(store.model.profile(id, async () => {
+    profileRaceQueue.push(profileModel(id, async (): Promise<any> => {
       const index = Math.floor(Math.random() * 3);
-      console.log('order', order, profiles[index]);
+      console.log('index', index);
       return await new Promise((resolve) => {
         setTimeout(() => {
           resolve(profiles[index]);
@@ -36,7 +37,7 @@ const Profile: FC = () => {
 
   useEffect(() => {
     fetchProfile(count);
-    return store.subscribe([store.model.profile], (profile: Profile) => {
+    return subscribe([profileModel], (profile: Profile) => {
       setProfile(profile);
     });
   }, []);

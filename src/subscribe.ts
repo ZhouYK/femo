@@ -1,55 +1,53 @@
-import { referenceToDepsMap, depsToCallbackMap, model as femoModel } from "./constants";
-import { InnerFemo } from "./interface";
-import { ReferToState } from './referToState';
+import {GluerReturn} from "../index";
+import {gluerUniqueFlagKey, gluerUniqueFlagValue} from "./constants";
+export const refToDepsMap = new Map();
+export const depsToFnMap = new Map();
 
-const subscribe = (femo: InnerFemo, reToStateFn: ReferToState) => {
-  const refToDepsMap = femo[referenceToDepsMap];
-  const depsToFnMap = femo[depsToCallbackMap];
-  return (...args: any[]) => {
-    let callback: (...p: any[]) => void;
-    let copyDeps: any[];
-    if (args.length === 0) {
-      throw new Error(`Error: please input some params in subscribe function!`)
-    } else if (args.length === 1) {
-      if (typeof args[0] !== 'function') {
-        throw new Error(`Error: the only param must be function! ${args[0]}`)
+const subscribe = (deps: GluerReturn<any, any>[], callback: (...args: any[]) => void) => {
+  if (!(deps instanceof Array)) {
+    throw new Error(`Error: the first param must be array！${ deps }`);
+  }
+
+  if (typeof callback !== 'function') {
+    throw new Error(`Error: the second param muse be function! ${ callback }`);
+  }
+
+  const copyDeps = [...deps];
+  const wrapCallback = () => {
+    let cacheDepsValue = copyDeps.map(dep => {
+
+      if (typeof dep !== 'function') {
+        console.trace();
+        throw new Error(`Error: dependency ${dep}, is not function.`);
       }
-      // 没有写明依赖，只传了一个函数
-      // 默认依赖整个state
-      [callback] = args;
-      copyDeps = [femo[femoModel]];
-    } else {
-      let deps;
-      [deps,callback] = args;
-      if (!(deps instanceof Array)) {
-        throw new Error(`Error: the first param must be an array！${ deps }`);
+      // @ts-ignore
+      if (dep[gluerUniqueFlagKey] !== gluerUniqueFlagValue) {
+        console.error(`Warning: dependency ${dep}, is not defined by gluer. Please check it!`)
       }
-      copyDeps = deps.length === 0 ? [femo[femoModel]] : [...deps];
-    }
-    const wrapCallback = () => {
-      let cacheDepsValue = copyDeps.map(dep => {
-        return reToStateFn(dep);
+      return dep();
+    });
+    const handler = (...params: GluerReturn<any, any>[]) => {
+      let flag = false;
+      const res = params.map((dp, i) => {
+        const value = dp();
+        if (!Object.is(value, cacheDepsValue[i])) {
+          flag = true;
+        }
+        return value
       });
-      const handler = (...params: any[]) => {
-          let flag = false;
-          const res = params.map((dp, i) => {
-              const value = reToStateFn(dp);
-              if (!Object.is(value, cacheDepsValue[i])) {
-                  flag = true;
-              }
-              return value
-          });
-          if (flag) {
-              cacheDepsValue = res;
-              callback(...res);
-          }
-      };
-      return {
-          handler,
-          initialDepsValue: cacheDepsValue
+      if (flag) {
+        cacheDepsValue = res;
+        callback(...res);
       }
     };
-    const initialBundle = wrapCallback();
+    return {
+      handler,
+      initialDepsValue: cacheDepsValue
+    }
+  };
+  const initialBundle = wrapCallback();
+  // 如果传入依赖为空数组，则不建立依赖。只会执行在初始化的时候执行一次回调。
+  if (copyDeps.length !== 0) {
     // 依赖与函数的映射
     depsToFnMap.set(copyDeps, initialBundle.handler);
     // 模型节点与依赖的映射
@@ -61,12 +59,15 @@ const subscribe = (femo: InnerFemo, reToStateFn: ReferToState) => {
         refToDepsMap.set(dep, [copyDeps]);
       }
     });
+  }
 
-    // 映射建立完毕之后，初始化时，执行一次回调，注入初始值
-    // 为什么是映射建立完之后再执行？因为需要引起更新，否则第一次初始化的时候无论如何都不会引起更新，这样行为就不一致
-    callback(...initialBundle.initialDepsValue);
+  // 映射建立完毕之后，初始化时，执行一次回调，注入初始值
+  // 为什么是映射建立完之后再执行？因为需要引起更新，否则第一次初始化的时候无论如何都不会引起更新，这样行为就不一致
+  callback(...initialBundle.initialDepsValue);
 
-    return function unsubscribe() {
+  return function unsubscribe() {
+    // 不等于0才去解除依赖
+    if (copyDeps.length !== 0) {
       depsToFnMap.delete(copyDeps);
       refToDepsMap.forEach((value) => {
         for (let i = 0; i < value.length; i += 1) {

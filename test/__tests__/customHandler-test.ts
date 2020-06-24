@@ -1,22 +1,18 @@
-import femo, { gluer } from '../../src';
+import { gluer } from '../../src';
 
 describe('customHandler test', () => {
   test('customHandler should be called', () => {
     const mockFn = jest.fn((data, state) => {
       return { ...state, ...data };
     });
-    const number = gluer('17212349851');
     const mobilePhone = gluer(mockFn, {
       name: '小王',
-      number
+      number: '17212349851',
     });
 
-    const store = femo({
-      mobilePhone
-    });
     expect(mockFn.mock.calls.length).toBe(0);
 
-    store.model.mobilePhone({
+    mobilePhone({
       name: '小文',
       number: '10998762345'
     });
@@ -30,9 +26,9 @@ describe('customHandler test', () => {
       name: '小天',
       number: '18023482345'
     };
-    const returnResult = store.model.mobilePhone(data, customMockFn);
+    const returnResult = mobilePhone(data, customMockFn);
 
-    expect(returnResult).toBe(store.model.mobilePhone());
+    expect(returnResult).toBe(mobilePhone());
     expect(returnResult).toEqual({
       name: '小天',
       number: '18023482345',
@@ -44,7 +40,7 @@ describe('customHandler test', () => {
     expect(customMockFn.mock.calls[0][0]).toEqual(data);
     expect(customMockFn.mock.calls[0][1]).toEqual({
       name: '小文',
-      number: '18023482345'
+      number: '10998762345'
     });
   });
   test('async customHandler test with async', async () => {
@@ -55,26 +51,22 @@ describe('customHandler test', () => {
     const weight = gluer(async (data) => {
       return data * 10;
     }, 100);
-    const store = femo({
-      name,
-      age,
-      weight,
-    });
-    const final = await store.model.name('入参', async () => {
+
+    const final = await name('入参', async () => {
       return '哈哈哈';
     });
     expect(final).toEqual('哈哈哈');
-    expect(store.model.name()).toBe('哈哈哈');
+    expect(name()).toBe('哈哈哈');
 
-    const newAge = await store.model.age(5, async (data) => {
+    const newAge = await age(5, async (data) => {
       return data + 1;
     });
     expect(newAge).toEqual(6);
-    expect(store.model.age()).toBe(6);
+    expect(age()).toBe(6);
 
-    const newWeight = await store.model.weight(5);
+    const newWeight = await weight(5);
     expect(newWeight).toBe(50);
-    expect(store.model.weight()).toBe(50);
+    expect(weight()).toBe(50);
 
   });
 
@@ -86,38 +78,34 @@ describe('customHandler test', () => {
     const weight = gluer(async (data) => {
       return data * 10;
     }, 100);
-    const store = femo({
-      name,
-      age,
-      weight,
-    });
-    const final = store.model.name('入参', async () => {
+
+    const final = name('入参', async () => {
       return '哈哈哈';
     });
     expect(final).toEqual(Promise.resolve('哈哈哈'));
     // 异步更新，此时还未执行
-    expect(store.model.name()).toBe('小明');
+    expect(name()).toBe('小明');
 
     final.then((data: string) => {
-      expect(store.model.name()).toBe('哈哈哈');
+      expect(name()).toBe('哈哈哈');
       return Promise.resolve(data);
     }).catch((err: any) => Promise.reject(err))
 
-    const rejectPromise = store.model.name('promise reject', async () => {
+    const rejectPromise = name('promise reject', async () => {
       await Promise.reject('promise reject');
       return 'promise reject';
     });
 
     expect(rejectPromise).toEqual(Promise.reject('promise reject'));
 
-    const newAge = store.model.age(5, async (data) => {
+    const newAge = age(5, async (data) => {
       return data + 1;
     });
     expect(newAge).toEqual(Promise.resolve(6));
-    expect(store.model.age()).toBe(10);
+    expect(age()).toBe(10);
 
-    const newWeight = store.model.weight(5);
+    const newWeight = weight(5);
     expect(newWeight).toEqual(Promise.resolve(100));
-    expect(store.model.weight()).toBe(100);
+    expect(weight()).toBe(100);
   })
 })
