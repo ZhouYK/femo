@@ -1,112 +1,70 @@
-import femo from '../../src';
-import familyModel from '../models/family';
+import * as familyModel from '../models/family';
 
-const store = femo({ family: familyModel });
-
-// @ts-ignore
-store.model.family({
-  papa: {
-    name: '小李'
-  }
+familyModel.papa({
+  name: '小李'
 });
 
 
-describe('Data consistency and integrity tests', () => {
-  test('if one node has been udpated, the whole state will be update', () => {
-    const name = '小刘';
+test('Data consistency and integrity tests', () => {
+  const name = '小刘';
+  const papa = familyModel.papa();
+  expect(papa).toEqual({
+    name: '小李',
+    age: 'papa`s age',
+    job: '法官'
+  });
+  familyModel.papa({ name });
 
-    const state_1 = store.getState();
-
-    expect(state_1).toBe(store.referToState(store.model));
-
-    const result = store.model.family.papa.name(name);
-    expect(result).toBe('蓝色的小刘');
-
-    const state_2 = store.getState();
-
-    expect(state_2).toBe(store.referToState(store.model));
-    expect(Object.is(state_1, state_2)).toBe(false);
-
-
-    expect(store.model.family.papa.name()).toBe(`蓝色的${name}`);
+  const papa1 = familyModel.papa();
+  expect(papa1).toEqual({
+    name: '小刘',
+    age: 'papa`s age',
+    job: '法官'
   });
 
-  test('if one node has been updated, its parents will be also updated except its siblings', () => {
-    const newPapa = {
-      name: '小王',
-      age: 3
-    };
+  expect(Object.is(papa, papa1)).toBe(false);
 
-    const papa1 = store.model.family.papa();
+  const newMama = {
+    name: '小黄',
+    age: 3
+  };
 
-    const mama1 = store.model.family.mama();
+  const mama = familyModel.mama();
+  expect(mama).toEqual({
+    name: 'mama`s name',
+    age: 'mama`s age',
+    job: '律师'
+  })
 
-    const pets1 = store.model.family.pets();
+  const result = familyModel.mama(newMama);
+  expect(Object.is(result, newMama )).toBe(false);
 
+  const mama1 = familyModel.mama();
+  expect(result).toBe(mama1);
 
-    const result = store.model.family.papa(newPapa);
-    expect(Object.is(result, newPapa )).toBe(false);
-    expect(result).toBe(store.model.family.papa());
-    expect(result).toEqual({
-        name: '蓝色的小王',
-        job: '法官',
-        age: 30
-    });
-
-
-    const papa2 = store.model.family.papa();
-
-    const mama2 = store.model.family.mama();
-
-    const pets2 = store.model.family.pets();
-
-    expect(papa2).toEqual({
-      name: '蓝色的小王',
-      age: 30,
-      job: '法官'
-    });
-
-    expect(Object.is(papa1, papa2)).toBe(false);
-
-    expect(Object.is(mama1, mama2)).toBe(true);
-
-    expect(Object.is(pets1, pets2)).toBe(true);
-
+  expect(mama1).toEqual({
+    name: '小黄',
+    age: 3,
+    job: '律师',
   });
 
-  test('nested model will be updated by call its reducer function and its descendants`s reducer functions', () => {
-    const family = {
-      pets: {
-        name: '小狗'
-      }
-    };
+  expect(Object.is(mama, mama1)).toBe(false);
 
-
-    const family1 = store.model.family();
-
-    const pets1 = store.model.family.pets();
-
-
-    const result = store.model.family(family);
-    expect(result).toBe(store.model.family());
-
-
-    const family2 = store.model.family();
-
-    const pets2 = store.model.family.pets();
-
-    expect(family2).toEqual({
-      ...family1,
-      pets: {
-        ...pets1,
-        name: '蓝色的小狗'
-      }
-    });
-
-    expect(pets2).toEqual({
-      ...pets1,
-      name: '蓝色的小狗'
-    });
-
+  const pets = familyModel.pets();
+  expect(pets).toEqual({
+    name: 'pets`s name',
+    age: 'pets`s age'
   });
+
+  familyModel.pets({
+    name: '小胖',
+    age: 1,
+  });
+
+  const pets1 = familyModel.pets();
+  expect(pets1).toEqual({
+    name: '小胖',
+    age: 1,
+  });
+  expect(Object.is(pets1, pets)).toBe(false);
 });
