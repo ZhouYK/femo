@@ -71,7 +71,7 @@ const subscribe = (femo: InnerFemo, reToStateFn: ReferToState) => {
       refToDepsMap.forEach((value) => {
         for (let i = 0; i < value.length; i += 1) {
           if (value[i] === copyDeps) {
-            value.splice(1, i);
+            value.splice(i, 1);
             break;
           }
         }
