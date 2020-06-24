@@ -22,7 +22,7 @@ const genRaceQueue = () => {
         raceQueue.push(p);
       } else {
         console.warn('the race queue has been destroyed');
-        return;
+        return p;
       }
 
       // 如果已经属于一个异步队列了，则再加一个
@@ -40,6 +40,7 @@ const genRaceQueue = () => {
           enumerable: true,
         });
       }
+      return p;
     },
 
     clear: () => {

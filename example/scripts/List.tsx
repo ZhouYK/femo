@@ -1,5 +1,6 @@
+import { subscribe } from "../../src";
+import usersModel from "../model/users";
 import React, {ChangeEvent} from 'react';
-import store from '../store';
 import {Status, User, Users} from "../interface";
 // @ts-ignore
 import avatar from '../assets/avatar.jpeg';
@@ -15,7 +16,7 @@ class List extends React.Component<any, State> {
 
   constructor(props: any) {
     super(props);
-    this.unsubscribe = store.subscribe([store.model.users, store.model], (users) => {
+    this.unsubscribe = subscribe([usersModel], (users) => {
       if (!this.state) {
         // eslint-disable-next-line react/no-direct-mutation-state
         this.state = {
@@ -56,17 +57,17 @@ class List extends React.Component<any, State> {
 
   handleChange = (user: User) => (evt: ChangeEvent<HTMLInputElement>) => {
     const name = evt.target.value;
-    store.model.users(user, (data, state) => {
+    usersModel(user, (data, state) => {
       data.name = name;
       return { ...state };
-    })
+    });
   };
 
   addUser = (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     evt.preventDefault();
     const { name } = this.state;
     if (name) {
-      store.model.users(name, (data, state) => {
+      usersModel(name, (data, state) => {
         const newUser: User = {
           name: data,
           id: `${Date.now()}${Math.random()}`,
@@ -83,7 +84,7 @@ class List extends React.Component<any, State> {
 
   markUserEdit = (user: User) => (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     evt.preventDefault();
-    store.model.users(user, (data, state) => {
+    usersModel(user, (data, state) => {
       data.status = Status.EDIT;
       return { ...state }
     })
@@ -91,7 +92,7 @@ class List extends React.Component<any, State> {
 
   confirm = (user: User) => (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     evt.preventDefault();
-    store.model.users(user, (data, state) => {
+    usersModel(user, (data, state) => {
       data.status = Status.DEFAULT;
       return { ...state };
     })
@@ -99,7 +100,7 @@ class List extends React.Component<any, State> {
 
   deleteUser = (user: User) => (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     evt.preventDefault();
-    store.model.users(user, (data, state) => {
+    usersModel(user, (data, state) => {
       const { list, total } = state;
       let index;
       list.find((us: User, i: number) => {
