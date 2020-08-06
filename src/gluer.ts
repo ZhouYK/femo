@@ -7,9 +7,9 @@ import {
 } from './constants';
 
 import { HandleFunc, GluerReturn } from '../index';
-import {isAsync} from "./tools";
+import {isArray, isAsync} from "./tools";
 import {RaceQueue} from "./interface";
-import {depsToFnMap, refToDepsMap} from "./subscribe";
+import subscribe, {depsToFnMap, refToDepsMap} from "./subscribe";
 
 export const promiseDeprecatedError = 'the promise is deprecated';
 const defaultReducer = (data: any, _state: any) => data;
@@ -132,6 +132,27 @@ function gluer(...args: any[]) {
     fn(initState);
   }
 
+  fn.relyOn = (model: any[] | any, callback: (data: any[] | any, state: any) => any) => {
+    let innerModel = [];
+    let isArrayFlag = true;
+    if (isArray(model)) {
+      innerModel = model;
+    } else if (model[gluerUniqueFlagKey] === gluerUniqueFlagValue) {
+      isArrayFlag = false;
+      innerModel = [model];
+    } else {
+      isArrayFlag = false;
+    }
+
+    let unsub = () => {};
+    if (innerModel.length !== 0) {
+      unsub = subscribe(innerModel, (...data: any[]) => {
+        const modelData = isArrayFlag ? data : data[0];
+        fn(() => callback(modelData, fn()));
+      }, false);
+    }
+    return unsub;
+  };
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,
     writable: false,

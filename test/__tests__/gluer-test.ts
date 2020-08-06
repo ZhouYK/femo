@@ -1,4 +1,5 @@
 import gluer from '../../src/gluer';
+import {subscribe} from "../../src";
 
 describe('gluer normal test',  () => {
   test('gluer => function', () => {
@@ -121,5 +122,100 @@ describe('gluer update data test', () => {
     expect.assertions(6);
     await tallPromise;
     expect(tall()).toBe(1);
+  })
+})
+
+describe('relyOn test', () => {
+  test('normal test', () => {
+    const name = gluer('小军');
+    const person = gluer({
+      name: name(),
+      age: 22
+    });
+    const unsub = person.relyOn(name, (nameStr: string, state) => {
+      return {
+        ...state,
+        name: nameStr,
+      }
+    });
+    name('张明');
+    expect(name()).toBe('张明');
+
+    const personCallback_1 = jest.fn((data) => {
+      return data;
+    });
+    subscribe([person], personCallback_1);
+    expect(personCallback_1.mock.calls.length).toBe(1);
+    expect(personCallback_1.mock.calls[0][0]).toEqual({
+      name: '张明',
+      age: 22,
+    });
+    expect(personCallback_1.mock.results[0].value).toEqual({
+      name: '张明',
+      age: 22,
+    });
+    expect(person()).toEqual({
+      name: '张明',
+      age: 22,
+    });
+
+    name('李玲');
+    expect(name()).toBe('李玲');
+    expect(personCallback_1.mock.calls.length).toBe(2);
+    expect(personCallback_1.mock.calls[1][0]).toEqual({
+      name: '李玲',
+      age: 22,
+    });
+    expect(personCallback_1.mock.results[1].value).toEqual({
+      name: '李玲',
+      age: 22,
+    });
+    expect(person()).toEqual({
+      name: '李玲',
+      age: 22,
+    });
+
+    // 取消依赖
+    unsub();
+    name('张达');
+    expect(name()).toBe('张达');
+    expect(personCallback_1.mock.calls.length).toBe(2);
+    expect(person()).toEqual({
+      name: '李玲',
+      age: 22,
+    });
+  });
+
+  test('async test', () => {
+    const name = gluer('张清');
+
+    const person = gluer({
+      name: name(),
+      age: 20,
+    });
+
+    const unsub = person.relyOn(name, (data, state) => {
+      return Promise.resolve({
+        ...state,
+        name: data,
+      });
+    });
+
+    name('吴欢');
+    expect(name()).toBe('吴欢');
+
+    subscribe([person], (data) => {
+      expect(data).toEqual({
+        name: '吴欢',
+        age: 20,
+      });
+    }, false);
+
+    expect(person()).toEqual({
+      name: '张清',
+      age: 20,
+    });
+
+    unsub();
   })
 })

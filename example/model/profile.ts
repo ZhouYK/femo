@@ -5,5 +5,4 @@ const profile = gluer({
   name: '',
   desc: ''
 });
-
 export default profile;

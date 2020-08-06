@@ -3,7 +3,7 @@ import {gluerUniqueFlagKey, gluerUniqueFlagValue} from "./constants";
 export const refToDepsMap = new Map();
 export const depsToFnMap = new Map();
 
-const subscribe = (deps: GluerReturn<any, any>[], callback: (...args: any[]) => void) => {
+const subscribe = (deps: GluerReturn<any, any>[], callback: (...args: any[]) => void, callWhenSub = true) => {
   if (!(deps instanceof Array)) {
     throw new Error(`Error: the first param must be array！${ deps }`);
   }
@@ -63,7 +63,9 @@ const subscribe = (deps: GluerReturn<any, any>[], callback: (...args: any[]) => 
 
   // 映射建立完毕之后，初始化时，执行一次回调，注入初始值
   // 为什么是映射建立完之后再执行？因为需要引起更新，否则第一次初始化的时候无论如何都不会引起更新，这样行为就不一致
-  callback(...initialBundle.initialDepsValue);
+  if (callWhenSub) {
+    callback(...initialBundle.initialDepsValue);
+  }
 
   return function unsubscribe() {
     // 不等于0才去解除依赖
