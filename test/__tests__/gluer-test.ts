@@ -132,10 +132,10 @@ describe('relyOn test', () => {
       name: name(),
       age: 22
     });
-    const unsub = person.relyOn(name, (nameStr: string, state) => {
+    const unsub = person.relyOn([name], (result, state) => {
       return {
         ...state,
-        name: nameStr,
+        name: result[0] as string,
       }
     });
     name('张明');
@@ -194,10 +194,10 @@ describe('relyOn test', () => {
       age: 20,
     });
 
-    const unsub = person.relyOn(name, (data, state) => {
+    const unsub = person.relyOn([name], (data, state) => {
       return Promise.resolve({
         ...state,
-        name: data,
+        name: data[0],
       });
     });
 

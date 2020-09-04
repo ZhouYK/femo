@@ -132,22 +132,18 @@ function gluer(...args: any[]) {
     fn(initState);
   }
 
-  fn.relyOn = (model: any[] | any, callback: (data: any[] | any, state: any) => any) => {
+  fn.relyOn = (model: any[], callback: (data: any[], state: any) => any) => {
     let innerModel = [];
-    let isArrayFlag = true;
     if (isArray(model)) {
       innerModel = model;
-    } else if (model[gluerUniqueFlagKey] === gluerUniqueFlagValue) {
-      isArrayFlag = false;
-      innerModel = [model];
     } else {
-      isArrayFlag = false;
+      throw new Error('dependencies should be Array');
     }
 
     let unsub = () => {};
     if (innerModel.length !== 0) {
       unsub = subscribe(innerModel, (...data: any[]) => {
-        const modelData = isArrayFlag ? data : data[0];
+        const modelData = data;
         fn(() => callback(modelData, fn()));
       }, false);
     }
