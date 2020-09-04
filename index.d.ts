@@ -4,7 +4,8 @@ import {raceQueue} from "./src/constants";
 import {RaceQueue} from "./src/interface";
 
 
-type Unpacked<T> = T extends Promise<infer U> ? U : T;
+export type Unpacked<T> = T extends Promise<infer U> ? U : T;
+export type isType<T, S> = T extends S ? Unpacked<T> : never;
 type Transfer<T> = T extends GluerReturn<any, any> ? Unpacked<ReturnType<T>> : never;
 type Copy<T> = {
   [key in keyof T]: Transfer<T[key]>;
@@ -21,7 +22,7 @@ export type GluerReturn<S, R> = {
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<Partial<S>>>): Promise<Partial<S>>;
 } & {
   reset: () => void;
-  relyOn: <T extends any[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
+  relyOn: <T extends GluerReturn<any, any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
 }
 export function gluer<S = any, D = S, R = Partial<S>>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
 export function gluer<S, D, R = any>(initialState: S) : GluerReturn<S, R>;

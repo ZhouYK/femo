@@ -1,5 +1,6 @@
 import gluer from '../../src/gluer';
 import {subscribe} from "../../src";
+import {isType} from "../../index";
 
 describe('gluer normal test',  () => {
   test('gluer => function', () => {
@@ -125,6 +126,7 @@ describe('gluer update data test', () => {
   })
 })
 
+
 describe('relyOn test', () => {
   test('normal test', () => {
     const name = gluer('小军');
@@ -135,7 +137,7 @@ describe('relyOn test', () => {
     const unsub = person.relyOn([name], (result, state) => {
       return {
         ...state,
-        name: result[0] as string,
+        name: result[0] as isType<typeof result[0], ReturnType<typeof name>>,
       }
     });
     name('张明');
