@@ -221,3 +221,18 @@ describe('relyOn test', () => {
     unsub();
   })
 })
+
+describe('test rest', () => {
+  const name = gluer('初始名字');
+  const callback = jest.fn((n) => {
+    return n;
+  });
+  const unsubscribe = subscribe([name], callback);
+  name('小红');
+  expect(callback.mock.calls[1][0]).toBe('小红');
+  expect(name()).toBe('小红');
+  name.reset();
+  expect(callback.mock.calls[2][0]).toBe('初始名字');
+  expect((name())).toBe('初始名字');
+  unsubscribe();
+})
