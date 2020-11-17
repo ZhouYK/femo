@@ -70,7 +70,22 @@ function gluer(...args: any[]) {
 
   let gluerState = initState;
 
-  const fn = (...args: any[]) => {
+  const updateFn = (data: any, silent: boolean) => {
+    if (!(Object.is(data, gluerState))) {
+      gluerState = data;
+      if (!silent) {
+        const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
+        if (targetDeps) {
+          targetDeps.forEach((target: GluerReturn<any, any>[]) => {
+            const callback = depsToFnMap.get(target);
+            callback(...target);
+          })
+        }
+      }
+    }
+  }
+
+  const basicLogic = (silent = false) => (...args: any[]) => {
     let payload;
     let customHandler;
     if (args.length === 0) {
@@ -98,35 +113,19 @@ function gluer(...args: any[]) {
         return Promise.reject(e);
       }).then((data) => {
         raceHandle(promise);
-        if (!(Object.is(data, gluerState))) {
-          gluerState = data;
-          const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
-          if (targetDeps) {
-            targetDeps.forEach((target: GluerReturn<any, any>[]) => {
-              const callback = depsToFnMap.get(target);
-              callback(...target);
-            })
-          }
-        }
+        updateFn(data, silent);
         return data;
       });
       // 返回函数处理结果
       return promise;
     }
 
-    if (!(Object.is(tempResult, gluerState))) {
-      gluerState = tempResult;
-      const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
-      if (targetDeps) {
-        targetDeps.forEach((target: GluerReturn<any, any>[]) => {
-          const callback = depsToFnMap.get(target);
-          callback(...target);
-        })
-      }
-    }
+    updateFn(tempResult, silent);
     // 返回函数处理结果
     return tempResult;
-  };
+  }
+
+  const fn: any = basicLogic(false);
 
   fn.reset = () => {
     fn(initState);
@@ -149,6 +148,8 @@ function gluer(...args: any[]) {
     }
     return unsub;
   };
+
+  fn.silent = basicLogic(true);
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,
     writable: false,

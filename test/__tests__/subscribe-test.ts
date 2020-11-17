@@ -1,5 +1,5 @@
 import * as family from '../models/family';
-import { subscribe } from "../../src";
+import {gluer, subscribe} from "../../src";
 
 describe('subscribe tests', () => {
 
@@ -83,4 +83,22 @@ describe('subscribe tests', () => {
     expect(family.name()).toBe('蓝色的天线'); // 处理函数加上了'蓝色的'
     expect(thirdMockCall.mock.calls.length).toBe(4); // 还是4次，与解绑前一样。说明解绑成功
   });
+
+  test('silent test', () => {
+    const basic = gluer(null);
+    const mockCall = jest.fn((data) => {
+      return data;
+    });
+    const unsub = subscribe([basic], mockCall, false);
+
+    basic('测试');
+    expect(mockCall.mock.calls.length).toBe(1);
+    expect(mockCall.mock.results[0].value).toBe('测试');
+    expect(basic()).toBe('测试');
+    basic.silent('123');
+    expect(mockCall.mock.calls.length).toBe(1);
+    expect(mockCall.mock.results.length).toBe(1);
+    expect(basic()).toBe('123');
+    unsub();
+  })
 });
