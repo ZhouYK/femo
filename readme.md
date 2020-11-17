@@ -133,6 +133,55 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 
 ```
 
+#### relyOn
+> 数据节点上的方法
+
+适用的场景：多个数据节点的变化都可引起一个数据节点更新，多对一的关系。
+
+```javascript
+const demo1 = gluer(null);
+const demo2 = gluer(null);
+const demo3 = gluer(null);
+
+const demo = gluer(null);
+
+const unsubscribe = demo.relyOn([demo1, demo2, demo3], (data, state) => 
+{
+ // data[0] 为 demo1的值
+ // data[1] 为 demo2的值
+ // data[2] 为 demo3的值
+ // state 为 demo的值
+ // 需要返回demo的最新值
+})
+
+// 解除依赖
+unsubscribe();
+```
+
+定义节点之间的单向依赖关系，入参返回如下：
+
+|入参   | 含义 |
+| :----| :---- |
+| 节点数组 |定义依赖的节点。放置的顺序会直接影响取值顺序|
+
+|入参   | 含义 |
+| :---- | :---- |
+| 回调函数 | 形如(data, state) => state。data是节点数据值的数组，与节点数组一一对应。state 是监听的节点的值。回调函数需要返回监听节点的新值 |
+
+relyOn处理数据依赖更新是单向的。通常情况下适合处理结构上没有嵌套的彼此独立的节点。
+
+需要注意的是，如果是要处理数据的双向依赖，比如：
+```javascript
+a.relyOn([b], (data, state) => {
+  // todo
+});
+
+b.relyOn([a], (data, state) => {
+  // todo
+})
+```
+特别注意不要引起死循环！
+
 ### 类型支持
 
 ⚡️强烈建议使用typescript
