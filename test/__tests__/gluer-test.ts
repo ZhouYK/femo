@@ -236,3 +236,95 @@ describe('test rest', () => {
   expect((name())).toBe('初始名字');
   unsubscribe();
 })
+
+describe('test history', () => {
+  test('track go flush', async () => {
+    const page = gluer('页面1');
+    const callback = jest.fn((n) => {
+      return n;
+    });
+    const unsubscribe = subscribe([page], callback, false);
+    page.go(1);
+    page.go(100);
+    page.go(0);
+    page.go(-1);
+    page.go(-100);
+    expect(callback.mock.calls.length).toBe(0);
+
+    page('页面2');
+    expect(callback.mock.calls.length).toBe(1);
+    page.go(1);
+    page.go(100);
+    page.go(0);
+    page.go(-1);
+    page.go(-100);
+    expect(callback.mock.calls.length).toBe(1);
+
+    // 开始记录 此刻的状态为'页面2'，所以第一条记录的状态为'页面2'
+    page.track();
+    page('页面3');
+    expect(callback.mock.calls.length).toBe(2);
+
+    page.go(-1); // 回退到 '页面2';
+    expect(callback.mock.calls.length).toBe(3);
+    expect(callback.mock.calls[2][0]).toBe('页面2');
+    page.go(1); // 前进道 '页面3';
+    expect(callback.mock.calls.length).toBe(4);
+    expect(callback.mock.calls[3][0]).toBe('页面3');
+    page.go(0); // 保持在当前
+    expect(callback.mock.calls.length).toBe(4);
+    page('页面4');
+    expect(callback.mock.calls.length).toBe(5);
+    expect(callback.mock.calls[4][0]).toBe('页面4');
+    page.go(100); // 最多前进到 '页面4'
+    expect(callback.mock.calls.length).toBe(5);
+    page.go(-100); // 最多后退到 '页面2'（开始记录那一页）
+    expect(callback.mock.calls.length).toBe(6);
+    expect(callback.mock.calls[5][0]).toBe('页面2');
+    // 此时正常更新一个'页面5'
+    // 之前'页面2'后面的历史记录都会被清除，取而代之的是'页面5'
+    page('页面5');
+    expect(callback.mock.calls.length).toBe(7);
+    expect(callback.mock.calls[6][0]).toBe('页面5');
+
+    page.go(-1);
+    expect(callback.mock.calls.length).toBe(8);
+    expect(callback.mock.calls[7][0]).toBe('页面2');
+    // 继续退，还是页面2，已经到记录的第一条了
+    page.go(-1);
+    expect(callback.mock.calls.length).toBe(8);
+
+    page.go(1);
+    expect(callback.mock.calls.length).toBe(9);
+    expect(callback.mock.calls[8][0]).toBe('页面5');
+    // 继续前进，还是页面5，已经到记录最后一条了
+    page.go(1);
+    expect(callback.mock.calls.length).toBe(9);
+
+    await page(async () => {
+      return '页面6';
+    });
+
+    expect(callback.mock.calls.length).toBe(10);
+    expect(callback.mock.calls[9][0]).toBe('页面6');
+
+    // 当前已经是记录中最新的一个了 =》页面6
+    page.go(1);
+    expect(callback.mock.calls.length).toBe(10);
+
+    page(async () => {
+      return '页面7'
+    });
+    // 由于'页面7'是异步更新的，前进时并未进入记录，所以还是'页面6'
+    page.go(1);
+    expect(callback.mock.calls.length).toBe(10);
+
+    page.go(-2); // 回退到'页面2'
+    expect(callback.mock.calls.length).toBe(11);
+    expect(callback.mock.calls[10][0]).toBe('页面2');
+
+    // 停止并清除记录
+    page.flush();
+    unsubscribe();
+  })
+})

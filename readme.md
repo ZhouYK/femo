@@ -188,6 +188,50 @@ b.relyOn([a], (data, state) => {
 该方法和直接使用节点更新一样，只是不会进行数据更新的广播。
 在需要优化组件渲染频率的时候可以考虑使用它。
 
+#### track
+> 数据节点上的方法
+
+节点开始记录状态历史，并把当前状态做为记录状态的起始状态。
+
+```javascript
+const page = gluer('page 1');
+page.track(); // 开始记录 page的变更历史
+```
+ #### flush
+ > 数据节点上的方法
+
+节点停止记录状态历史，并把记录的状态历史清空。和track搭配使用
+
+```javascript
+const page = gluer('page 1');
+page.track(); // 开始记录 page的变更历史
+// 中间省略若干代码
+page.flush(); // 停止记录 清除page变更历史
+```
+#### go
+> 数据节点上的方法
+
+在节点记录的状态历史中前进后退，达到历史状态的快速重现和恢复。
+
+| 入参 | 含义 |
+| :--- | :--- |
+| step(Number类型) | 整数。负数表示后退多少个记录，正数表示前进多少个记录 |
+
+```javascript
+const page = gluer('page 1');
+page.track(); // 开始记录 page的变更历史
+
+page('page 2');
+
+page('page 4');
+
+page.go(-1); // 回退到page 2
+page.go(-1); // 回退到page 1
+page.go(2); // 前进到page 4
+page.go(-2); // 后退到page 1
+
+page.flush(); // 停止记录 清除page变更历史
+```
 ### 类型支持
 
 ⚡️强烈建议使用typescript

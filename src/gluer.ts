@@ -69,11 +69,47 @@ function gluer(...args: any[]) {
   }
 
   let gluerState = initState;
+  const trackArr: any[] = [];
+  let curIndex: number = 0;
+
+  const historyGoUpdateFn = (step: number) => {
+    const { length } = trackArr;
+    if (length === 0) {
+      return;
+    }
+
+    curIndex += step;
+    if (curIndex < 0) {
+      curIndex = 0;
+    } else if (curIndex > length - 1) {
+      curIndex = length - 1;
+    }
+
+    const data = trackArr[curIndex];
+    if (!(Object.is(data, gluerState))) {
+      gluerState = data;
+      const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
+      if (targetDeps) {
+        targetDeps.forEach((target: GluerReturn<any, any>[]) => {
+          const callback = depsToFnMap.get(target);
+          callback(...target);
+        })
+      }
+    }
+  }
 
   const updateFn = (data: any, silent: boolean) => {
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
       if (!silent) {
+        const { length } = trackArr;
+        if (length) {
+          if (curIndex < length - 1) {
+            trackArr.splice(curIndex + 1);
+          }
+          trackArr.push(gluerState);
+          curIndex += 1;
+        }
         const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
         if (targetDeps) {
           targetDeps.forEach((target: GluerReturn<any, any>[]) => {
@@ -150,6 +186,25 @@ function gluer(...args: any[]) {
   };
 
   fn.silent = basicLogic(true);
+
+  fn.track = () => {
+    if (!trackArr.length) {
+      trackArr.push(gluerState);
+      curIndex = 0;
+    }
+  }
+
+  fn.flush = () => {
+    if (trackArr.length) {
+      trackArr.splice(0);
+      curIndex = 0;
+    }
+  }
+
+  fn.go = (step: number) => {
+    historyGoUpdateFn(step);
+    return gluerState;
+  }
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,
     writable: false,
