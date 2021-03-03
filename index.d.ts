@@ -15,11 +15,11 @@ export type HandleFunc<S, D, CR> = (data: D, state: S) => CR;
 
 export type GluerReturnFn<S, R> = {
   (): S;
-  <D = undefined>(customHandler: HandleFunc<S, D, Promise<Partial<S>>>): Promise<Partial<S>>;
-  <D = undefined>(customHandler: HandleFunc<S, D, Partial<S>>): Partial<S>;
+  <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
+  <D = undefined>(customHandler: HandleFunc<S, D, S>): S;
   <D = Partial<S>>(data: D): S;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Partial<S>>): Partial<S>;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<Partial<S>>>): Promise<Partial<S>>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>): S;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
 }
 
 export type GluerReturn<S, R> = GluerReturnFn<S, R> & {
