@@ -17,7 +17,7 @@ export type GluerReturnFn<S, R> = {
   (): S;
   <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
   <D = undefined>(customHandler: HandleFunc<S, D, S>): S;
-  <D = Partial<S>>(data: D): S;
+  <D>(data: D): D extends Promise<any> ? Promise<S> : S;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>): S;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
 }
