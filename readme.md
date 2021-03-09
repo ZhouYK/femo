@@ -26,7 +26,7 @@ yarn add femo
 4. 数据节点中处理过程可是异步的。
 5. 数据节点异步更新出现竞争时，可由数据节点外部方法genRaceQueue解决。
 6. 数据的订阅由数据节点外部方法subscribe实现。
-7. 核心api两个：gluer和subscribe，增强功能api一个: genRaceQueue，总共三个api。
+7. 核心api两个：gluer和subscribe，增强功能api一个: genRaceQueue，两个自定义hook: useModel、useDerivedStateToModelFromProps。
 
 ## 以下是工具函数
 
@@ -147,6 +147,10 @@ const [listData] = useModel(list);
 // 和useState很类似
 
 ```
+
+### useDerivedStateToModelFromProps
+> 自定义hook，用于将props中的衍生数据更新到model中去，统一使用model的数据
+> 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致
 
 ## 以下是节点上的方法
 
