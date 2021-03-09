@@ -44,7 +44,7 @@
   ],
   "scripts": {
     "codecov": "codecov -t 49032a93-7d9a-4205-b14f-2ce81b8a8662",
-    "clean-js": "rm -f src/*.js",
+    "clean-js": "rm -f src/*.js && rm -f src/**/*.js",
     "build": "npm run test && npm run tsc && npm run cj && npm run es && npm run umd && npm run clean-js",
     "tsc": "tsc -p ./",
     "cj": "cross-env NODE_ENV=cj babel src --out-dir dist/cj",
