@@ -9,7 +9,7 @@
 
 *针对数据操作的可预知、易测试的抽象封装*
 
-### 发布 [![NPM version](https://img.shields.io/npm/v/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
+## 发布 [![NPM version](https://img.shields.io/npm/v/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
 
 ```bash
 npm i femo
@@ -18,7 +18,7 @@ yarn add femo
 ```
 
 ---
-### 概述
+## 概述
 
 1. 每个定义的数据节点之间是独立的。
 2. 没有一个集中的store，数据节点的组织是分散的，可组合但不支持嵌套。
@@ -28,9 +28,9 @@ yarn add femo
 6. 数据的订阅由数据节点外部方法subscribe实现。
 7. 核心api两个：gluer和subscribe，增强功能api一个: genRaceQueue，总共三个api。
 
-### API介绍
+## 以下是工具函数
 
-#### gluer
+### gluer
 
 > 定义数据节点
 
@@ -91,7 +91,7 @@ const name = gluer('初始名字');
 ```
 
 
-#### subscribe
+### subscribe
 > 订阅数据节点
 
 数据节点被订阅过后，其数据的变化会通知到订阅的回调函数里面。
@@ -108,7 +108,7 @@ name('张胜男');
 unsubscribe();
 ```
 
-#### genRaceQueue
+### genRaceQueue
 > 数据更新出现竞争时，可用。
 
 这个主要针对异步更新，保证数据的一致性。
@@ -132,6 +132,23 @@ raceQueue.push(someModel(params, async (data, state) => {
 raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }));
 
 ```
+### useModel
+> 自定义hook，用于消费节点数据
+
+```js
+// 定义一个节点
+const list = gluer({ page: 1, size: 20, total: 0, list: [] });
+
+// 在函数组件中使用useModel消费数据
+
+const [listData] = useModel(list);
+
+// 每次list的变动都会通知useModel，useModel更新listData，rerender组件
+// 和useState很类似
+
+```
+
+## 以下是节点上的方法
 
 #### relyOn
 > 数据节点上的方法

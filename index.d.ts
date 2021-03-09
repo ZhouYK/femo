@@ -15,9 +15,9 @@ export type HandleFunc<S, D, CR> = (data: D, state: S) => CR;
 
 export type GluerReturnFn<S, R> = {
   (): S;
-  <D = undefined, CR = Partial<S>>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<Partial<S>> ? Promise<S> : S;
+  <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
   <D>(data: D): D extends Promise<any> ? Promise<S> : S;
-  <D = Partial<S>, CR = Partial<S>>(data: D, customHandler: HandleFunc<S, D, CR>): CR extends Promise<Partial<S>> ? Promise<S> : S;
+  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
 }
 
 export type GluerReturn<S, R> = GluerReturnFn<S, R> & {
@@ -28,11 +28,11 @@ export type GluerReturn<S, R> = GluerReturnFn<S, R> & {
   flush: () => void;
   go: (step: number) => S;
 }
-export function gluer<S = any, D = S, R = Partial<S>>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
+export function gluer<S = any, D = S, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
 export function gluer<S, D, R = any>(initialState: S) : GluerReturn<S, R>;
-export function gluer<S = any, D = S, R = Partial<S>>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
+export function gluer<S = any, D = S, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
 
 export function genRaceQueue(): ({ push: <T = any>(p: Promise<T> & { [raceQueue]?: RaceQueue }) => void; clear: () => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null })
 export function subscribe(deps: GluerReturn<any, any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
-
+export function useModel(): <T, D>(model: GluerReturn<T, D>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean) => [T, (data: T) => void];
 export { promiseDeprecatedError } from './src/gluer';

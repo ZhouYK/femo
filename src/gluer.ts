@@ -32,9 +32,9 @@ const raceHandle = (promise: Promise<any> & { [raceQueue]: RaceQueue; [promiseDe
  * @returns {function(): {action: *, reducer: *, initState: *}}
  * @param fn
  */
-function gluer<S = any, D = S, R = Partial<S>>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
+function gluer<S = any, D = S, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
 function gluer<S, D, R = any>(initialState: S) : GluerReturn<S, R>;
-function gluer<S = any, D = S, R = Partial<S>>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
+function gluer<S = any, D = S, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;
   let reducerFnc: Reducer;
