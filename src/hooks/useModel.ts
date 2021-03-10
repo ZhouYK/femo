@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { GluerReturn } from "../../index";
 import subscribe from "../subscribe";
 
-const useModel = <T, D>(model: GluerReturn<T, D>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, (data: T) => void] => {
+const useModel = <T = any, D = any>(model: GluerReturn<T, D>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, (data: T) => void] => {
   const [state, updateState] = useState(() => {
     const tmpState = model();
     if (handleFnc) {
