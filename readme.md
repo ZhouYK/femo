@@ -26,7 +26,7 @@ yarn add femo
 4. 数据节点中处理过程可是异步的。
 5. 数据节点异步更新出现竞争时，可由数据节点外部方法genRaceQueue解决。
 6. 数据的订阅由数据节点外部方法subscribe实现。
-7. 核心api两个：gluer和subscribe，增强功能api一个: genRaceQueue，两个自定义hook: useModel、useDerivedStateToModelFromProps。
+7. 核心api两个：gluer和subscribe，增强功能api一个: genRaceQueue，三个自定义hook: useModel、useIndividualModel、useDerivedStateToModelFromProps。
 
 ## 以下是工具函数
 
