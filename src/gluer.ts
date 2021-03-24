@@ -15,7 +15,7 @@ export const promiseDeprecatedError = 'the promise is deprecated';
 const defaultReducer = (data: any, _state: any) => data;
 const warning = 'highly recommend setting the initial state with the reducer：';
 const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
-const raceHandle = (promise: Promise<any> & { [raceQueue]: RaceQueue; [promiseDeprecated]: boolean }) => {
+const raceHandle = (promise: Promise<any> & { [raceQueue]?: RaceQueue; [promiseDeprecated]?: boolean }) => {
 
   if (raceQueue in promise) {
     delete promise[raceQueue];

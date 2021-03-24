@@ -32,7 +32,7 @@
     "transformIgnorePatterns": [],
     "globals": {
       "ts-jest": {
-        "tsConfig": "<rootDir>/test/tsconfig.fortest.json"
+        "tsconfig": "<rootDir>/test/tsconfig.fortest.json"
       }
     }
   },
@@ -49,45 +49,45 @@
     "tsc": "tsc -p ./",
     "cj": "cross-env NODE_ENV=cj babel src --out-dir dist/cj",
     "es": "babel src --out-dir dist/es",
-    "start": "webpack-dev-server --config webpack.dev.config.js",
+    "start": "webpack serve --config webpack.dev.config.js",
     "test": "npm run clean-js && jest --no-cache",
     "umd": "webpack --config webpack.config.js"
   },
   "devDependencies": {
-    "@babel/cli": "~7.7.7",
-    "@babel/core": "~7.7.7",
-    "@babel/plugin-proposal-class-properties": "~7.7.4",
-    "@babel/preset-env": "~7.7.7",
-    "@babel/preset-react": "~7.7.4",
+    "@babel/cli": "~7.13.10",
+    "@babel/core": "~7.13.10",
+    "@babel/plugin-proposal-class-properties": "~7.13.0",
+    "@babel/preset-env": "~7.13.10",
+    "@babel/preset-react": "~7.12.13",
     "@types/jest": "~24.0.25",
-    "@types/react": "~16.8.25",
-    "@types/react-dom": "~16.8.5",
-    "@typescript-eslint/eslint-plugin": "~1.9.0",
-    "@typescript-eslint/parser": "~1.9.0",
-    "babel-loader": "^8.0.5",
+    "@types/react": "~16.9.35",
+    "@types/react-dom": "~16.9.8",
+    "@typescript-eslint/eslint-plugin": "~2.31.0",
+    "@typescript-eslint/parser": "~2.31.0",
+    "babel-loader": "~8.1.0",
     "codecov": "~3.7.1",
     "cross-env": "~5.2.1",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "~13.2.0",
-    "eslint-config-prettier": "^4.1.0",
-    "eslint-loader": "~2.2.1",
-    "eslint-plugin-import": "~2.19.1",
-    "eslint-plugin-jest": "~22.21.0",
-    "eslint-plugin-react": "~7.17.0",
-    "eslint-plugin-react-hooks": "~1.7.0",
-    "femo-react-helper": "0.0.6",
-    "file-loader": "~4.2.0",
-    "html-webpack-plugin": "^3.2.0",
-    "jest": "~24.9.0",
+    "eslint": "~6.8.0",
+    "eslint-config-airbnb-base": "~14.1.0",
+    "eslint-config-prettier": "~8.1.0",
+    "eslint-import-resolver-alias": "~1.1.2",
+    "eslint-loader": "~4.0.2",
+    "eslint-plugin-import": "~2.20.2",
+    "eslint-plugin-jest": "~23.10.0",
+    "eslint-plugin-react": "~7.19.0",
+    "eslint-plugin-react-hooks": "~4.0.0",
+    "file-loader": "~6.0.0",
+    "html-webpack-plugin": "~5.2.0",
+    "jest": "~24.5.0",
     "react": "~16.8.6",
     "react-dom": "~16.8.6",
-    "ts-jest": "~24.3.0",
-    "ts-loader": "^5.3.3",
-    "typescript": "~3.7.4",
+    "ts-jest": "~24.0.0",
+    "ts-loader": "~8.0.18",
+    "typescript": "~3.9.9",
     "url-loader": "~2.1.0",
-    "webpack": "~4.41.5",
-    "webpack-cli": "~3.3.10",
-    "webpack-dev-server": "~3.10.1"
+    "webpack": "~5.24.2",
+    "webpack-cli": "~4.5.0",
+    "webpack-dev-server": "~3.11.2"
   },
   "files": [
     "src",
@@ -98,7 +98,6 @@
     "index.d.ts"
   ],
   "dependencies": {
-    "@babel/polyfill": "~7.4.4",
-    "core-js": "~3.0.1"
+    "core-js": "~3.9.1"
   }
 }

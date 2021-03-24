@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
+    "experimentalDecorators": false,
     "esModuleInterop": true,
-    "module": "commonjs",
-    "target": "esnext",
+    "lib": ["esnext"],
+    "module": "esnext",
+    "target": "esnext", // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "sourceMap": false,
