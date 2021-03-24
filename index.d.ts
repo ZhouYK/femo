@@ -36,4 +36,6 @@ export function genRaceQueue(): ({ push: <T = any>(p: Promise<T> & { [raceQueue]
 export function subscribe(deps: GluerReturn<any, any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
 export function useModel<T = any, D = any>(model: GluerReturn<T, D>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, (data: T) => void];
 export function useDerivedStateToModelFromProps<P = any, S = any, R = any>(props: P, model: GluerReturn<S, R>, callback: (nextProps: P, prevProps: P, state: S) => S): [S];
+export function useIndividualModel<S = any>(initState: S): [S, GluerReturn<S, any>];
+
 export { promiseDeprecatedError } from './src/gluer';

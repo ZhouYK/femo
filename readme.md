@@ -152,6 +152,10 @@ const [listData] = useModel(list);
 > 自定义hook，用于将props中的衍生数据更新到model中去，统一使用model的数据
 > 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致
 
+### useIndividualModel
+> 自定义hook，和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
+> 主要使用场景为：想要使用model的能力，但不希望model是全局共享的。（在可复用组件里面这种场景很常见）
+
 ## 以下是节点上的方法
 
 #### relyOn
