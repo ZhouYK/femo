@@ -27,10 +27,11 @@ export type GluerReturn<S, R> = GluerReturnFn<S, R> & {
   track: () => void;
   flush: () => void;
   go: (step: number) => S;
+  race: (customHandler: (data: any, state: S) => Promise<S>) => Promise<S>;
 }
-export function gluer<S = any, D = S, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
-export function gluer<S, D, R = any>(initialState: S) : GluerReturn<S, R>;
-export function gluer<S = any, D = S, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
+export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
+export function gluer<S, D = any, R = S>(initialState: S) : GluerReturn<S, R>;
+export function gluer<S , D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
 
 export function genRaceQueue(): ({ push: <T = any>(p: Promise<T> & { [raceQueue]?: RaceQueue }) => void; clear: () => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null })
 export function subscribe(deps: GluerReturn<any, any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;

@@ -10,6 +10,7 @@ import { HandleFunc, GluerReturn } from '../index';
 import {isArray, isAsync} from "./tools";
 import {RaceQueue} from "./interface";
 import subscribe, {depsToFnMap, refToDepsMap} from "./subscribe";
+import genRaceQueue from "./genRaceQueue";
 
 export const promiseDeprecatedError = 'the promise is deprecated';
 const defaultReducer = (data: any, _state: any) => data;
@@ -32,9 +33,9 @@ const raceHandle = (promise: Promise<any> & { [raceQueue]?: RaceQueue; [promiseD
  * @returns {function(): {action: *, reducer: *, initState: *}}
  * @param fn
  */
-function gluer<S = any, D = S, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
-function gluer<S, D, R = any>(initialState: S) : GluerReturn<S, R>;
-function gluer<S = any, D = S, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
+function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
+function gluer<S, D = any, R = S>(initialState: S) : GluerReturn<S, R>;
+function gluer<S, D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;
   let reducerFnc: Reducer;
@@ -71,6 +72,7 @@ function gluer(...args: any[]) {
   let gluerState = initState;
   const trackArr: any[] = [];
   let curIndex: number = 0;
+  const raceQueue = genRaceQueue();
 
   const historyGoUpdateFn = (step: number) => {
     const { length } = trackArr;
@@ -205,6 +207,9 @@ function gluer(...args: any[]) {
     historyGoUpdateFn(step);
     return gluerState;
   }
+
+  fn.race = (customHandler: <S>(data: any, state: S) => Promise<S>) => raceQueue.push(fn(customHandler));
+
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,
     writable: false,
