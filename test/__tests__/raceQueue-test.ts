@@ -38,9 +38,6 @@ describe('Correctness test', () => {
   let p1: Promise<any>;
   let p2: Promise<any>;
 
-  let n1: Promise<any>;
-  let n2: Promise<any>;
-
   beforeEach(() => {
     profile.reset();
     game.reset();
@@ -70,23 +67,6 @@ describe('Correctness test', () => {
         }, 1000);
       })
     });
-
-
-    n1 = game.race((_data, _state) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(newGame_1)
-        }, 2000);
-      })
-    });
-
-    n2 = game.race((_data, _state) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(newGame_2)
-        }, 1000);
-      })
-    });
   });
 
   test('no race promise', async () => {
@@ -112,6 +92,22 @@ describe('Correctness test', () => {
       expect(p1).rejects.toBe(promiseDeprecatedError);
       expect(p2).resolves.toBe(newProfile_2);
     }
+
+    const n1 = game.race((_data, _state) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(newGame_1)
+        }, 2000);
+      })
+    });
+
+    const n2 = game.race((_data, _state) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(newGame_2)
+        }, 1000);
+      })
+    });
     try {
       await Promise.all([n1, n2]);
     } catch (e) {
@@ -132,21 +128,13 @@ describe('Correctness test', () => {
       })
     });
 
-    const n3 = game.race(() => {
-      return new Promise((_resolve, reject) => {
-        setTimeout(() => {
-          reject('something wrong');
-        }, 500);
-      });
-    });
-
     const raceQueue = genRaceQueue();
 
     raceQueue.push(p1);
     raceQueue.push(p2);
     raceQueue.push(p3);
 
-    expect.assertions(6);
+    expect.assertions(7);
     try {
       await Promise.all([p1, p2, p3]);
     } catch (e) {
@@ -157,13 +145,38 @@ describe('Correctness test', () => {
       expect(e).toBe('something wrong');
     }
 
+    const n1 = game.race((_data, _state) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(newGame_1)
+        }, 2000);
+      })
+    });
+
+    const n2 = game.race((_data, _state) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(newGame_2)
+        }, 1000);
+      })
+    });
+
+
+    const n3 = game.race(() => {
+      return new Promise((_resolve, reject) => {
+        setTimeout(() => {
+          reject('something wrong');
+        }, 500);
+      });
+    });
+
     try {
       await Promise.all([n1, n2, n3]);
     } catch (e) {
       console.log('e', e);
       expect(n1).rejects.toBe(promiseDeprecatedError);
       expect(n2).rejects.toBe(promiseDeprecatedError);
-      // 第三个p3的reject先触发
+      // 第三个n3的reject先触发
       expect(e).toBe('something wrong');
     }
 

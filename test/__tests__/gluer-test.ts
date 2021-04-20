@@ -20,7 +20,7 @@ describe('gluer exception test', () => {
 
 describe('gluer update data test', () => {
   const name = gluer('小光');
-  const age = gluer((data) => {
+  const age = gluer((data: number, _state: number) => {
     return data ** 2;
   });
   const tall = gluer((data, state) => {
