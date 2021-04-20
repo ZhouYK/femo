@@ -225,6 +225,16 @@ b.relyOn([a], (data, state) => {
 上面<a href="#useDerivedStateToModelFromProps">useDerivedStateToModelFromProps</a>内部就调用了silent方法。
 这方法感觉还挺有用的😁。
 
+```js
+const [, casesModel] = useIndividualModel<Flow.Case[]>(node.switch_case || []);
+  const [cases] = useDerivedStateToModelFromProps(props, casesModel, (nextProps, prevProps, state) => {
+    if (nextProps.node !== prevProps.node) {
+      return nextProps.node.switch_case || [];
+    }
+    return state;
+  });
+```
+
 ## <a id="track">track</a>
 > 开始记录数据节点每次更新后的内容
 
