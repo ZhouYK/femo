@@ -208,7 +208,7 @@ function gluer(...args: any[]) {
     return gluerState;
   }
 
-  fn.race = (customHandler: <S>(data: any, state: S) => Promise<S>) => raceQueue.push(fn(customHandler));
+  fn.race = (...args: any[]) => raceQueue.push(fn(...args));
 
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,

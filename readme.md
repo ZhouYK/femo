@@ -20,78 +20,74 @@ yarn add femo
 ---
 ## 概述
 
-1. 每个定义的数据节点之间是独立的。
-2. 没有一个集中的store，数据节点的组织是分散的，可组合但不支持嵌套。
-3. 每个数据节点包含了：输入、处理过程、输出，除此之外再无其他功能。
-4. 数据节点中处理过程可是异步的。
-5. 数据节点异步更新出现竞争时，可由数据节点外部方法genRaceQueue解决。
-6. 数据的订阅由数据节点外部方法subscribe实现。
-7. 核心api两个：gluer和subscribe，增强功能api一个: genRaceQueue，三个自定义hook: useModel、useIndividualModel、useDerivedStateToModelFromProps。
+### 核心思想
 
-## 以下是工具函数
+数据以独立的节点形式存在，没有中心存储，完全是散状分布的。
 
-### gluer
+### <a href="#tool-function">工具函数</a>
+
+- <a href="#gluer">gluer</a>
+- <a href="#subscribe">subscribe</a>
+- <a href="#genRaceQueue">genRaceQueue</a>
+
+### <a href="#react-hook">react hook</a>
+
+- <a href="#useModel">useModel</a>
+- <a href="#useDerivedStateToModelFromProps">useDerivedStateToModelFromProps</a>
+- <a href="#useIndividualModel">useIndividualModel</a>
+
+### <a href="#methods">节点方法</a>
+
+- <a href="#relyOn">relyOn</a>
+- <a href="#silent">silent</a>
+- <a href="#track">track</a>
+- <a href="#flush">flush</a>
+- <a href="#go">go</a>
+- <a href="#race">race</a>
+
+## <span id="tool-function">工具函数</span>
+
+## <span id="gluer">gluer</span>
 
 > 定义数据节点
 
-定义一个数据节点：
+#### 数据节点定义：
 ```js
 import { gluer } from 'femo';
 
 const name = gluer('初始名字');
 
 ```
+节点数据可以使任意类型。一旦定义，节点的数据类型就确定了，后续不能改变。数据类型不变性只是用了typescript的类型做约束，请遵守这一约束，让数据更清晰和可预测。
 
-定义好了后就可以直接使用了，比如直接更新名字
-
+#### 数据更新：
 ```js
   name('张三');
 ```
 
-更新后获取最新的名字
-
+#### 数据获取
 ```js
   name(); // 张三
 ```
 
-试一试通过指定函数来更新数据
+#### 不同的入参更新数据
+
+同步函数
 ```js
   name((data, state) => {
     return '李四';
   });
 ```
 
-获取最新的名字
-```js
-  name(); // 李四
-```
-
-再试试指定一个异步函数来更新数据
+异步函数
 ```js
   name(async (data, state) => {
     return '王二';
   });
 ```
-异步函数更新数据会是异步的，所以获取更新后的名字应该这样
-```js
-  (async function () {
-              await name(async (data, state) => {
-                          return '王二';
-                        });
-                 name(); // 王二
-            })();
-```
-或者
-```js
-    name(async (data, state) => {
-        return '王二';
-      }).then(() => {
-        name(); // 王二
-      });
-```
+当入参是异步函数的时候，数据节点会异步地去更新数据。
 
-
-### subscribe
+## <span id="subscribe">subscribe</span>
 > 订阅数据节点
 
 数据节点被订阅过后，其数据的变化会通知到订阅的回调函数里面。
@@ -108,14 +104,16 @@ name('张胜男');
 unsubscribe();
 ```
 
-### genRaceQueue
-> 数据更新出现竞争时，可用。
+## genRaceQueue
+> 数据节点更新出现竞争时，需要确保当前的数据正确。
 
-这个主要针对异步更新，保证数据的一致性。
+什么是竞争？
 
-什么是异步竞争？
+常见的，先后发送了两个请求p1和p2，p1和p2都有各自的异步回调处理逻辑。一般情况下，先发出去的请求先回来，后发出去的请求后回来。 这种情况下异步回调的处理逻辑的先后顺序是符合预期的。
 
-常见的，先后发送了两个请求p1和p2，p1和p2都有各自的异步回调处理逻辑。一般情况下，先发出去的请求先回来，后发出去的请求后回来。 这种情况下异步回调的处理逻辑的先后顺序是符合预期的。但存在另外的情况，p1请求先发送后返回，p2请求后发送先返回。那么异步回调的处理顺序就不再是 p1的异步回调 => p2的异步回调，而是 p2的异步回调 => p1的异步回调。这种执行顺序显然是不符合预期的，会导致问题。
+但存在另外的情况，p1请求先发送后返回，p2请求后发送先返回。那么异步回调的处理顺序就不再是 p1的异步回调 => p2的异步回调，而是 p2的异步回调 => p1的异步回调。这种执行顺序显然是不符合预期的，会导致问题。
+
+genRaceQueue就是解决这种数据可能不一致的问题的。
 
 ```js
 import { genRaceQueue } from 'femo';
@@ -132,8 +130,14 @@ raceQueue.push(someModel(params, async (data, state) => {
 raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }));
 
 ```
-### useModel
+<strong>数据节点自身也提供了处理竞争的方法<a href="#race">race</a>。很多时候可以通过<a href="#race">race</a>方法来简化上面<a href="#genRaceQueue">genRaceQueue</a>的使用。</strong>
+
+## <span id="react-hook">react hook</span>
+
+## <span id="useModel">useModel</span>
 > 自定义hook，用于消费节点数据
+
+用react hook的方式订阅并获取数据节点的内容
 
 ```js
 // 定义一个节点
@@ -148,17 +152,20 @@ const [listData] = useModel(list);
 
 ```
 
-### useDerivedStateToModelFromProps
-> 自定义hook，用于将props中的衍生数据更新到model中去，统一使用model的数据
+## <span id="useDerivedStateToModelFromProps">useDerivedStateToModelFromProps</span>
+> 用于将props中的衍生数据更新到model中去，统一使用model的数据
 > 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致
 
-### useIndividualModel
-> 自定义hook，和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
-> 主要使用场景为：想要使用model的能力，但不希望model是全局共享的。（在可复用组件里面这种场景很常见）
+一般情况下这个react hook不会被使用到😁
 
-## 以下是节点上的方法
+## <span id="useIndividualModel">useIndividualModel</span>
+> 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
 
-#### relyOn
+主要使用场景为：想要使用model的能力，但不希望model是全局共享的。（在可复用组件里面数据共享可能会造成一些问题，这时就期望数据是独立的）
+
+## <span id="methods">节点方法</span>
+
+## <a id="relyOn">relyOn</a>
 > 数据节点上的方法
 
 适用的场景：多个数据节点的变化都可引起一个数据节点更新，多对一的关系。
@@ -177,7 +184,9 @@ const unsubscribe = demo.relyOn([demo1, demo2, demo3], (data, state) =>
  // data[2] 为 demo3的值
  // state 为 demo的值
  // 需要返回demo的最新值
-})
+  const newState = { ...state };
+  return newState;
+});
 
 // 解除依赖
 unsubscribe();
@@ -205,25 +214,28 @@ b.relyOn([a], (data, state) => {
   // todo
 })
 ```
-特别注意不要引起死循环！
+以上情况应该避免，太容易引起死循环😢！
 
-#### silent
-> 数据节点上的方法
+## <a id="silent">silent</a>
+> 静默地更新数据节点的内容
 
-该方法和直接使用节点更新一样，只是不会进行数据更新的广播。
+该方法和直接使用节点更新内容一样，只是不会进行数据更新的广播，订阅了该数据的回调函数或者组件不会在此次更行中被执行或者重新渲染。
 在需要优化组件渲染频率的时候可以考虑使用它。
 
-#### track
-> 数据节点上的方法
+上面<a href="#useDerivedStateToModelFromProps">useDerivedStateToModelFromProps</a>内部就调用了silent方法。
+这方法感觉还挺有用的😁。
 
-节点开始记录状态历史，并把当前状态做为记录状态的起始状态。
+## <a id="track">track</a>
+> 开始记录数据节点每次更新后的内容
+
+节点开始记录数据节点每次更新后的内容，并把当前内容做为第一条记录。
 
 ```javascript
 const page = gluer('page 1');
 page.track(); // 开始记录 page的变更历史
 ```
- #### flush
- > 数据节点上的方法
+## <a id="flush">flush</a>
+ > 清除记录，并停止记录
 
 节点停止记录状态历史，并把记录的状态历史清空。和track搭配使用
 
@@ -233,8 +245,8 @@ page.track(); // 开始记录 page的变更历史
 // 中间省略若干代码
 page.flush(); // 停止记录 清除page变更历史
 ```
-#### go
-> 数据节点上的方法
+## <a id="go">go</a>
+> 将数据节点的内容更新为指定记录内容
 
 在节点记录的状态历史中前进后退，达到历史状态的快速重现和恢复。
 
@@ -257,6 +269,20 @@ page.go(-2); // 后退到page 1
 
 page.flush(); // 停止记录 清除page变更历史
 ```
+
+## <a id="race">race</a>
+> 处理数据节点更新出现的竞争问题
+
+简化上面<a href="#genRaceQueue">genRaceQueue</a>的例子
+```js
+// p1请求
+someModel.race(params, async (data, state) => {
+  return await fetchRemote(data);
+});
+// p2请求
+someModel.race(async (data, state) => { return await fetchRemote() })
+```
+
 ### 类型支持
 
 ⚡️强烈建议使用typescript

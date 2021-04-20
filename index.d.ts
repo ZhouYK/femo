@@ -20,6 +20,11 @@ export type GluerReturnFn<S, R> = {
   <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
 }
 
+export type RaceFn<S> = {
+  <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): Promise<S>;
+  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): Promise<S>;
+}
+
 export type GluerReturn<S, R> = GluerReturnFn<S, R> & {
   reset: () => void;
   relyOn: <T extends GluerReturn<any, any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
@@ -27,7 +32,7 @@ export type GluerReturn<S, R> = GluerReturnFn<S, R> & {
   track: () => void;
   flush: () => void;
   go: (step: number) => S;
-  race: (customHandler: (data: any, state: S) => Promise<S>) => Promise<S>;
+  race: RaceFn<S>;
 }
 export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
 export function gluer<S, D = any, R = S>(initialState: S) : GluerReturn<S, R>;
