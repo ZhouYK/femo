@@ -226,13 +226,13 @@ b.relyOn([a], (data, state) => {
 这方法感觉还挺有用的😁。
 
 ```js
-const [, casesModel] = useIndividualModel<Flow.Case[]>(node.switch_case || []);
-  const [cases] = useDerivedStateToModelFromProps(props, casesModel, (nextProps, prevProps, state) => {
-    if (nextProps.node !== prevProps.node) {
-      return nextProps.node.switch_case || [];
-    }
-    return state;
-  });
+const [, casesModel] = useIndividualModel < Flow.Case[] > (node.switch_case || []);
+const [cases] = useDerivedStateToModel(props, casesModel, (nextProps, prevProps, state) => {
+  if (nextProps.node !== prevProps.node) {
+    return nextProps.node.switch_case || [];
+  }
+  return state;
+});
 ```
 
 ## <a id="track">track</a>
