@@ -33,7 +33,7 @@ yarn add femo
 ### <a href="#react-hook">react hook</a>
 
 - <a href="#useModel">useModel</a>
-- <a href="#useDerivedStateToModelFromProps">useDerivedStateToModelFromProps</a>
+- <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
 - <a href="#useIndividualModel">useIndividualModel</a>
 
 ### <a href="#methods">节点方法</a>
@@ -152,9 +152,10 @@ const [listData] = useModel(list);
 
 ```
 
-## <span id="useDerivedStateToModelFromProps">useDerivedStateToModelFromProps</span>
-> 用于将props中的衍生数据更新到model中去，统一使用model的数据
-> 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致
+## <span id="useDerivedStateToModel">useDerivedStateToModel</span>
+> 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据
+> 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致。
+> useDerivedStateToModel更具泛用性，不仅限于props，而是一切被依赖的数据都可以通过这个方法来处理衍生数据
 
 一般情况下这个react hook不会被使用到😁
 
@@ -222,7 +223,7 @@ b.relyOn([a], (data, state) => {
 该方法和直接使用节点更新内容一样，只是不会进行数据更新的广播，订阅了该数据的回调函数或者组件不会在此次更行中被执行或者重新渲染。
 在需要优化组件渲染频率的时候可以考虑使用它。
 
-上面<a href="#useDerivedStateToModelFromProps">useDerivedStateToModelFromProps</a>内部就调用了silent方法。
+上面<a href="#useDerivedStateToModel">useDerivedStateToModel</a>内部就调用了silent方法。
 这方法感觉还挺有用的😁。
 
 ```js
