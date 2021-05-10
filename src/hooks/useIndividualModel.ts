@@ -7,8 +7,13 @@ import subscribe from "../subscribe";
  * 区别于useModel
  * @param initState
  */
-const useIndividualModel = <S>(initState: S) => {
-  const [model] = useState(() => gluer(initState));
+const useIndividualModel = <S>(initState: S | (() => S)) => {
+  const [model] = useState(() => {
+    if (typeof initState === 'function') {
+      return gluer((initState as () => S)());
+    }
+    return gluer(initState);
+  });
   const [state, updateState] = useState(() => {
     return model();
   });
