@@ -33,9 +33,9 @@ const raceHandle = (promise: Promise<any> & { [raceQueue]?: RaceQueue; [promiseD
  * @returns {function(): {action: *, reducer: *, initState: *}}
  * @param fn
  */
-function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S, R>;
-function gluer<S, D = any, R = S>(initialState: S) : GluerReturn<S, R>;
-function gluer<S, D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S, R>;
+function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
+function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
+function gluer<S, D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;
   let reducerFnc: Reducer;
@@ -90,9 +90,9 @@ function gluer(...args: any[]) {
     const data = trackArr[curIndex];
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
-      const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
+      const targetDeps: GluerReturn<any>[][] = refToDepsMap.get(fn);
       if (targetDeps) {
-        targetDeps.forEach((target: GluerReturn<any, any>[]) => {
+        targetDeps.forEach((target: GluerReturn<any>[]) => {
           const callback = depsToFnMap.get(target);
           callback(...target);
         })
@@ -112,9 +112,9 @@ function gluer(...args: any[]) {
           trackArr.push(gluerState);
           curIndex += 1;
         }
-        const targetDeps: GluerReturn<any, any>[][] = refToDepsMap.get(fn);
+        const targetDeps: GluerReturn<any>[][] = refToDepsMap.get(fn);
         if (targetDeps) {
-          targetDeps.forEach((target: GluerReturn<any, any>[]) => {
+          targetDeps.forEach((target: GluerReturn<any>[]) => {
             const callback = depsToFnMap.get(target);
             callback(...target);
           })

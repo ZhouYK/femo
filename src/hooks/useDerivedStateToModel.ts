@@ -11,7 +11,7 @@ import {GluerReturn} from "../../index";
  * @param callback 如果返回的是promise，则当次拿到的数据还会是老的，只有下一次渲染拿到的才会是最新的
  */
 
-const useDerivedStateToModel = <P = any, S = any, R = any>(source: P, model: GluerReturn<S, R>, callback: (nextSource: P, prevSource: P, state: S) => S) => {
+const useDerivedStateToModel = <P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S) => {
   const cachedProps = useRef<P>(source);
   const data = callback(source, cachedProps.current, model());
   if (cachedProps.current !== source) {

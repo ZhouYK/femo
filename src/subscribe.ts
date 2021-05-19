@@ -3,7 +3,7 @@ import {gluerUniqueFlagKey, gluerUniqueFlagValue} from "./constants";
 export const refToDepsMap = new Map();
 export const depsToFnMap = new Map();
 
-const subscribe = (deps: GluerReturn<any, any>[], callback: (...args: any[]) => void, callWhenSub = true) => {
+const subscribe = (deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub = true) => {
   if (!(deps instanceof Array)) {
     throw new Error(`Error: the first param must be array！${ deps }`);
   }
@@ -26,7 +26,7 @@ const subscribe = (deps: GluerReturn<any, any>[], callback: (...args: any[]) => 
       }
       return dep();
     });
-    const handler = (...params: GluerReturn<any, any>[]) => {
+    const handler = (...params: GluerReturn<any>[]) => {
       let flag = false;
       const res = params.map((dp, i) => {
         const value = dp();

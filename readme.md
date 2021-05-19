@@ -35,6 +35,7 @@ yarn add femo
 - <a href="#useModel">useModel</a>
 - <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
 - <a href="#useIndividualModel">useIndividualModel</a>
+- <a href="#useDerivedModel">useDerivedModel</a>
 
 ### <a href="#methods">节点方法</a>
 
@@ -163,6 +164,12 @@ const [listData] = useModel(list);
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
 
 主要使用场景为：想要使用model的能力，但不希望model是全局共享的。（在可复用组件里面数据共享可能会造成一些问题，这时就期望数据是独立的）
+
+## <span id="useDerivedModel">useDerivedModel</span>
+> 结合了useIndividualModel和useDerivedStateToModel
+
+在实际运用中发现，如果要使用useDerivedStateToModel，经常会先用useIndividualModel创建一个model。索性就把二者合成一个，方便使用
+
 
 ## <span id="methods">节点方法</span>
 

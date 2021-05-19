@@ -9,7 +9,7 @@ import subscribe from "../subscribe";
  * @param handleFnc 返回state前可处理state的钩子函数
  * @param resetWhenUnmount 是否在组件卸载的时候，重置model的数据
  */
-const useModel = <T = any, D = any>(model: GluerReturn<T, D>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, (data: T) => void] => {
+const useModel = <T = any>(model: GluerReturn<T>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, (data: T) => void] => {
   const [state, updateState] = useState(() => {
     const tmpState = model();
     if (handleFnc) {
