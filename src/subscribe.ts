@@ -1,5 +1,6 @@
 import {GluerReturn} from "../index";
 import {gluerUniqueFlagKey, gluerUniqueFlagValue} from "./constants";
+
 export const refToDepsMap = new Map();
 export const depsToFnMap = new Map();
 

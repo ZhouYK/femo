@@ -10,7 +10,7 @@ const genRaceQueue = () => {
   const obj = {
     push: (p: Promise<any> & { [raceQueueKey]?: RaceQueue } ) => {
       if (!(p instanceof Promise)) {
-        throw "The race queue item should be Promise";
+        throw new Error("The race queue item should be Promise");
       }
       if (raceQueue) {
         raceQueue.forEach((promise) => {

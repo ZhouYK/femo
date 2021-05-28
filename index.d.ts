@@ -2,11 +2,12 @@
 // gluer
 import {raceQueue} from "./src/constants";
 import {RaceQueue} from "./src/interface";
+import {DerivedSpace} from "./src/hooks/useBatchDerivedStateToModel";
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;
 export type isType<T, S> = T extends S ? Unpacked<T> : never;
-type Transfer<T> = T extends GluerReturn<any> ? Unpacked<ReturnType<T>> : never;
+type Transfer<T> = T extends (...args: any) => any ? Unpacked<ReturnType<T>> : never;
 type Copy<T> = {
   [key in keyof T]: Transfer<T[key]>;
 }
@@ -44,5 +45,7 @@ export function useModel<T = any, D = any>(model: GluerReturn<T>, handleFnc?: (d
 export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
 export function useIndividualModel<S = any>(initState: S | (() => S)): [S, GluerReturn<S>];
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>];
+export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>];
+export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
 
 export { promiseDeprecatedError } from './src/gluer';

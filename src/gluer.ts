@@ -71,9 +71,71 @@ function gluer(...args: any[]) {
 
   let gluerState = initState;
   const trackArr: any[] = [];
-  let curIndex: number = 0;
-  const raceQueue = genRaceQueue();
+  let curIndex = 0;
+  const rq = genRaceQueue();
+  let fn: any;
 
+  const updateFn = (data: any, silent: boolean) => {
+    if (!(Object.is(data, gluerState))) {
+      gluerState = data;
+      if (!silent) {
+        const { length } = trackArr;
+        if (length) {
+          if (curIndex < length - 1) {
+            trackArr.splice(curIndex + 1);
+          }
+          trackArr.push(gluerState);
+          curIndex += 1;
+        }
+        const targetDeps: GluerReturn<any>[][] = refToDepsMap.get(fn);
+        if (targetDeps) {
+          targetDeps.forEach((target: GluerReturn<any>[]) => {
+            const callback = depsToFnMap.get(target);
+            callback(...target);
+          })
+        }
+      }
+    }
+  }
+  const basicLogic = (silent = false) => (...ags: any[]) => {
+    let payload;
+    let customHandler;
+    if (ags.length === 0) {
+      // 直接返回
+      return gluerState;
+    } if (ags.length === 1) {
+      // 只有一个传参
+      if (typeof ags[0] === 'function') {
+        [customHandler] = ags;
+      } else {
+        [payload] = ags;
+      }
+    } else {
+      [payload, customHandler] = ags;
+    }
+
+    const realHandler = customHandler || reducerFnc;
+
+    const tempResult = realHandler(payload, gluerState);
+
+    // 如果是异步更新
+    if (isAsync(tempResult)) {
+      const promise: any = (tempResult as Promise<any>).catch(e => {
+        raceHandle(promise);
+        return Promise.reject(e);
+      }).then((data) => {
+        raceHandle(promise);
+        updateFn(data, silent);
+        return data;
+      });
+      // 返回函数处理结果
+      return promise;
+    }
+
+    updateFn(tempResult, silent);
+    // 返回函数处理结果
+    return tempResult;
+  }
   const historyGoUpdateFn = (step: number) => {
     const { length } = trackArr;
     if (length === 0) {
@@ -100,70 +162,7 @@ function gluer(...args: any[]) {
     }
   }
 
-  const updateFn = (data: any, silent: boolean) => {
-    if (!(Object.is(data, gluerState))) {
-      gluerState = data;
-      if (!silent) {
-        const { length } = trackArr;
-        if (length) {
-          if (curIndex < length - 1) {
-            trackArr.splice(curIndex + 1);
-          }
-          trackArr.push(gluerState);
-          curIndex += 1;
-        }
-        const targetDeps: GluerReturn<any>[][] = refToDepsMap.get(fn);
-        if (targetDeps) {
-          targetDeps.forEach((target: GluerReturn<any>[]) => {
-            const callback = depsToFnMap.get(target);
-            callback(...target);
-          })
-        }
-      }
-    }
-  }
-
-  const basicLogic = (silent = false) => (...args: any[]) => {
-    let payload;
-    let customHandler;
-    if (args.length === 0) {
-      // 直接返回
-      return gluerState;
-    } else if (args.length === 1) {
-      // 只有一个传参
-      if (typeof args[0] === 'function') {
-        customHandler = args[0];
-      } else {
-        payload = args[0];
-      }
-    } else {
-      [payload, customHandler] = args;
-    }
-
-    const realHandler = customHandler || reducerFnc;
-
-    const tempResult = realHandler(payload, gluerState);
-
-    // 如果是异步更新
-    if (isAsync(tempResult)) {
-      const promise: any = (tempResult as Promise<any>).catch(e => {
-        raceHandle(promise);
-        return Promise.reject(e);
-      }).then((data) => {
-        raceHandle(promise);
-        updateFn(data, silent);
-        return data;
-      });
-      // 返回函数处理结果
-      return promise;
-    }
-
-    updateFn(tempResult, silent);
-    // 返回函数处理结果
-    return tempResult;
-  }
-
-  const fn: any = basicLogic(false);
+  fn = basicLogic(false);
 
   fn.reset = () => {
     fn(initState);
@@ -208,7 +207,7 @@ function gluer(...args: any[]) {
     return gluerState;
   }
 
-  fn.race = (...args: any[]) => raceQueue.push(fn(...args));
+  fn.race = (...as: any[]) => rq.push(fn(...as));
 
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,

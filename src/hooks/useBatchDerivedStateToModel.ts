@@ -13,7 +13,7 @@ export interface DerivedSpace<S, T> {
  * @param model
  * @param derivedSpace
  */
-const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D) => {
+const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S] => {
   let state = model();
   const [flag] = useState(() => {
     return {
