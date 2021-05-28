@@ -14,33 +14,31 @@ import {GluerReturn} from "../../index";
 
 const useDerivedStateToModel = <P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf = false) => {
 
-  const [flag] = useState(perf);
-
+  let state = model();
   const [cachedProps] = useState<{
     current: P,
   }>(() => {
-    if (flag) {
-      const data = callback(source, source, model());
-      model.silent(data);
+    if (perf) {
+      state = callback(source, source, state);
     }
     return {
       current: source,
     };
   })
 
-  if (flag) {
-    if (cachedProps.current !== source) {
-      const data = callback(source, cachedProps.current, model());
+  if (perf) {
+    if (!Object.is(cachedProps.current, source)) {
+      const data = callback(source, cachedProps.current, state);
       cachedProps.current = source;
       model.silent(data);
     }
   } else {
-    const data = callback(source, cachedProps.current, model());
-    if (cachedProps.current !== source) {
+    state = callback(source, cachedProps.current, state);
+    if (!Object.is(cachedProps.current, source)) {
       cachedProps.current = source;
     }
-    model.silent(data);
   }
+  model.silent(state);
   useModel(model);
   return [model()]
 }
