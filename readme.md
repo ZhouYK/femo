@@ -36,6 +36,8 @@ yarn add femo
 - <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
 - <a href="#useIndividualModel">useIndividualModel</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
+- <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
+- <a href="#useBatchDerivedStateToModel">useBatchDerivedStateToModel</a>
 
 ### <a href="#methods">节点方法</a>
 
@@ -170,6 +172,11 @@ const [listData] = useModel(list);
 
 在实际运用中发现，如果要使用useDerivedStateToModel，经常会先用useIndividualModel创建一个model。索性就把二者合成一个，方便使用
 
+## <span id="useBatchDerivedStateToModel">useBatchDerivedStateToModel</span>
+> 是useDerivedStateToModel的扩展版，可以一次处理很多衍生数据依赖
+
+## <span id="useBatchDerivedModel">useBatchDerivedModel</span>
+> 结合了useIndividualModel和useBatchDerivedStateToModel
 
 ## <span id="methods">节点方法</span>
 
