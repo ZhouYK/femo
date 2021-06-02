@@ -29,15 +29,12 @@ const useDerivedStateToModel = <P = any, S = any>(source: P, model: GluerReturn<
   if (perf) {
     if (!Object.is(cachedProps.current, source)) {
       const data = callback(source, cachedProps.current, state);
-      cachedProps.current = source;
       model.silent(data);
     }
   } else {
     state = callback(source, cachedProps.current, state);
-    if (!Object.is(cachedProps.current, source)) {
-      cachedProps.current = source;
-    }
   }
+  cachedProps.current = source;
   model.silent(state);
   useModel(model);
   return [model()]

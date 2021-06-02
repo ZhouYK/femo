@@ -42,6 +42,7 @@ const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model
       } else {
         state = ds.callback(ds.source, prevSource, state);
       }
+      cachedMap.current.set(index, ds.source);
     });
   }
   if (!flag.current) {
