@@ -147,8 +147,9 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 const list = gluer({ page: 1, size: 20, total: 0, list: [] });
 
 // 在函数组件中使用useModel消费数据
-
-const [listData] = useModel(list);
+// clonedListModel是对list的克隆，clonedListModel本质上是对list的一层包装，底层使用的是list，所以核心还是list。
+// loading状态是clonedListModel带来的，用于表明异步更新时数据的家在状态
+const [listData, clonedListModel, loading] = useModel(list);
 
 // 每次list的变动都会通知useModel，useModel更新listData，rerender组件
 // 和useState很类似
@@ -159,8 +160,6 @@ const [listData] = useModel(list);
 > 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据
 > 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致。
 > useDerivedStateToModel更具泛用性，不仅限于props，而是一切被依赖的数据都可以通过这个方法来处理衍生数据
-
-一般情况下这个react hook不会被使用到😁
 
 ## <span id="useIndividualModel">useIndividualModel</span>
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。

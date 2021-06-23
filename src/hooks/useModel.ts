@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { GluerReturn } from "../../index";
+import {useEffect, useState} from 'react';
+import {GluerReturn, ModelStatus} from "../../index";
 import subscribe from "../subscribe";
+import useCloneModel from "./internalHooks/useCloneModel";
 
 /**
  * 将外部model注入到组件内部的自定义钩子函数，model生命周期不跟随组件，是共享数据
@@ -9,7 +10,10 @@ import subscribe from "../subscribe";
  * @param handleFnc 返回state前可处理state的钩子函数
  * @param resetWhenUnmount 是否在组件卸载的时候，重置model的数据
  */
-const useModel = <T = any>(model: GluerReturn<T>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, (data: T) => void] => {
+const useModel = <T = any>(model: GluerReturn<T>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, GluerReturn<T>, ModelStatus] => {
+  // @ts-ignore
+  const [clonedModel, status] = useCloneModel(model);
+
   const [state, updateState] = useState(() => {
     const tmpState = model();
     if (handleFnc) {
@@ -34,7 +38,8 @@ const useModel = <T = any>(model: GluerReturn<T>, handleFnc?: (data: any) => any
     };
   }, []);
 
-  return [state, updateState];
+
+  return [state, clonedModel, status];
 };
 
 export default useModel;
