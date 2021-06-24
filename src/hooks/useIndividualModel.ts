@@ -10,7 +10,7 @@ import useCloneModel from "./internalHooks/useCloneModel";
  * 不要尝试去订阅返回的clonedModel，不会有效果，因为它只是对真正的model的一层包装。需要监听的话，应该是内部真正的model。
  * @param initState
  */
-const useIndividualModel = <S>(initState: S | (() => S)): [S, GluerReturn<S>, ModelStatus] => {
+const useIndividualModel = <S>(initState: S | (() => S)): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
   const [model] = useState(() => {
     if (typeof initState === 'function') {
       return gluer((initState as () => S)());
@@ -27,7 +27,7 @@ const useIndividualModel = <S>(initState: S | (() => S)): [S, GluerReturn<S>, Mo
     updateState(data);
   }), []);
 
-  return [state, clonedModel, status];
+  return [state, model, clonedModel, status];
 }
 
 export default useIndividualModel;
