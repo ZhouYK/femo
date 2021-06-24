@@ -8,11 +8,11 @@ import {GluerReturn, ModelStatus} from "../../index";
  * @param source
  * @param callback
  */
-const useDerivedModel = <S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S ): [S, GluerReturn<S>, ModelStatus] => {
-  const [ ,model, status] = useIndividualModel(initState);
+const useDerivedModel = <S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S ): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
+  const [ ,model, clonedModel, status] = useIndividualModel(initState);
   const [state] = useDerivedStateToModel(source, model, callback);
 
-  return [state, model, status];
+  return [state, model, clonedModel, status];
 }
 
 export default useDerivedModel;
