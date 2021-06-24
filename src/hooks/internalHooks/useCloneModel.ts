@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
-import {GluerReturn, ModelStatus, promiseDeprecatedError} from "../../../index";
+import {GluerReturn, ModelStatus} from "../../../index";
+import { promiseDeprecatedError } from '../../gluer';
 import {isAsync} from "../../tools";
 import genRaceQueue from "../../genRaceQueue";
 

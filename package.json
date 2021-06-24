@@ -53,7 +53,7 @@
   ],
   "scripts": {
     "codecov": "codecov -t 49032a93-7d9a-4205-b14f-2ce81b8a8662",
-    "clean-js": "rm -f src/*.js && rm -f src/**/*.js",
+    "clean-js": "rm -f src/*.js && rm -f src/**/*.js && rm -f src/**/**/*.js",
     "build": "npm run test && npm run tsc && npm run cj && npm run es && npm run umd && npm run clean-js",
     "tsc": "tsc -p ./",
     "cj": "cross-env NODE_ENV=cj babel src --out-dir dist/cj",
@@ -91,7 +91,7 @@
     "react": "~16.8.6",
     "react-dom": "~16.8.6",
     "ts-jest": "~24.0.0",
-    "ts-loader": "~8.0.18",
+    "ts-loader": "~9.2.3",
     "typescript": "~4.2.4",
     "url-loader": "~2.1.0",
     "webpack": "~5.24.2",
