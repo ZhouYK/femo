@@ -1,6 +1,6 @@
 {
   "description": "frontend data management",
-  "version": "1.7.1",
+  "version": "1.8.0-alpha.0",
   "keywords": [
     "functional program",
     "frontend",
@@ -29,7 +29,15 @@
     "moduleDirectories": [
       "node_modules"
     ],
-    "moduleFileExtensions": ["js", "json", "jsx", "ts", "tsx", "node", "d.ts"],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "jsx",
+      "ts",
+      "tsx",
+      "node",
+      "d.ts"
+    ],
     "transformIgnorePatterns": [],
     "globals": {
       "ts-jest": {
