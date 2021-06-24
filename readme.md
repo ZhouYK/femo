@@ -137,6 +137,8 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 
 ## <span id="react-hook">react hook</span>
 
+react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
+
 ## <span id="useModel">useModel</span>
 > 自定义hook，用于消费节点数据
 

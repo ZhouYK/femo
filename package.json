@@ -29,6 +29,7 @@
     "moduleDirectories": [
       "node_modules"
     ],
+    "moduleFileExtensions": ["js", "json", "jsx", "ts", "tsx", "node", "d.ts"],
     "transformIgnorePatterns": [],
     "globals": {
       "ts-jest": {

@@ -46,11 +46,11 @@ export function gluer<S , D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState
 
 export function genRaceQueue(): ({ push: <T = any>(p: Promise<T> & { [raceQueue]?: RaceQueue }) => void; clear: () => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null })
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
-export function useModel<T = any, D = any>(model: GluerReturn<T>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, GluerReturn<T>, boolean];
+export function useModel<T = any, D = any>(model: GluerReturn<T>, handleFnc?: (data: any) => any, resetWhenUnmount?: boolean): [T, GluerReturn<T>, ModelStatus];
 export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
-export function useIndividualModel<S = any>(initState: S | (() => S)): [S, GluerReturn<S>, boolean];
-export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, boolean];
-export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, boolean];
+export function useIndividualModel<S = any>(initState: S | (() => S)): [S, GluerReturn<S>, ModelStatus];
+export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, ModelStatus];
+export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
 
 export { promiseDeprecatedError } from './src/gluer';

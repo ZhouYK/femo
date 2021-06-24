@@ -20,7 +20,7 @@
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "typeRoots": ["../node_modules/@types", "../typings"]
+    "typeRoots": ["../node_modules/@types", "../typings"],
   },
   "include":["../typings", "../index.d.ts", "../test"]
 }
