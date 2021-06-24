@@ -149,7 +149,7 @@ const list = gluer({ page: 1, size: 20, total: 0, list: [] });
 // 在函数组件中使用useModel消费数据
 // clonedListModel是对list的克隆，clonedListModel本质上是对list的一层包装，底层使用的是list，所以核心还是list。
 // loading状态是clonedListModel带来的，用于表明异步更新时数据的家在状态
-const [listData, clonedListModel, loading] = useModel(list);
+const [listData, clonedListModel, { loading }] = useModel(list);
 
 // 每次list的变动都会通知useModel，useModel更新listData，rerender组件
 // 和useState很类似
