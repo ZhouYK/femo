@@ -18,12 +18,15 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>]) => {
     }
   }
 
-  if (service && !Object.is(serviceCacheRef.current, service)) {
-    const result = service(model());
-    if (isAsync(result)) {
-      model.race(() => result);
-    } else {
-      model(result);
+  if (!Object.is(serviceCacheRef.current, service)) {
+    serviceCacheRef.current = service;
+    if (service) {
+      const result = service(model());
+      if (isAsync(result)) {
+        model.race(() => result);
+      } else {
+        model(result);
+      }
     }
   }
 }
