@@ -7,7 +7,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>]) => {
   const firstRenderFlagRef = useRef(true);
   const serviceCacheRef = useRef(service);
 
-  if (service && !firstRenderFlagRef.current) {
+  if (service && firstRenderFlagRef.current) {
     firstRenderFlagRef.current = false;
     const result = service(model());
     if (isAsync(result)) {
