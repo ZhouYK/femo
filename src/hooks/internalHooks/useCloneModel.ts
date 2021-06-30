@@ -15,6 +15,8 @@ const useCloneModel = <T>(model: GluerReturn<T>): [GluerReturn<T>, ModelStatus] 
     const fn = (...args: any[]) => {
       // @ts-ignore
       const result = model(...args);
+      if (args.length === 0) return result;
+
       if (isAsync(result)) {
         updateStatus((prevState) => {
           return {
