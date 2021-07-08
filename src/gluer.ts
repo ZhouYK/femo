@@ -70,9 +70,14 @@ function gluer(...args: any[]) {
   }
 
   let gluerState = initState;
+
   const trackArr: any[] = [];
   let curIndex = 0;
+
   const rq = genRaceQueue();
+
+  let unsubscribeArr: (() => void)[] = [];
+
   let fn: any;
 
   const updateFn = (data: any, silent: boolean) => {
@@ -168,7 +173,7 @@ function gluer(...args: any[]) {
     fn(initState);
   }
 
-  fn.relyOn = (model: any[], callback: (data: any[], state: any) => any) => {
+  fn.relyOn = (model: GluerReturn<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
     let innerModel = [];
     if (isArray(model)) {
       innerModel = model;
@@ -182,9 +187,15 @@ function gluer(...args: any[]) {
         const modelData = data;
         fn(() => callback(modelData, fn()));
       }, false);
+      unsubscribeArr.push(unsub);
     }
     return unsub;
   };
+
+  fn.off = () => {
+    unsubscribeArr.forEach((f) => f());
+    unsubscribeArr = [];
+  }
 
   fn.silent = basicLogic(true);
 

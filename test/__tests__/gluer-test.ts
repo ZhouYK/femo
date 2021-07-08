@@ -221,6 +221,69 @@ describe('relyOn test', () => {
   })
 })
 
+describe('off test', () => {
+  test('normal test', () => {
+    const name = gluer('小明');
+    const age = gluer(10);
+    const student = gluer({
+      name: name(),
+      age: age(),
+    });
+    student.relyOn([age], (result, stu) => {
+      return {
+        ...stu,
+        age: result[0],
+      }
+    });
+
+    student.relyOn([name], (result, stu) => {
+      return {
+        ...stu,
+        name: result[0],
+      }
+    })
+    name('小张');
+    expect(name()).toBe('小张');
+    expect(student()).toEqual({
+      age: 10,
+      name: '小张',
+    });
+
+    student.off();
+    name('小红');
+    expect(name()).toBe('小红');
+    expect(student()).toEqual({
+      age: 10,
+      name: '小张',
+    });
+  });
+
+  test('async test', async () => {
+
+    const callback = jest.fn((n) => n);
+    const name = gluer('张清');
+
+    const person = gluer({
+      name: name(),
+      age: 20,
+    });
+
+    person.relyOn([name], callback);
+
+    expect(callback.mock.calls.length).toBe(0);
+    await name(Promise.resolve('吴欢'));
+    expect(name()).toBe('吴欢');
+    expect(callback.mock.calls.length).toBe(1);
+
+    person.off();
+
+    await name(Promise.resolve('小刘'));
+    expect(name()).toBe('小刘');
+    expect(callback.mock.calls.length).toBe(1);
+
+  })
+})
+
 describe('test rest', () => {
   const name = gluer('初始名字');
   const callback = jest.fn((n) => {

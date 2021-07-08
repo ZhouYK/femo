@@ -42,6 +42,7 @@ yarn add femo
 ### <a href="#methods">节点方法</a>
 
 - <a href="#relyOn">relyOn</a>
+- <a href="#off">off</a>
 - <a href="#silent">silent</a>
 - <a href="#track">track</a>
 - <a href="#flush">flush</a>
@@ -231,6 +232,14 @@ b.relyOn([a], (data, state) => {
 })
 ```
 以上情况应该避免，太容易引起死循环😢！
+
+## <a id="off">off</a>
+
+解绑节点上所有的依赖监听
+
+```javascript
+a.off();
+```
 
 ## <a id="silent">silent</a>
 > 静默地更新数据节点的内容

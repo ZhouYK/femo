@@ -31,6 +31,7 @@ export type RaceFn<S> = {
 export type GluerReturn<S> = GluerReturnFn<S> & {
   reset: () => void;
   relyOn: <T extends GluerReturn<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
+  off: () => void;
   silent: GluerReturnFn<S>;
   track: () => void;
   flush: () => void;
