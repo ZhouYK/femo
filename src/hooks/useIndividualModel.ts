@@ -16,7 +16,7 @@ const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>]): [
     if (typeof initState === 'function') {
       return gluer(defaultReducer ,(initState as () => S)());
     }
-    return gluer(defaultReducer, initState);
+    return gluer(initState);
   });
   const [clonedModel, status] = useCloneModel(model);
 
