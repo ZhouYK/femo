@@ -48,7 +48,11 @@ const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model
   if (!flag.current) {
     flag.current = true;
   }
-  model.silent(state);
+  if (typeof state === 'function') {
+    model.silent(() => state);
+  } else {
+    model.silent(state);
+  }
   useModel(model);
   return [model()];
 }
