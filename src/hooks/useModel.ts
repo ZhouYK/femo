@@ -20,7 +20,11 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>]): [T, Glue
 
   const [unsub] = useState(() => {
     return subscribe([model], (modelData: T) => {
-      updateState(modelData);
+      if (typeof modelData === 'function') {
+        updateState(() => modelData);
+      } else {
+        updateState(modelData);
+      }
     })
   });
 

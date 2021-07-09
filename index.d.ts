@@ -1,9 +1,9 @@
 
 // gluer
+import {DependencyList} from "react";
 import {raceQueue} from "./src/constants";
 import {RaceQueue} from "./src/interface";
 import {DerivedSpace} from "./src/hooks/useBatchDerivedStateToModel";
-import {DependencyList} from "react";
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;

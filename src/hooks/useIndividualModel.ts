@@ -28,7 +28,12 @@ const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>]): [
 
   const [unsub] = useState(() => {
     return subscribe([model], (data) => {
-      updateState(data);
+      if (typeof data === 'function') {
+        updateState(() => data);
+      } else {
+        updateState(data);
+      }
+
     });
   });
 
