@@ -55,7 +55,7 @@ function gluer(...args: any[]) {
     } else {
       reducerFnc = rd;
       if (process.env.NODE_ENV === development) {
-        throw new Error(getWarning(rd));
+        console.warn(getWarning(rd));
       }
     }
   } else {
@@ -63,11 +63,6 @@ function gluer(...args: any[]) {
       throw new Error('first argument must be function');
     }
     reducerFnc = rd;
-    if (process.env.NODE_ENV === development) {
-      if (initialState === undefined) {
-        throw new Error(getWarning(rd));
-      }
-    }
   }
 
   let gluerState = initState;
