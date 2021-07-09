@@ -13,8 +13,9 @@ import subscribe, {depsToFnMap, refToDepsMap} from "./subscribe";
 import genRaceQueue from "./genRaceQueue";
 
 export const promiseDeprecatedError = 'the promise is deprecated';
-const defaultReducer = (data: any, _state: any) => data;
-const warning = 'highly recommend setting the initial state with the reducer：';
+export const defaultReducer = (data: any, _state: any) => data;
+const warning = '你只传入了一个函数参数给gluer，这会被认为是reducer函数而不是初始值。如果你想存储一个函数类型的初始值，请传入两个参数：reducer和初始值。' +
+  'reducer可以是最简单：(data, state) => data。这个的意思是：传入的数据会直接用来更新state。';
 const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
 const raceHandle = (promise: Promise<any> & { [raceQueue]?: RaceQueue; [promiseDeprecated]?: boolean }) => {
 

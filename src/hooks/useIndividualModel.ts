@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import gluer from "../gluer";
+import gluer, {defaultReducer} from "../gluer";
 import subscribe from "../subscribe";
 import {GluerReturn, ModelStatus, Service} from "../../index";
 import useCloneModel from "./internalHooks/useCloneModel";
@@ -14,9 +14,9 @@ import useService from "./internalHooks/useService";
 const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
   const [model] = useState(() => {
     if (typeof initState === 'function') {
-      return gluer((initState as () => S)());
+      return gluer(defaultReducer ,(initState as () => S)());
     }
-    return gluer(initState);
+    return gluer(defaultReducer, initState);
   });
   const [clonedModel, status] = useCloneModel(model);
 
