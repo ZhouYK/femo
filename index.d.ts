@@ -3,6 +3,7 @@
 import {raceQueue} from "./src/constants";
 import {RaceQueue} from "./src/interface";
 import {DerivedSpace} from "./src/hooks/useBatchDerivedStateToModel";
+import {DependencyList} from "react";
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;
@@ -43,6 +44,10 @@ export interface ModelStatus {
   loading: boolean;
 }
 
+export type EnhancedCallback<F extends (...args: any[]) => any> = F & {
+  updateSelf: () => void;
+};
+
 export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
 export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
 export function gluer<S , D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
@@ -55,3 +60,4 @@ export function useIndividualModel<S = any>(initState: S | (() => S), deps?: [Se
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
+export function useEnhancedCallback<T extends (...args: any) => any>(callback: T, deps: DependencyList): EnhancedCallback<T>;
