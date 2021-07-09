@@ -8,3 +8,4 @@ export { default as useDerivedStateToModel } from './hooks/useDerivedStateToMode
 export { default as useDerivedModel } from './hooks/useDerivedModel';
 export { default as useBatchDerivedStateToModel } from './hooks/useBatchDerivedStateToModel';
 export { default as useBatchDerivedModel } from './hooks/useBatchDerivedModel';
+export { default as useEnhancedCallback } from './hooks/useEnhancedCallback';
