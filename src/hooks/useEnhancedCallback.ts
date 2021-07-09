@@ -12,8 +12,8 @@ const useEnhancedCallback = <T extends (...args: any) => any>(callback: T, deps:
   const modelRef = useRef<GluerReturn<EnhancedCallback<T>>>(null);
   const genNewFn = useCallback((f: T) => {
     const internalFn = (...args: any[]) => f(...args);
-    internalFn.updateSelf = () => {
-      (modelRef.current as GluerReturn<EnhancedCallback<T>>)(() => (...args: any[]) => f(...args));
+    internalFn.renew = () => {
+      (modelRef.current as GluerReturn<EnhancedCallback<T>>)(() => internalFn);
     };
     return internalFn;
   }, []);

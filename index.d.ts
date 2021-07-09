@@ -45,7 +45,7 @@ export interface ModelStatus {
 }
 
 export type EnhancedCallback<F extends (...args: any[]) => any> = F & {
-  updateSelf: () => void;
+  renew: () => void;
 };
 
 export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
