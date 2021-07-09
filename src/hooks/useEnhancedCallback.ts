@@ -1,4 +1,4 @@
-import {useCallback, DependencyList} from "react";
+import {useCallback, DependencyList, useRef} from "react";
 import {useDerivedModel} from "../index";
 import {EnhancedCallback, GluerReturn} from "../../index";
 
@@ -9,27 +9,32 @@ import {EnhancedCallback, GluerReturn} from "../../index";
  */
 const useEnhancedCallback = <T extends (...args: any) => any>(callback: T, deps: DependencyList) => {
   const resultFn = useCallback(callback, deps);
-  const genNewFn = useCallback((f: T, model: GluerReturn<EnhancedCallback<T>>) => {
+  const modelRef = useRef<GluerReturn<EnhancedCallback<T>>>(null);
+  const genNewFn = useCallback((f: T) => {
     const internalFn = (...args: any[]) => f(...args);
     internalFn.updateSelf = () => {
-      model(() => (...args: any[]) => f(...args));
+      (modelRef.current as GluerReturn<EnhancedCallback<T>>)(() => (...args: any[]) => f(...args));
     };
     return internalFn;
   }, []);
 
   const [fn, fnModel] = useDerivedModel(() => {
-    // @ts-ignore
-    const f = genNewFn(resultFn, fnModel)
-    return f;
+    return genNewFn(resultFn);
   }, resultFn, (ns, ps, s) => {
     if (!Object.is(ns, ps)) {
-      // @ts-ignore
-      const f = genNewFn(ns, fnModel);
-      return f;
+      return genNewFn(ns);
     }
     return s;
   });
+
+  if (!modelRef.current) {
+    // @ts-ignore
+    modelRef.current = fnModel;
+  }
+
   return fn;
 }
+
+
 
 export default useEnhancedCallback;
