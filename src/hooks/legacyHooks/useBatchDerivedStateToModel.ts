@@ -1,6 +1,6 @@
 import {useState} from "react";
-import {GluerReturn} from "../../index";
-import useModel from "./useModel";
+import {GluerReturn} from "../../../index";
+import useModel from "../useModel";
 
 export interface DerivedSpace<S, T> {
   source: T;

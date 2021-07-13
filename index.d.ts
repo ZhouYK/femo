@@ -3,7 +3,7 @@
 import {DependencyList} from "react";
 import {raceQueue} from "./src/constants";
 import {RaceQueue} from "./src/interface";
-import {DerivedSpace} from "./src/hooks/useBatchDerivedStateToModel";
+import {DerivedSpace} from "./src/hooks/legacyHooks/useBatchDerivedStateToModel";
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;
@@ -61,3 +61,5 @@ export function useDerivedModel<S = any, P = any>(initState: S | (() => S), sour
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
 export function useEnhancedCallback<T extends (...args: any) => any>(callback: T, deps: DependencyList): EnhancedCallback<T>;
+export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[]): [S];
+export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [[S, GluerReturn<S>, GluerReturn<S>, ModelStatus]];
