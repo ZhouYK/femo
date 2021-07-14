@@ -33,8 +33,10 @@ yarn add femo
 ### <a href="#react-hook">react hook</a>
 
 - <a href="#useModel">useModel</a>
-- <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
 - <a href="#useIndividualModel">useIndividualModel</a>
+- <a href="#useDerivedState">useDerivedState</a>
+- <a href="#useDerivedStateWithModel">useDerivedStateWithModel</a> 
+- <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
 - <a href="#useBatchDerivedStateToModel">useBatchDerivedStateToModel</a>
@@ -159,25 +161,32 @@ const [listData, clonedListModel, { loading }] = useModel(list);
 
 ```
 
-## <span id="useDerivedStateToModel">useDerivedStateToModel</span>
+## <span id="useIndividualModel">useIndividualModel</span>
+> 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
+
+## 处理衍生数据
+### <span id="useDerivedState">useDerivedState</span>
+> 生成衍生数据，并返回model。区别于 useDerivedModel、useBatchDerivedModel，其依赖是个数组，处理更像useEffect
+ 
+### <span id="useDerivedStateWithModel">useDerivedStateWithModel</span>
+> 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据。区别于 useDerivedStateToModel、useBatchDerivedStateToModel，其依赖是个数组，处理更像useEffect
+
+### <span id="useDerivedStateToModel">useDerivedStateToModel</span>
 > 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据
 > 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致。
 > useDerivedStateToModel更具泛用性，不仅限于props，而是一切被依赖的数据都可以通过这个方法来处理衍生数据
 
-## <span id="useIndividualModel">useIndividualModel</span>
-> 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
-
 主要使用场景为：想要使用model的能力，但不希望model是全局共享的。（在可复用组件里面数据共享可能会造成一些问题，这时就期望数据是独立的）
 
-## <span id="useDerivedModel">useDerivedModel</span>
+### <span id="useDerivedModel">useDerivedModel</span>
 > 结合了useIndividualModel和useDerivedStateToModel
 
 在实际运用中发现，如果要使用useDerivedStateToModel，经常会先用useIndividualModel创建一个model。索性就把二者合成一个，方便使用
 
-## <span id="useBatchDerivedStateToModel">useBatchDerivedStateToModel</span>
+### <span id="useBatchDerivedStateToModel">useBatchDerivedStateToModel</span>
 > 是useDerivedStateToModel的扩展版，可以一次处理很多衍生数据依赖
 
-## <span id="useBatchDerivedModel">useBatchDerivedModel</span>
+### <span id="useBatchDerivedModel">useBatchDerivedModel</span>
 > 结合了useIndividualModel和useBatchDerivedStateToModel
 
 ## <span id="methods">节点方法</span>
