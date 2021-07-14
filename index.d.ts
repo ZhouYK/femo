@@ -3,7 +3,7 @@
 import {DependencyList} from "react";
 import {raceQueue} from "./src/constants";
 import {RaceQueue} from "./src/interface";
-import {DerivedSpace} from "./src/hooks/legacyHooks/useBatchDerivedStateToModel";
+import {DerivedSpace} from "./src/hooks/rareHooks/useBatchDerivedStateToModel";
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;

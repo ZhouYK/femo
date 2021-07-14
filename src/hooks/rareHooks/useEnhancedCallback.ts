@@ -1,6 +1,6 @@
 import {useCallback, DependencyList, useRef} from "react";
-import {useDerivedModel} from "../index";
-import {EnhancedCallback, GluerReturn} from "../../index";
+import {useDerivedModel} from "../../index";
+import {EnhancedCallback, GluerReturn} from "../../../index";
 
 /**
  * 和useCallback唯一的区别是：为函数做了一层包装，可以让函数在依赖不变的情况下更新自己
