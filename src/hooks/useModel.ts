@@ -1,8 +1,9 @@
 import {useEffect, useState} from 'react';
-import {GluerReturn, ModelStatus, Service} from "../../index";
+import {GluerReturn, ModelStatus, Service, ServiceOptions} from "../../index";
 import subscribe from "../subscribe";
 import useCloneModel from "./internalHooks/useCloneModel";
 import useService from "./internalHooks/useService";
+import {defaultServiceOptions} from "../constants";
 
 
 /**
@@ -10,10 +11,16 @@ import useService from "./internalHooks/useService";
  * 区别于useIndividualModel
  * @param model 数据节点函数
  * @param deps 更新model的服务(可选) 每次deps中的service变更就会去获取更新一次model
+ * @param options 是否开启Suspense模式
  */
-const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>]): [T, GluerReturn<T>, ModelStatus] => {
+const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions): [T, GluerReturn<T>, ModelStatus] => {
+  const finalOptions = {
+    ...defaultServiceOptions,
+    ...options,
+  };
+
   const [clonedModel, status] = useCloneModel(model);
-  useService(clonedModel, deps);
+  useService(clonedModel, deps, finalOptions);
   const [state, updateState] = useState(() => {
     return model();
   });

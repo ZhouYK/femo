@@ -24,6 +24,10 @@ export type GluerReturnFn<S> = {
 
 export type Service<T> = (state: T) => Promise<T> | T;
 
+export interface ServiceOptions {
+  suspense?: boolean;
+}
+
 export type RaceFn<S> = {
   <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): Promise<S>;
   <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): Promise<S>;
