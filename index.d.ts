@@ -1,6 +1,6 @@
 
 // gluer
-import {DependencyList} from "react";
+import {Component, DependencyList, FC} from "react";
 import {raceQueue} from "./src/constants";
 import {RaceQueue} from "./src/interface";
 import {DerivedSpace} from "./src/hooks/rareHooks/useBatchDerivedStateToModel";
@@ -67,3 +67,5 @@ export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]
 export function useEnhancedCallback<T extends (...args: any) => any>(callback: T, deps: DependencyList): EnhancedCallback<T>;
 export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[]): [S];
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
+
+export function InjectSuspenseKey<P>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKey'>>;

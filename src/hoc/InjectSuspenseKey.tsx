@@ -9,7 +9,7 @@ const InjectSuspenseKey = <P, _T = any>(Component: FC<P>) => {
       console.warn('count 需要大于0');
     }
     // @ts-ignore
-    const NewComponent: FC<P extends { [index: string]: any } ? Omit<P, 'suspenseKey'> : P> = (props: P) => {
+    const NewComponent: FC<Omit<P, 'suspenseKey'>> = (props: P) => {
       const [keys] = useState(() => {
         const arr: number[] = [];
         for (let i = 0; i < count; i += 1) {

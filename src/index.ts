@@ -11,3 +11,4 @@ export { default as useBatchDerivedModel } from './hooks/rareHooks/useBatchDeriv
 export { default as useEnhancedCallback } from './hooks/rareHooks/useEnhancedCallback';
 export { default as useDerivedState } from './hooks/useDerivedState';
 export { default as useDerivedStateWithModel } from './hooks/useDerivedStateWithModel';
+export { default as InjectSuspenseKey } from './hoc/InjectSuspenseKey';
