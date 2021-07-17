@@ -52,6 +52,10 @@ export type EnhancedCallback<F extends (...args: any[]) => any> = F & {
   renew: () => void;
 };
 
+export interface InjectProps {
+  suspenseKey: string[];
+}
+
 export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
 export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
 export function gluer<S , D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
@@ -68,4 +72,4 @@ export function useEnhancedCallback<T extends (...args: any) => any>(callback: T
 export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[]): [S];
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 
-export function InjectSuspenseKey<P>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKey'>>;
+export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKey'>>;

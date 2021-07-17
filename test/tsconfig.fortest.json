@@ -2,13 +2,13 @@
   "compilerOptions": {
     "experimentalDecorators": false,
     "esModuleInterop": true,
-    "lib": ["esnext"],
-    "module": "esnext",
-    "target": "esnext", // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+    "lib": ["ES2019"],
+    "module": "commonjs",
+    "target": "ES2019", // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "sourceMap": false,
-    "outDir": "",
+    "outDir": "/test",
     "jsx": "react",
     "strict": true,
     "rootDir": ".",
