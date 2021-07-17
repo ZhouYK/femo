@@ -1,23 +1,47 @@
-import {useState} from "react";
+import {useRef} from "react";
 import {GluerReturn, Service, ServiceOptions} from "../../../index";
 import {isAsync} from "../../tools";
-import gluer, {defaultReducer} from "../../gluer";
+
+type CustomerPromise<T = any> = { success?: boolean; data?: T }  & Promise<T>;
+
+const cache: { [index: string]: CustomerPromise } = {  };
 
 const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions) => {
   const [service] = deps || [];
-  const { suspense } = options || {};
-  const [firstRenderFlagRef] = useState(() => {
-    return gluer(true);
-  });
-  const [serviceCacheRef] = useState(() => {
-    return gluer(defaultReducer , service)
-  });
+  const firstRenderFlagRef = useRef(true);
+  const serviceCacheRef = useRef(service);
 
-  if (serviceCacheRef() && firstRenderFlagRef()) {
-    firstRenderFlagRef.silent(false);
-    const result = (serviceCacheRef() as Service<T>)(model());
+  const { suspenseKey } = options || {};
+  if (suspenseKey) {
+    if (cache[suspenseKey]) {
+      const promise = cache[suspenseKey] as CustomerPromise;
+      if (promise.success) {
+        model.silent(promise.data);
+        firstRenderFlagRef.current = false;
+        delete cache[suspenseKey];
+      } else if (promise.success === false) {
+        firstRenderFlagRef.current = false;
+        delete cache[suspenseKey];
+      } else {
+        throw promise;
+      }
+    }
+  }
+
+  if (service && firstRenderFlagRef.current) {
+    firstRenderFlagRef.current = false;
+    const result = service(model());
     if (isAsync(result)) {
-      if (suspense) throw model.race(() => result);
+      if (suspenseKey) {
+        const p: CustomerPromise = model.race(() => result).then((data) => {
+          p.success = true;
+          p.data = data;
+        }).catch(() => {
+          p.success = false;
+        });
+        cache[suspenseKey] = p;
+        throw p
+      }
       // 这里更新了loading，会跳过当次渲染
       model.race(() => result);
     } else {
@@ -25,12 +49,11 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
     }
   }
 
-  if (!Object.is(serviceCacheRef(), service)) {
-    serviceCacheRef.silent(() => service);
+  if (!Object.is(serviceCacheRef.current, service)) {
+    serviceCacheRef.current = service;
     if (service) {
-      const result = (serviceCacheRef() as Service<T>)(model());
+      const result = service(model());
       if (isAsync(result)) {
-        if (suspense) throw model.race(() => result);
         model.race(() => result);
       } else {
         model(result);

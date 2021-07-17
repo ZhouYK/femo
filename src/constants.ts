@@ -7,5 +7,4 @@ export const gluerUniqueFlagKey = Symbol('gluerUniqueFlagKey');
 export const gluerUniqueFlagValue = Symbol('gluerUniqueFlagValue');
 
 export const defaultServiceOptions: ServiceOptions = {
-  suspense: false
 };

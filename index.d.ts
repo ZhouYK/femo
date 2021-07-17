@@ -25,7 +25,7 @@ export type GluerReturnFn<S> = {
 export type Service<T> = (state: T) => Promise<T> | T;
 
 export interface ServiceOptions {
-  suspense?: boolean;
+  suspenseKey?: string; // 非空字符串
 }
 
 export type RaceFn<S> = {
