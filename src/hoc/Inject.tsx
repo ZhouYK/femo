@@ -10,7 +10,7 @@ const Inject = <P extends InjectProps, _T = any>(Component: FC<P>) => {
       console.warn('count 需要大于0');
     }
     // @ts-ignore
-    const NewComponent: FC<Omit<P, 'suspenseKey'>> = (props: P) => {
+    const NewComponent: FC<Omit<P, 'suspenseKeys'>> = (props: P) => {
       const [keys] = useState(() => {
         const arr: string[] = [];
         for (let i = 0; i < count; i += 1) {
@@ -19,7 +19,7 @@ const Inject = <P extends InjectProps, _T = any>(Component: FC<P>) => {
         }
         return arr;
       });
-      return <Component { ...props } suspenseKey={keys} />
+      return <Component { ...props } suspenseKeys={keys} />
     };
     NewComponent.displayName = Component.displayName || Component.name;
 
