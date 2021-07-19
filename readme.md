@@ -41,6 +41,10 @@ yarn add femo
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
 - <a href="#useBatchDerivedStateToModel">useBatchDerivedStateToModel</a>
 
+### <a href="#HOC">HOC</a>
+
+- <a href="#Inject">Inject</a>
+
 ### <a href="#methods">节点方法</a>
 
 - <a href="#relyOn">relyOn</a>
@@ -147,14 +151,43 @@ react hook返回的model都是经过包装的，不要对其进行订阅，订�
 
 用react hook的方式订阅并获取数据节点的内容
 
-```js
-// 定义一个节点
-const list = gluer({ page: 1, size: 20, total: 0, list: [] });
 
+useModel(model, [deps], [options]);
+
+|入参    |含义     |
+| :----  | :----  |
+| model  | (必传)gluer定义的数据 |
+| deps   | (可选)依赖的service数组。[service], service为返回model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
+| <span id="options">options</span> | (可选)一些配置。{ suspenseKey?: string } |
+
+
+```typescript
+
+interface List {
+  page: number;
+  size: number;
+  list: any[];
+}
+// 定义一个节点
+const listModel = gluer<List>({ page: 1, size: 20, total: 0, list: [] });
+
+const [query] = useState({
+  pageIndex: 1,
+  pageSize: 20,
+});
+
+const getList = useCallback(() => {
+  return get('/api/list', query).then((res) => res.data);
+}, []);
 // 在函数组件中使用useModel消费数据
-// clonedListModel是对list的克隆，clonedListModel本质上是对list的一层包装，底层使用的是list，所以核心还是list。
-// loading状态是clonedListModel带来的，用于表明异步更新时数据的家在状态
-const [listData, clonedListModel, { loading }] = useModel(list);
+// clonedListModel是对listModel的克隆，clonedListModel本质上是对listModel的一层包装，底层使用的是listModel，所以核心还是listModel。
+// loading状态是clonedListModel带来的，用于表明异步更新时数据的加载状态
+
+// getList用于获取数据，getList的每一次变化都会触发去远端拉取数据
+// suspenseKey 有值了，会开启suspense模式，上层组件中需要有Suspense组件包裹
+const [listData, clonedListModel, { loading }] = useModel(listModel, [getList], {
+  suspenseKey: 'list',
+});
 
 // 每次list的变动都会通知useModel，useModel更新listData，rerender组件
 // 和useState很类似
@@ -163,6 +196,44 @@ const [listData, clonedListModel, { loading }] = useModel(list);
 
 ## <span id="useIndividualModel">useIndividualModel</span>
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
+
+useIndividualModel(initState, [deps], [options])
+
+
+|入参    |含义     |
+| :----  | :----  |
+| initState  | (必传)可为函数 |
+| deps   | (可选)依赖的service数组。[service], service为返回生成model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
+| options | (可选)一些配置。{ suspenseKey?: string } |
+
+```typescript
+const [query] = useState({
+  pageIndex: 1,
+  pageSize: 20,
+});
+
+const getList = useCallback(() => {
+  return get('/api/list', query).then((res) => res.data);
+}, []);
+// 在函数组件中使用useIndividualModel生成model
+// listModel是生成的model
+// clonedListModel是对listModel的克隆，clonedListModel本质上是对listModel的一层包装，底层使用的是listModel，所以核心还是listModel。
+// loading状态是clonedListModel带来的，用于表明异步更新时数据的加载状态
+
+// getList用于获取数据，getList的每一次变化都会触发去远端拉取数据
+// suspenseKey 有值了，会开启suspense模式，上层组件中需要有Suspense组件包裹
+const [listData, listModel, clonedListModel, { loading }] = useIndividualModel({
+  page: 1,
+  size: 20,
+  list: [],
+}, [getList], {
+  suspenseKey: 'list',
+});
+
+// 每次list的变动都会通知useModel，useModel更新listData，rerender组件
+// 和useState很类似
+
+```
 
 ## 处理衍生数据
 ### <span id="useDerivedState">useDerivedState</span>
@@ -188,6 +259,17 @@ const [listData, clonedListModel, { loading }] = useModel(list);
 
 ### <span id="useBatchDerivedModel">useBatchDerivedModel</span>
 > 结合了useIndividualModel和useBatchDerivedStateToModel
+
+
+## <span id="HOC">HOC</span>
+
+## <a id="Inject">Inject</a>
+
+Inject会向组件注入一些属性，目前(v1.10.1)会向组件注入：
+
+| 属性名 | 含义 |
+| :----  | :----  |
+| suspenseKeys | 一组唯一的key。类型为string[]。用于<a href="#options">options</a>中的suspenseKey，保证suspenseKey的唯一性。 |
 
 ## <span id="methods">节点方法</span>
 

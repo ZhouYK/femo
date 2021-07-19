@@ -2,6 +2,7 @@
 import React, {FC, useState} from "react";
 import {InjectProps} from "../../index";
 
+const keyPrefix = 'femo-suspense-key';
 let key = 0;
 const Inject = <P extends InjectProps, _T = any>(Component: FC<P>) => {
   return (count = 1) => {
@@ -15,7 +16,7 @@ const Inject = <P extends InjectProps, _T = any>(Component: FC<P>) => {
         const arr: string[] = [];
         for (let i = 0; i < count; i += 1) {
           key += 1;
-          arr.push(`${key}`);
+          arr.push(`${keyPrefix}-${key}`);
         }
         return arr;
       });
