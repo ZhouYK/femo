@@ -76,7 +76,8 @@ function gluer(...args: any[]) {
 
   let fn: any;
 
-  const updateFn = (data: any, silent: boolean) => {
+  // mutedDeps：不执行其回调的依赖数组
+  const updateFn = (data: any, silent: boolean, mutedDeps: GluerReturn<any>[][] = []) => {
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
       if (!silent) {
@@ -91,14 +92,17 @@ function gluer(...args: any[]) {
         const targetDeps: GluerReturn<any>[][] = refToDepsMap.get(fn);
         if (targetDeps) {
           targetDeps.forEach((target: GluerReturn<any>[]) => {
-            const callback = depsToFnMap.get(target);
-            callback(...target);
+            if (!mutedDeps.includes(target)) {
+              const callback = depsToFnMap.get(target);
+              callback(...target);
+            }
           })
         }
       }
     }
-  }
-  const basicLogic = (silent = false) => (...ags: any[]) => {
+  };
+
+  const preTreat = (...ags: any[]) => {
     let payload;
     let customHandler;
     if (ags.length === 0) {
@@ -117,8 +121,13 @@ function gluer(...args: any[]) {
 
     const realHandler = customHandler || reducerFnc;
 
-    const tempResult = realHandler(payload, gluerState);
-
+    return realHandler(payload, gluerState);
+  }
+  const basicLogic = (silent = false) => (...ags: any[]) => {
+    const tempResult = preTreat(...ags);
+    // 不执行回调的依赖数组
+    // 第三个参数默认就是mutedDeps
+    const [, ,mutedDeps] = args;
     // 如果是异步更新
     if (isAsync(tempResult)) {
       const promise: any = (tempResult as Promise<any>).catch(e => {
@@ -126,14 +135,14 @@ function gluer(...args: any[]) {
         return Promise.reject(e);
       }).then((data) => {
         raceHandle(promise);
-        updateFn(data, silent);
+        updateFn(data, silent, mutedDeps);
         return data;
       });
       // 返回函数处理结果
       return promise;
     }
 
-    updateFn(tempResult, silent);
+    updateFn(tempResult, silent, mutedDeps);
     // 返回函数处理结果
     return tempResult;
   }
@@ -219,6 +228,10 @@ function gluer(...args: any[]) {
   }
 
   fn.race = (...as: any[]) => rq.push(fn(...as));
+
+  fn.preTreat = (...as: any) => preTreat(...as);
+
+  fn.muteDeps =
 
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,

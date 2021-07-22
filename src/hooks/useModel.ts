@@ -18,15 +18,15 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
     ...defaultServiceOptions,
     ...options,
   };
-
-  const [clonedModel, status] = useCloneModel(model);
+  const [modelDeps] = useState(() => [model]);
+  const [clonedModel, status] = useCloneModel(model, modelDeps);
   useService(clonedModel, deps, finalOptions);
-  const [state, updateState] = useState(() => {
+  const [, updateState] = useState(() => {
     return model();
   });
 
   const [unsub] = useState(() => {
-    return subscribe([model], (modelData: T) => {
+    return subscribe(modelDeps, (modelData: T) => {
       if (typeof modelData === 'function') {
         updateState(() => modelData);
       } else {
@@ -37,7 +37,7 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
 
   useEffect(() => unsub, []);
 
-  return [state, clonedModel, status];
+  return [model(), clonedModel, status];
 };
 
 export default useModel;

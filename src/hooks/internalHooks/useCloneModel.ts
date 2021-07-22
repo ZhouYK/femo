@@ -1,10 +1,10 @@
 import {useEffect, useRef, useState} from "react";
 import {GluerReturn, ModelStatus} from "../../../index";
-import { promiseDeprecatedError } from '../../gluer';
+import {defaultReducer, promiseDeprecatedError} from '../../gluer';
 import {isAsync} from "../../tools";
 import genRaceQueue from "../../genRaceQueue";
 
-const useCloneModel = <T>(model: GluerReturn<T>): [GluerReturn<T>, ModelStatus] => {
+const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[] = []): [GluerReturn<T>, ModelStatus] => {
   const unmountedFlagRef = useRef(false);
   const [status, updateStatus] = useState<ModelStatus>({
     loading: false,
@@ -13,18 +13,19 @@ const useCloneModel = <T>(model: GluerReturn<T>): [GluerReturn<T>, ModelStatus] 
   const [clonedModel] = useState<GluerReturn<T>>(() => {
     const rq = genRaceQueue();
     const fn = (...args: any[]) => {
-      // @ts-ignore
-      const result = model(...args);
-      if (args.length === 0) return result;
 
+      if (args.length === 0) return model();
+      // @ts-ignore
+      const result = model.preTreat(...args);
       if (isAsync(result)) {
+        const asyncResult = model(result, defaultReducer, modelDeps);
         updateStatus((prevState) => {
           return {
             ...prevState,
             loading: true,
           }
         });
-        (result as Promise<any>).then(() => {
+        (asyncResult as Promise<any>).then(() => {
           if (unmountedFlagRef.current) return;
           updateStatus((prevState) => {
             return {
@@ -43,8 +44,9 @@ const useCloneModel = <T>(model: GluerReturn<T>): [GluerReturn<T>, ModelStatus] 
             });
           }
         })
+        return asyncResult;
       }
-      return result;
+      return model(result);
     };
     Object.keys(model).forEach((key) => {
       if (key === 'race') {

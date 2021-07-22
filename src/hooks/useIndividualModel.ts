@@ -26,16 +26,18 @@ const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], op
     }
     return gluer(initState);
   });
-  const [clonedModel, status] = useCloneModel(model);
+
+  const [modelDeps] = useState(() => [model]);
+  const [clonedModel, status] = useCloneModel(model, modelDeps);
 
   useService(clonedModel, deps, finalOptions);
 
-  const [state, updateState] = useState(() => {
+  const [, updateState] = useState(() => {
     return model();
   });
 
   const [unsub] = useState(() => {
-    return subscribe([model], (data) => {
+    return subscribe(modelDeps, (data) => {
       if (typeof data === 'function') {
         updateState(() => data);
       } else {
@@ -47,7 +49,7 @@ const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], op
 
   useEffect(() => unsub, []);
 
-  return [state, model, clonedModel, status];
+  return [model(), model, clonedModel, status];
 }
 
 export default useIndividualModel;
