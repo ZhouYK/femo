@@ -231,8 +231,6 @@ function gluer(...args: any[]) {
 
   fn.preTreat = (...as: any) => preTreat(...as);
 
-  fn.muteDeps =
-
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,
     writable: false,
