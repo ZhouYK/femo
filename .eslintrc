@@ -61,6 +61,7 @@
     "global-require": "off",
     "no-param-reassign": "off",
     "class-methods-use-this": "off",
+    "no-use-before-define": "off",
 	"import/extensions": [
 	  "error",
 	  "ignorePackages",

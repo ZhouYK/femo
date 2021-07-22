@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-use-before-define
 import React, {FC, useState} from "react";
 import {InjectProps} from "../../index";
 
