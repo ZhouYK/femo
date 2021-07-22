@@ -127,7 +127,7 @@ function gluer(...args: any[]) {
     const tempResult = preTreat(...ags);
     // 不执行回调的依赖数组
     // 第三个参数默认就是mutedDeps
-    const [, ,mutedDeps] = args;
+    const [, ,mutedDeps] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
       const promise: any = (tempResult as Promise<any>).catch(e => {
