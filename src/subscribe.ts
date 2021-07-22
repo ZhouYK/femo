@@ -13,7 +13,10 @@ const subscribe = (deps: GluerReturn<any>[], callback: (...args: any[]) => void,
     throw new Error(`Error: the second param muse be function! ${ callback }`);
   }
 
-  const copyDeps = [...deps];
+  // 需要保持外部引用
+  // 和mutedDeps功能相关
+  // 外部会议传入的依赖数组作为判断依据，所以在内部也需要和外部的数组引用保持一致
+  const copyDeps = deps;
   const wrapCallback = () => {
     let cacheDepsValue = copyDeps.map(dep => {
 
