@@ -25,7 +25,7 @@ const subscribe = (deps: GluerReturn<any>[], callback: (...args: any[]) => void,
       if (dep[gluerUniqueFlagKey] !== gluerUniqueFlagValue) {
         console.error(`Warning: dependency ${dep}, is not defined by gluer. Please check it!`)
       }
-      return dep();
+      return (dep as (...args: any[]) => any)();
     });
     const handler = (...params: GluerReturn<any>[]) => {
       let flag = false;
