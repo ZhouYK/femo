@@ -28,7 +28,7 @@ const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], op
   });
 
   const [modelDeps] = useState(() => [model]);
-  const [clonedModel, status] = useCloneModel(model, modelDeps);
+  const [clonedModel, status] = useCloneModel(model, [modelDeps]);
 
   useService(clonedModel, deps, finalOptions);
 

@@ -4,7 +4,7 @@ import {defaultReducer, promiseDeprecatedError} from '../../gluer';
 import {isAsync} from "../../tools";
 import genRaceQueue from "../../genRaceQueue";
 
-const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[] = []): [GluerReturn<T>, ModelStatus] => {
+const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][] = []): [GluerReturn<T>, ModelStatus] => {
   const unmountedFlagRef = useRef(false);
   const [status, updateStatus] = useState<ModelStatus>({
     loading: false,

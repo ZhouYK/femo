@@ -20,7 +20,7 @@ export type GluerReturnFn<S> = {
   <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
   <D>(data: D): D extends Promise<any> ? Promise<S> : S;
   <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
-  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedDeps: GluerReturn<any>[]): CR extends Promise<any> ? Promise<S> : S;
+  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedDeps: GluerReturn<any>[][]): CR extends Promise<any> ? Promise<S> : S;
 }
 
 export type Service<T> = (state: T) => Promise<T> | T;

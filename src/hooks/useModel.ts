@@ -19,7 +19,7 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
     ...options,
   };
   const [modelDeps] = useState(() => [model]);
-  const [clonedModel, status] = useCloneModel(model, modelDeps);
+  const [clonedModel, status] = useCloneModel(model, [modelDeps]);
   useService(clonedModel, deps, finalOptions);
   const [, updateState] = useState(() => {
     return model();
