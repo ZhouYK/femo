@@ -54,6 +54,7 @@ yarn add femo
 - <a href="#flush">flush</a>
 - <a href="#go">go</a>
 - <a href="#race">race</a>
+- <a href="#preTreat">preTreat</a>
 
 ## <span id="tool-function">工具函数</span>
 
@@ -408,6 +409,11 @@ someModel.race(params, async (data, state) => {
 // p2请求
 someModel.race(async (data, state) => { return await fetchRemote() })
 ```
+
+## <a id="preTreat">preTreat</a>
+> 预处理数据，可得到结果而不更新节点
+
+此方法可能用于一些依据处理结果来做条件判断的场景
 
 ### 类型支持
 
