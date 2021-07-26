@@ -1,6 +1,6 @@
+import React, {ChangeEvent} from 'react';
 import {gluer, subscribe} from "../../src";
 import usersModel from "../model/users";
-import React, {ChangeEvent} from 'react';
 import {Status, User, Users} from "../interface";
 // @ts-ignore
 import avatar from '../assets/avatar.jpeg';
