@@ -21,6 +21,9 @@ module.exports = {
         },
       }, {
         loader: 'ts-loader',
+        options: {
+          configFile: './tsconfig-for-dev.json',
+        },
       }]
     }, {
         test: /\.(png|jp(e)?g|gif)$/i,
