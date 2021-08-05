@@ -62,6 +62,8 @@ export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<
 export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
 export function gluer<S , D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
 
+export const promiseDeprecatedError: string;
+
 export function genRaceQueue(): ({ push: <T = any>(p: Promise<T> & { [raceQueue]?: RaceQueue }) => void; clear: () => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null })
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
 export function useModel<T = any, D = any>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions): [T, GluerReturn<T>, ModelStatus];
