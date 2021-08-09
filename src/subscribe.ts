@@ -58,7 +58,9 @@ const subscribe = (deps: GluerReturn<any>[], callback: (...args: any[]) => void,
     copyDeps.forEach(dep => {
       if (refToDepsMap.has(dep)) {
         const value = refToDepsMap.get(dep);
-        (value as any[]).push(copyDeps);
+        if ((value as any[]).indexOf(copyDeps) < 0) {
+          (value as any[]).push(copyDeps);
+        }
       } else {
         refToDepsMap.set(dep, [copyDeps]);
       }
