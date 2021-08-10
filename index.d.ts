@@ -30,8 +30,14 @@ export interface ServiceOptions {
 }
 
 export type RaceFn<S> = {
-  <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): Promise<S>;
-  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): Promise<S>;
+  <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
+}
+
+export type CacheFn<S> = {
+  (): S;
+  <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
 }
 
 export type GluerReturn<S> = GluerReturnFn<S> & {
@@ -44,6 +50,8 @@ export type GluerReturn<S> = GluerReturnFn<S> & {
   go: (step: number) => S;
   race: RaceFn<S>;
   preTreat: GluerReturnFn<S>;
+  cache: CacheFn<S>;
+  cacheClean: () => void;
 }
 
 export interface ModelStatus {

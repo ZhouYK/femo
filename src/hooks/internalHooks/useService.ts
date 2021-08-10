@@ -33,7 +33,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
     const result = service(model());
     if (isAsync(result)) {
       if (suspenseKey) {
-        const p: CustomerPromise = model.race(() => result).then((data) => {
+        const p: CustomerPromise = model.race(() => result as Promise<T>).then((data) => {
           p.success = true;
           p.data = data;
         }).catch(() => {
@@ -43,7 +43,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
         throw p
       }
       // 这里更新了loading，会跳过当次渲染
-      model.race(() => result);
+      model.race(() => result as Promise<T>);
     } else {
       model(result);
     }
@@ -54,7 +54,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
     if (service) {
       const result = service(model());
       if (isAsync(result)) {
-        model.race(() => result);
+        model.race(() => result as Promise<T>);
       } else {
         model(result);
       }

@@ -74,10 +74,20 @@ function gluer(...args: any[]) {
 
   let unsubscribeArr: (() => void)[] = [];
 
+  let cachedData: any;
+  let cachedFlag = false;
+  let fromCache = false;
+
   let fn: any;
 
   // mutedDeps：不执行其回调的依赖数组
-  const updateFn = (data: any, silent: boolean, mutedDeps: GluerReturn<any>[][] = []) => {
+  // curFromCache：是否来自cache方法的异步更新，默认 false（否）
+  const updateFn = (data: any, silent: boolean, mutedDeps: GluerReturn<any>[][] = [], curFromCache = false) => {
+    if (curFromCache && !cachedFlag) {
+      cachedFlag = true;
+      cachedData = data;
+    }
+
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
       if (!silent) {
@@ -130,12 +140,14 @@ function gluer(...args: any[]) {
     const [, ,mutedDeps] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
+      // 只有异步更新才有可能需要缓存
+      const tmpFromCache = fromCache;
       const promise: any = (tempResult as Promise<any>).catch(e => {
         raceHandle(promise);
         return Promise.reject(e);
       }).then((data) => {
         raceHandle(promise);
-        updateFn(data, silent, mutedDeps);
+        updateFn(data, silent, mutedDeps, tmpFromCache);
         return data;
       });
       // 返回函数处理结果
@@ -230,6 +242,29 @@ function gluer(...args: any[]) {
   fn.race = (...as: any[]) => rq.push(fn(...as));
 
   fn.preTreat = (...as: any) => preTreat(...as);
+
+  // cache只针对异步更新
+  fn.cache = (...as: any[]) => {
+    if (as.length === 0) {
+      return cachedData;
+    }
+    // 利用js是单线程执行，可设置运行时的状态变量，来给在运行时定义的函数传参
+    fromCache = true;
+    let result;
+    if (cachedFlag) {
+      result = fn.race(() => Promise.resolve(cachedData));
+    } else {
+      result = fn.race(...as);
+    }
+
+    fromCache = false;
+    return result;
+  };
+
+  fn.cacheClean = () => {
+    cachedFlag = false;
+    cachedData = undefined;
+  };
 
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,

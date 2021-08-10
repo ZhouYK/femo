@@ -389,4 +389,43 @@ describe('test history', () => {
     page.flush();
     unsubscribe();
   })
+});
+
+describe('test cache', () => {
+  test('normal', async () => {
+    const name = gluer('张三');
+    await name.cache(() => Promise.resolve('李四'));
+    expect(name()).toBe('李四');
+    await name.cache(() => Promise.resolve('王二'));
+    expect(name()).toBe('李四');
+
+    name.cacheClean();
+
+    await name.cache(() => Promise.resolve('麻子'));
+    expect(name()).toBe('麻子');
+  });
+
+  test('cached data work only using cache() method', async () => {
+    const age = gluer(10);
+
+    await age.cache(() => Promise.resolve(6));
+    expect(age()).toBe(6);
+
+
+    await age.cache(() => Promise.resolve(7));
+    expect(age()).toBe(6);
+
+    await age.race(() => Promise.resolve(9));
+    expect(age()).toBe(9);
+
+    age(8 );
+    expect(age()).toBe(8);
+
+    await age(() => Promise.resolve(11));
+    expect(age()).toBe(11);
+
+    await age.cache(() => Promise.resolve(12));
+    expect(age()).toBe(6);
+  });
+
 })

@@ -55,6 +55,8 @@ yarn add femo
 - <a href="#go">go</a>
 - <a href="#race">race</a>
 - <a href="#preTreat">preTreat</a>
+- <a href="#cache">cache</a>
+- <a href="#cacheClean">cacheClean</a>
 
 ## <span id="tool-function">工具函数</span>
 
@@ -417,6 +419,12 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 > 预处理数据，可得到结果而不更新节点
 
 此方法可能用于一些依据处理结果来做条件判断的场景
+
+## <a id="cache">cache</a>
+> 缓存异步数据，使用方式同race，因为内部调用的<a href="#race">race</a>方法。详情见[issue#31](https://github.com/ZhouYK/femo/issues/31)
+
+## <a id="cacheClean">cacheClean</a>
+> 清除异步数据的缓存
 
 ### 类型支持
 
