@@ -1,4 +1,4 @@
-import gluer from '../../src/gluer';
+import gluer, { promiseDeprecatedError } from '../../src/gluer';
 import {subscribe} from "../../src";
 
 describe('gluer normal test',  () => {
@@ -403,6 +403,13 @@ describe('test cache', () => {
 
     await name.cache(() => Promise.resolve('麻子'));
     expect(name()).toBe('麻子');
+
+    name.cacheClean();
+    const p1 = name.cache(() => Promise.resolve('李明'));
+    await name.cache(() => Promise.resolve('王红'));
+    expect(p1).rejects.toBe(promiseDeprecatedError);
+    await name.cache(() => Promise.resolve('张清'));
+    expect(name()).toBe('王红');
   });
 
   test('cached data work only using cache() method', async () => {
