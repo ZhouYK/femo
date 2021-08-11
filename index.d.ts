@@ -27,20 +27,23 @@ export type Service<T> = (state: T) => Promise<T> | T;
 
 export interface ServiceOptions {
   suspenseKey?: string; // 非空字符串
+  cache?: boolean; // 是否开启节点的缓存（只针对异步数据有效，底层调用的model.cache）
 }
 
 export type RaceFn<S> = {
   <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
 }
 
 export type CacheFn<S> = {
   (): S;
   <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
 }
 
-export type GluerReturn<S> = GluerReturnFn<S> & {
+export type ModelMethod<S> = {
   reset: () => void;
   relyOn: <T extends GluerReturn<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
   off: () => void;
@@ -52,7 +55,9 @@ export type GluerReturn<S> = GluerReturnFn<S> & {
   preTreat: GluerReturnFn<S>;
   cache: CacheFn<S>;
   cacheClean: () => void;
-}
+};
+
+export type GluerReturn<S> = GluerReturnFn<S> & ModelMethod<S>;
 
 export interface ModelStatus {
   loading: boolean;

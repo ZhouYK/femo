@@ -11,7 +11,7 @@ import {defaultServiceOptions} from "../constants";
  * 区别于useIndividualModel
  * @param model 数据节点函数
  * @param deps 更新model的服务(可选) 每次deps中的service变更就会去获取更新一次model
- * @param options 是否开启Suspense模式
+ * @param options suspenseKey: string（是否开启Suspense模式）；cache: boolean（是否启用model的缓存）;
  */
 const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions): [T, GluerReturn<T>, ModelStatus] => {
   const finalOptions = {

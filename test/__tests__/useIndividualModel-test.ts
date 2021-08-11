@@ -132,5 +132,88 @@ describe('useIndividualModel test', () => {
     expect(result.current.model()).toBe(3);
 
   })
+
+  test('useIndividualModel cache', async () => {
+    const { result, unmount, waitForNextUpdate } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+      const service = useCallback(() => {
+        if (count < 6) {
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      }, [count]);
+      const [state, model, clonedModel, { loading }] = useIndividualModel(count, [service], {
+        cache: true,
+      });
+      return {
+        state,
+        model,
+        clonedModel,
+        loading,
+        updateCount,
+      }
+    });
+    // 第一次渲染的时候就会发起异步请求
+    expect(result.current.state).toBe(0);
+    expect(result.current.loading).toBe(true);
+    await waitForNextUpdate();
+    expect(result.current.state).toBe(1);
+    expect(result.current.loading).toBe(false);
+
+    act(() => {
+      result.current.updateCount(2);
+    });
+    expect(result.current.state).toBe(1);
+    expect(result.current.loading).toBe(true);
+    await waitForNextUpdate();
+    expect(result.current.state).toBe(1);
+    expect(result.current.loading).toBe(false);
+
+    act(() => {
+      result.current.updateCount(6);
+    });
+    expect(result.current.state).toBe(6);
+    expect(result.current.loading).toBe(false);
+
+    act(() => {
+      result.current.updateCount(3);
+    });
+    expect(result.current.state).toBe(6);
+    expect(result.current.loading).toBe(true);
+    await waitForNextUpdate();
+    expect(result.current.state).toBe(1);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.model.cache()).toBe(1);
+    expect(result.current.clonedModel.cache()).toBe(1);
+
+    act(() => {
+      // result.current.model.cacheClean();
+      result.current.clonedModel.cacheClean();
+    });
+    expect(result.current.model.cache()).toBe(undefined);
+    expect(result.current.clonedModel.cache()).toBe(undefined);
+
+    act(() => {
+      result.current.updateCount(5);
+    });
+    expect(result.current.state).toBe(1);
+    expect(result.current.loading).toBe(true);
+    await waitForNextUpdate();
+    expect(result.current.state).toBe(6);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.model.cache()).toBe(6);
+    expect(result.current.clonedModel.cache()).toBe(6);
+
+    act(() => {
+      unmount();
+    });
+
+    act(() => {
+      result.current.model(4);
+    });
+
+    expect(result.current.state).toBe(6);
+    expect(result.current.model()).toBe(4);
+  })
   // todo suspense test
 })

@@ -12,7 +12,7 @@ import {defaultServiceOptions} from "../constants";
  * 不要尝试去订阅返回的clonedModel，不会有效果，因为它只是对真正的model的一层包装。需要监听的话，应该是内部真正的model。
  * @param initState
  * @param deps 更新model的服务(可选) 每次deps中的service变更就会去获取更新一次model
- * @param options 是否开启Suspense模式
+ * @param options suspenseKey: string（是否开启Suspense模式）；cache: boolean（是否启用model的缓存）;
  */
 const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], options?: ServiceOptions): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
   const finalOptions = {

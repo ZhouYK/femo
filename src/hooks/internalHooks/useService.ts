@@ -11,7 +11,8 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
   const firstRenderFlagRef = useRef(true);
   const serviceCacheRef = useRef(service);
 
-  const { suspenseKey } = options || {};
+  const { suspenseKey, cache: cacheFlag } = options || {};
+  const methodName = cacheFlag ? 'cache' : 'race';
   if (suspenseKey) {
     if (cache[suspenseKey]) {
       const promise = cache[suspenseKey] as CustomerPromise;
@@ -33,7 +34,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
     const result = service(model());
     if (isAsync(result)) {
       if (suspenseKey) {
-        const p: CustomerPromise = model.race(() => result as Promise<T>).then((data) => {
+        const p: CustomerPromise = model[methodName](() => result as Promise<T>).then((data) => {
           p.success = true;
           p.data = data;
         }).catch(() => {
@@ -43,7 +44,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
         throw p
       }
       // 这里更新了loading，会跳过当次渲染
-      model.race(() => result as Promise<T>);
+      model[methodName](() => result as Promise<T>);
     } else {
       model(result);
     }
@@ -54,7 +55,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
     if (service) {
       const result = service(model());
       if (isAsync(result)) {
-        model.race(() => result as Promise<T>);
+        model[methodName](() => result as Promise<T>);
       } else {
         model(result);
       }
