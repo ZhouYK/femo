@@ -161,7 +161,7 @@ useModel(model, [deps], [options]);
 | :----  | :----  |
 | model  | (必传)gluer定义的数据 |
 | deps   | (可选)依赖的service数组。[service], service为返回model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
-| <span id="options">options</span> | (可选)一些配置。{ suspenseKey?: string } |
+| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; } |
 
 
 ```typescript
@@ -207,7 +207,7 @@ useIndividualModel(initState, [deps], [options])
 | :----  | :----  |
 | initState  | (必传)可为函数 |
 | deps   | (可选)依赖的service数组。[service], service为返回生成model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
-| options | (可选)一些配置。{ suspenseKey?: string } |
+| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; } |
 
 ```typescript
 const [query] = useState({
@@ -426,7 +426,22 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 ## <a id="cacheClean">cacheClean</a>
 > 清除异步数据的缓存
 
-### 类型支持
+## 补充说明
+
+### <a id='options'>options</a>
+
+#### suspenseKey
+字符串类型。如果传入了非空的字符串，则表示开启Suspense模式，需要和Suspense组件配合使用。尽量保证不会出现两个相同的suspenseKey。可以使用<a href='#Inject'>Inject</a>高阶函数来为组件注入suspenseKey，可以省去自定义suspenseKey的工作。
+
+#### cache
+布尔类型。true代表开启异步缓存，false代表关闭异步缓存。开启异步缓存的含义是：一旦开启，则后续所有对数据的异步更新都将以第一次成功更新的异步数据为结果。具体一些开启异步缓存后，第一次异步更新成功的数据会被缓存下来；后续再进行异步更新，数据将保持不变。
+
+可以通过节点方法<a href='#cacheClean'>cacheClean</a>清除缓存数据。
+
+cache一般适用于数据本身使用范围广（或者数据所在的组件使用范围广）、对数据的实时性不敏感的场景。具体含义<a href="#cache">详见</a>
+
+
+## 类型支持
 
 ⚡️强烈建议使用typescript
 
