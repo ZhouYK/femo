@@ -7,7 +7,7 @@ import {
 } from './constants';
 
 import { HandleFunc, GluerReturn } from '../index';
-import {isArray, isAsync} from "./tools";
+import {isArray, isAsync, isTagged, tagPromise} from "./tools";
 import {RaceQueue} from "./interface";
 import subscribe, {depsToFnMap, refToDepsMap} from "./subscribe";
 import genRaceQueue from "./genRaceQueue";
@@ -140,6 +140,9 @@ function gluer(...args: any[]) {
     const [, ,mutedDeps] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
+      if (isTagged(tempResult)) {
+        console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
+      }
       // 只有异步更新才有可能需要缓存
       const tmpFromCache = fromCache;
       const promise: any = (tempResult as Promise<any>).catch(e => {
@@ -150,6 +153,7 @@ function gluer(...args: any[]) {
         updateFn(data, silent, mutedDeps, tmpFromCache);
         return data;
       });
+      tagPromise(promise);
       // 返回函数处理结果
       return promise;
     }

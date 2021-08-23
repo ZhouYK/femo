@@ -49,6 +49,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
     const fn = (...args: any[]) => {
       // @ts-ignore
       const res = model.preTreat(...args);
+      if (args.length === 0) return res;
       // 只有异步数据才会传入modelDeps
       if (isAsync(res)) {
         // 目前最多三个参数
