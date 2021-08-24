@@ -140,7 +140,7 @@ function gluer(...args: any[]) {
     const [, ,mutedDeps] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
-      if (isTagged(tempResult)) {
+      if (process.env.NODE_ENV === development && isTagged(tempResult)) {
         console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
       }
       // 只有异步更新才有可能需要缓存
@@ -153,7 +153,9 @@ function gluer(...args: any[]) {
         updateFn(data, silent, mutedDeps, tmpFromCache);
         return data;
       });
-      tagPromise(promise);
+      if (process.env.NODE_ENV === development) {
+        tagPromise(promise);
+      }
       // 返回函数处理结果
       return promise;
     }
