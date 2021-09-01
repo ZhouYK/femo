@@ -9,7 +9,7 @@ import {
 import { HandleFunc, GluerReturn } from '../index';
 import {isArray, isAsync, isTagged, tagPromise} from "./tools";
 import {RaceQueue} from "./interface";
-import subscribe, {depsToFnMap, refToDepsMap} from "./subscribe";
+import subscribe, {Callback, deleteDepsInRefToDepsMap, depsToFnMap, refToDepsMap} from "./subscribe";
 import genRaceQueue from "./genRaceQueue";
 
 export const promiseDeprecatedError = 'the promise is deprecated by race condition';
@@ -29,6 +29,19 @@ const raceHandle = (promise: Promise<any> & { [raceQueue]?: RaceQueue; [promiseD
 
   promise[promiseDeprecated] = true;
 }
+
+const executeCallback = (targetDeps: GluerReturn<any>[]) => {
+  const callback = depsToFnMap.get(targetDeps) as Callback[];
+  for (let j = 0; j < callback.length; j += 1) {
+    const call = callback[j];
+    const values: any[] = [];
+    for (let k = 0; k < targetDeps.length; k += 1) {
+      values.push(targetDeps[k]());
+    }
+    call(...values);
+  }
+}
+
 /**
  * 节点生成函数
  * @returns {function(): {action: *, reducer: *, initState: *}}
@@ -99,14 +112,14 @@ function gluer(...args: any[]) {
           trackArr.push(gluerState);
           curIndex += 1;
         }
-        const targetDeps: GluerReturn<any>[][] = refToDepsMap.get(fn);
+        const targetDeps = refToDepsMap.get(fn) as GluerReturn<any>[][];
         if (targetDeps) {
-          targetDeps.forEach((target: GluerReturn<any>[]) => {
+          for (let i = 0; i < targetDeps.length; i += 1) {
+            const target = targetDeps[i];
             if (!mutedDeps.includes(target)) {
-              const callback = depsToFnMap.get(target);
-              callback(...target);
+              executeCallback(target);
             }
-          })
+          }
         }
       }
     }
@@ -180,12 +193,11 @@ function gluer(...args: any[]) {
     const data = trackArr[curIndex];
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
-      const targetDeps: GluerReturn<any>[][] = refToDepsMap.get(fn);
+      const targetDeps = refToDepsMap.get(fn) as GluerReturn<any>[][];
       if (targetDeps) {
-        targetDeps.forEach((target: GluerReturn<any>[]) => {
-          const callback = depsToFnMap.get(target);
-          callback(...target);
-        })
+        for (let i = 0; i < targetDeps.length; i += 1) {
+          executeCallback(targetDeps[i]);
+        }
       }
     }
   }
@@ -219,10 +231,26 @@ function gluer(...args: any[]) {
     return unsub;
   };
 
-  fn.off = () => {
-    unsubscribeArr.forEach((f) => f());
-    unsubscribeArr = [];
-  }
+  const unsubFn = (targetDeps?: GluerReturn<any>[]) => {
+    // 没有传值，则认为是删除全部订阅
+    if (targetDeps === undefined) {
+      for (let i = 0; i < unsubscribeArr.length; i += 1) {
+        const f = unsubscribeArr[i];
+        f();
+      }
+      unsubscribeArr = [];
+    } else {
+      // 目前做到指定删除依赖数组的所有回调
+      // 将来要删除指定回调也是可以的，到时可做扩展
+      depsToFnMap.delete(targetDeps);
+      deleteDepsInRefToDepsMap(targetDeps);
+    }
+  };
+
+  // @deprecated
+  fn.off = unsubFn
+  // 替换off
+  fn.relyOff = unsubFn;
 
   fn.silent = basicLogic(true);
 

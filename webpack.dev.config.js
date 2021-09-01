@@ -22,7 +22,7 @@ module.exports = {
       }, {
         loader: 'ts-loader',
         options: {
-          configFile: './tsconfig-for-dev.json',
+          configFile: path.resolve(__dirname, 'tsconfig-for-dev.json'),
         },
       }]
     }, {

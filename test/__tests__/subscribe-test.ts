@@ -100,5 +100,28 @@ describe('subscribe tests', () => {
     expect(mockCall.mock.results.length).toBe(1);
     expect(basic()).toBe('123');
     unsub();
+  });
+
+  test('multiple callbacks', () => {
+    const test = gluer(1);
+    const deps = [test];
+
+    const mockCall_1 = jest.fn((data) => data);
+    const mockCall_2 = jest.fn((data) => data);
+    const unsubscribe_1 = subscribe(deps, mockCall_1, false);
+    const unsubscribe_2 = subscribe(deps, mockCall_2, false);
+    subscribe(deps, mockCall_2, false);
+    test(3);
+    expect(mockCall_1.mock.calls.length).toBe(1);
+    expect(mockCall_2.mock.calls.length).toBe(1);
+    unsubscribe_1();
+    test(4);
+    expect(mockCall_1.mock.calls.length).toBe(1);
+    expect(mockCall_2.mock.calls.length).toBe(2);
+    unsubscribe_2();
+    test(5);
+    expect(mockCall_1.mock.calls.length).toBe(1);
+    expect(mockCall_2.mock.calls.length).toBe(2);
+
   })
 });
