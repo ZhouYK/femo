@@ -204,4 +204,91 @@ describe('useModel test', () => {
     expect(model()).toBe(4);
   })
 
+  test('useModel onChange',async () => {
+    model.reset();
+    const onChange_mock = jest.fn((nextState, prevState) => ({ nextState, prevState }));
+    const { result, unmount, waitForNextUpdate } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+      const service = useCallback(() => {
+        if (count < 6) {
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      }, [count]);
+
+      const [age, clonedModel, { loading }] = useModel(model, [service], { onChange: onChange_mock });
+      return {
+        age,
+        clonedModel,
+        loading,
+        updateCount,
+      }
+    });
+    expect(onChange_mock.mock.calls.length).toBe(0);
+    expect(result.current.age).toBe(0);
+    expect(result.current.loading).toBe(true);
+    await waitForNextUpdate();
+    expect(result.current.age).toBe(1);
+    expect(result.current.loading).toBe(false);
+    expect(onChange_mock.mock.calls.length).toBe(1);
+    //
+    // act(() => {
+    //   result.current.updateCount(2);
+    // });
+    // expect(result.current.age).toBe(1);
+    // expect(result.current.loading).toBe(true);
+    // expect(onChange_mock.mock.calls.length).toBe(1);
+    //
+    // await waitForNextUpdate();
+    //
+    // expect(result.current.age).toBe(3);
+    // expect(result.current.loading).toBe(false);
+    // expect(onChange_mock.mock.calls.length).toBe(2);
+    //
+    // act(() => {
+    //   result.current.updateCount(6);
+    // });
+    //
+    // expect(result.current.age).toBe(3);
+    // expect(result.current.loading).toBe(false);
+    // expect(onChange_mock.mock.calls.length).toBe(2);
+    //
+    // act(() => {
+    //   result.current.clonedModel(4);
+    // });
+    //
+    // expect(result.current.age).toBe(4);
+    // expect(result.current.loading).toBe(false);
+    // expect(onChange_mock.mock.calls.length).toBe(3);
+    //
+    // act(() => {
+    //   model(5);
+    // });
+    //
+    // expect(result.current.age).toBe(5);
+    // expect(result.current.loading).toBe(false);
+    // expect(onChange_mock.mock.calls.length).toBe(4);
+    //
+    // act(() => {
+    //   model(5);
+    // });
+    //
+    // expect(result.current.age).toBe(5);
+    // expect(result.current.loading).toBe(false);
+    // expect(onChange_mock.mock.calls.length).toBe(4);
+    //
+    act(() => {
+      unmount();
+    });
+    //
+    // act(() => {
+    //   model(6);
+    // });
+    //
+    // expect(model()).toBe(6);
+    // expect(result.current.age).toBe(5);
+    // expect(result.current.loading).toBe(false);
+    // expect(onChange_mock.mock.calls.length).toBe(4);
+
+  })
 });

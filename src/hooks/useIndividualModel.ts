@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import gluer, {defaultReducer} from "../gluer";
 import subscribe from "../subscribe";
 import {GluerReturn, ModelStatus, Service, ServiceOptions} from "../../index";
@@ -12,13 +12,16 @@ import {defaultServiceOptions} from "../constants";
  * 不要尝试去订阅返回的clonedModel，不会有效果，因为它只是对真正的model的一层包装。需要监听的话，应该是内部真正的model。
  * @param initState
  * @param deps 更新model的服务(可选) 每次deps中的service变更就会去获取更新一次model
- * @param options suspenseKey: string（是否开启Suspense模式）；cache: boolean（是否启用model的缓存）;
+ * @param options suspenseKey: string（是否开启Suspense模式）；cache: boolean（是否启用model的缓存）;  onChange: (nextState, prevState) => void;
  */
-const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], options?: ServiceOptions): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
+const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
   const finalOptions = {
     ...defaultServiceOptions,
     ...options,
   };
+
+  const optionsRef = useRef(finalOptions);
+  optionsRef.current = finalOptions;
 
   const [model] = useState(() => {
     if (typeof initState === 'function') {
@@ -32,18 +35,28 @@ const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], op
 
   useService(clonedModel, deps, finalOptions);
 
+  const [cachedState] = useState(() => {
+    return {
+      data: model(),
+    }
+  });
   const [, updateState] = useState(() => {
     return model();
   });
 
   const [unsub] = useState(() => {
-    return subscribe(modelDeps, (data) => {
-      if (typeof data === 'function') {
-        updateState(() => data);
+    return subscribe(modelDeps, (modelData) => {
+      const { data } = cachedState;
+      cachedState.data = modelData;
+      if (typeof modelData === 'function') {
+        updateState(() => modelData);
       } else {
-        updateState(data);
+        updateState(modelData);
       }
-
+      // 避免第一次的时候就执行onChange，subscribe是默认注册时就执行
+      if (optionsRef.current.onChange && !Object.is(data, modelData)) {
+        optionsRef.current.onChange(modelData, data);
+      }
     });
   });
 
