@@ -50,6 +50,8 @@ export type ModelMethod<S> = {
   // @deprecated
   off: (deps?: GluerReturn<any>[]) => void;
   relyOff: (deps?: GluerReturn<any>[]) => void;
+  onChange: (callback: (state: S) => void) => () => void;
+  offChange: (callback?: (state: S) => void) => void;
   silent: GluerReturnFn<S>;
   track: () => void;
   flush: () => void;
@@ -73,6 +75,8 @@ export type EnhancedCallback<F extends (...args: any[]) => any> = F & {
 export interface InjectProps {
   suspenseKeys: string[];
 }
+
+export type Callback = (...args: any[]) => void;
 
 export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
 export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;

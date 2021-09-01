@@ -6,10 +6,11 @@ import {
   gluerUniqueFlagValue,
 } from './constants';
 
-import { HandleFunc, GluerReturn } from '../index';
+import {HandleFunc, GluerReturn, Callback} from '../index';
 import {isArray, isAsync, isTagged, tagPromise} from "./tools";
 import {RaceQueue} from "./interface";
-import subscribe, {Callback, deleteDepsInRefToDepsMap, depsToFnMap, refToDepsMap} from "./subscribe";
+import subscribe from "./subscribe";
+import unsubscribe, { refToDepsMap, depsToFnMap } from './unsubscribe';
 import genRaceQueue from "./genRaceQueue";
 
 export const promiseDeprecatedError = 'the promise is deprecated by race condition';
@@ -85,13 +86,14 @@ function gluer(...args: any[]) {
 
   const rq = genRaceQueue();
 
-  let unsubscribeArr: (() => void)[] = [];
+  let unsubscribeRelyArr: (() => void)[] = [];
 
   let cachedData: any;
   let cachedFlag = false;
   let fromCache = false;
 
   let fn: any;
+  let selfDeps: GluerReturn<any>[] = [];
 
   // mutedDeps：不执行其回调的依赖数组
   // curFromCache：是否来自cache方法的异步更新，默认 false（否）
@@ -212,45 +214,48 @@ function gluer(...args: any[]) {
     }
   }
 
-  fn.relyOn = (model: GluerReturn<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
-    let innerModel = [];
-    if (isArray(model)) {
-      innerModel = model;
-    } else {
-      throw new Error('dependencies should be Array');
+  fn.relyOn = (models: GluerReturn<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
+    if (!isArray(models) || models.length === 0) {
+      throw new Error('dependencies should be Array, ant not empty');
     }
 
-    let unsub = () => {};
-    if (innerModel.length !== 0) {
-      unsub = subscribe(innerModel, (...data: any[]) => {
-        const modelData = data;
-        fn(() => callback(modelData, fn()));
-      }, false);
-      unsubscribeArr.push(unsub);
-    }
+    const unsub = subscribe(models, (...data: any[]) => {
+      const modelData = data;
+      fn(() => callback(modelData, fn()));
+    }, false);
+    unsubscribeRelyArr.push(unsub);
     return unsub;
   };
 
-  const unsubFn = (targetDeps?: GluerReturn<any>[]) => {
-    // 没有传值，则认为是删除全部订阅
+  const relyOffFn = (targetDeps?: GluerReturn<any>[]) => {
+    // 没有传值，则认为是删除节点的全部依赖订阅
     if (targetDeps === undefined) {
-      for (let i = 0; i < unsubscribeArr.length; i += 1) {
-        const f = unsubscribeArr[i];
+      for (let i = 0; i < unsubscribeRelyArr.length; i += 1) {
+        const f = unsubscribeRelyArr[i];
         f();
       }
-      unsubscribeArr = [];
+      unsubscribeRelyArr = [];
     } else {
-      // 目前做到指定删除依赖数组的所有回调
-      // 将来要删除指定回调也是可以的，到时可做扩展
-      depsToFnMap.delete(targetDeps);
-      deleteDepsInRefToDepsMap(targetDeps);
+      unsubscribe(targetDeps);
     }
   };
 
   // @deprecated
-  fn.off = unsubFn
+  fn.off = relyOffFn
   // 替换off
-  fn.relyOff = unsubFn;
+  fn.relyOff = relyOffFn;
+
+  fn.onChange = (callback: (state: typeof gluerState) => void) => {
+    if (typeof callback !== 'function') {
+      throw new Error('callback should be function');
+    }
+    return subscribe(selfDeps, callback, false);
+  }
+
+  fn.offChange = (callback?: (state: typeof gluerState) => void) => {
+    unsubscribe(selfDeps, callback);
+  }
+
 
   fn.silent = basicLogic(true);
 
@@ -306,6 +311,8 @@ function gluer(...args: any[]) {
     configurable: true,
     enumerable: true,
   });
+
+  selfDeps = [fn];
   return fn;
 }
 

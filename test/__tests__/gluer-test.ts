@@ -221,7 +221,7 @@ describe('relyOn test', () => {
   })
 })
 
-describe('off test', () => {
+describe('relyOff test', () => {
   test('normal test', () => {
     const name = gluer('小明');
     const age = gluer(10);
@@ -435,4 +435,43 @@ describe('test cache', () => {
     expect(age()).toBe(6);
   });
 
-})
+});
+
+describe('changeOn & changeOff test', () => {
+  const name = gluer('初始名字');
+  const callback = jest.fn((n) => n);
+  const unsub = name.onChange(callback);
+  name('张三');
+  expect(callback.mock.calls.length).toBe(1);
+  name('张四');
+  expect(callback.mock.calls.length).toBe(2);
+  unsub();
+  name('张五');
+  expect(callback.mock.calls.length).toBe(2);
+
+  const age = gluer(1);
+  const callback_1 = jest.fn((n) => n);
+  const callback_2 = jest.fn((n) => n);
+  age.onChange(callback_1);
+  age.onChange(callback_2);
+
+  age(2);
+
+  expect(callback_1.mock.calls.length).toBe(1);
+  expect(callback_2.mock.calls.length).toBe(1);
+
+  age.offChange(callback_1);
+
+  age(3);
+
+  expect(callback_1.mock.calls.length).toBe(1);
+  expect(callback_2.mock.calls.length).toBe(2);
+
+  age.offChange();
+
+  age(4);
+  expect(callback_1.mock.calls.length).toBe(1);
+  expect(callback_2.mock.calls.length).toBe(2);
+
+});
+
