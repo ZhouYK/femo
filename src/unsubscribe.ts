@@ -23,7 +23,7 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback) => {
     refToDepsMap.clear();
     depsToFnMap.clear();
   } else {
-    if (!Object.is(callback, undefined)) {
+    if (!Object.is(targetDeps, undefined) && !Object.is(callback, undefined)) {
       if (typeof callback !== 'function') {
         console.warn('unsubscribe`s param: callback, should be function')
       }
@@ -40,6 +40,12 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback) => {
         return;
       }
     }
+
+    if (Object.is(targetDeps, undefined) && !Object.is(callback, undefined)) {
+      // todo 将来再加这个的解除功能吧
+      console.warn('unsubscribe`s param: targetDeps, should not be undefined');
+    }
+
     depsToFnMap.delete(targetDeps as GluerReturn<any>[]);
     deleteDepsInRefToDepsMap(targetDeps as GluerReturn<any>[]);
   }
