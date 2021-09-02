@@ -22,7 +22,7 @@ const Pannel: FC = () => {
 
   useEffect(() => {
     setInterval(() => {
-      count(count() + 1);
+      count.race(() => Promise.resolve(count() + 1));
     }, 5000);
   }, []);
 

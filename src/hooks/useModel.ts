@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {GluerReturn, ModelStatus, Service, ServiceOptions} from "../../index";
 import subscribe from "../subscribe";
 import useCloneModel from "./internalHooks/useCloneModel";
@@ -34,23 +34,34 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
     return model();
   });
 
+  const onChangeCallback = useCallback((state: T) => {
+    if (optionsRef.current.onChange) {
+      const { data } = cachedState;
+      cachedState.data = state;
+      optionsRef.current.onChange(state, data);
+    }
+  }, []);
+
+  const [offChange] = useState(() => {
+    return model.onChange(onChangeCallback);
+  });
+
   const [unsub] = useState(() => {
     return subscribe(modelDeps, (modelData: T) => {
-      const { data } = cachedState;
-      cachedState.data = modelData;
+      // 这里的回调并不会每次变更都执行，因为做了优化
+      // 每次异步更新不同的数据成功时，都不会执行这里
+      // 因为每次异步更新成功后，都有Loading状态更新来rerender组件
+      // 不需要使用updateState来触发更新，所以在useCloneModel中做了静默处理
+      // 所以options中的onChange不应该放在这里
       if (typeof modelData === 'function') {
         updateState(() => modelData);
       } else {
         updateState(modelData);
       }
-      // 避免第一次的时候就执行onChange，subscribe是默认注册时就执行
-      if (optionsRef.current.onChange && !Object.is(data, modelData)) {
-        optionsRef.current.onChange(modelData, data);
-      }
     })
   });
 
-  useEffect(() => unsub, []);
+  useEffect(() => () => { unsub(); offChange(); }, []);
 
   return [model(), clonedModel, status];
 };

@@ -48,7 +48,9 @@ yarn add femo
 ### <a href="#methods">节点方法</a>
 
 - <a href="#relyOn">relyOn</a>
-- <a href="#off">off</a>
+- <a href="#relyOff">relyOff</a>
+- <a href="#onChange">onChange</a>
+- <a href="#offChange">offChange</a>
 - <a href="#silent">silent</a>
 - <a href="#track">track</a>
 - <a href="#flush">flush</a>
@@ -161,6 +163,7 @@ useModel(model, [deps], [options]);
 | :----  | :----  |
 | model  | (必传)gluer定义的数据 |
 | deps   | (可选)依赖的service数组。[service], service为返回model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
+| onChange | (可选)数据发生变化时，执行的回调。onChange: (nextState, prevState) => void;
 | <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; } |
 
 
@@ -202,11 +205,11 @@ const [listData, clonedListModel, { loading }] = useModel(listModel, [getList], 
 
 useIndividualModel(initState, [deps], [options])
 
-
 |入参    |含义     |
 | :----  | :----  |
 | initState  | (必传)可为函数 |
 | deps   | (可选)依赖的service数组。[service], service为返回生成model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
+| onChange | (可选)数据发生变化时，执行的回调。onChange: (nextState, prevState) => void;
 | <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; } |
 
 ```typescript
@@ -218,13 +221,8 @@ const [query] = useState({
 const getList = useCallback(() => {
   return get('/api/list', query).then((res) => res.data);
 }, []);
-// 在函数组件中使用useIndividualModel生成model
-// listModel是生成的model
-// clonedListModel是对listModel的克隆，clonedListModel本质上是对listModel的一层包装，底层使用的是listModel，所以核心还是listModel。
-// loading状态是clonedListModel带来的，用于表明异步更新时数据的加载状态
 
-// getList用于获取数据，getList的每一次变化都会触发去远端拉取数据
-// suspenseKey 有值了，会开启suspense模式，上层组件中需要有Suspense组件包裹
+// 和useModel一致，除了返回参数里面多了一个生成的model节点，这里就是listModel
 const [listData, listModel, clonedListModel, { loading }] = useIndividualModel({
   page: 1,
   size: 20,
@@ -320,6 +318,9 @@ relyOn处理数据依赖更新是单向的。通常情况下适合处理结构�
 
 需要注意的是，如果是要处理数据的双向依赖，比如：
 ```javascript
+const a = gluer('');
+const b = gluer('');
+
 a.relyOn([b], (data, state) => {
   // todo
 });
@@ -330,12 +331,52 @@ b.relyOn([a], (data, state) => {
 ```
 以上情况应该避免，太容易引起死循环😢！
 
-## <a id="off">off</a>
+## <a id="relyOff">relyOff</a>
 
 解绑节点上所有的依赖监听
 
 ```javascript
-a.off();
+const a = gluer('');
+a.relyOff();
+```
+
+## <a id="#onChange">onChange</a>
+
+节点数据发生变化时会执行通过该方法传入的回调函数
+
+| 入参 | 含义 |
+| :---- | :---- |
+| callback函数(必填) | 节点数据发生变化时会执行的回调 |
+
+```javascript
+const model = gluer('');
+
+model.onChange((state) => { console.log(state) });
+
+```
+
+这个方法用于需要节点主动向外发布数据的场景。
+
+## <a id="#offChange">offChange</a>
+
+解除通过onChange注册的回调
+
+| 入参 | 含义 |
+| :---- | :---- |
+| callback函数（可选） | 注册的回调 |
+
+```javascript
+const model = gluer('');
+
+const callback = (state) => {
+  console.log(state);
+};
+
+model.onChange(callback);
+
+model.offChange(callback);
+
+model.offChange(); // 解除节点上所有通过onChange注册的回调函数
 ```
 
 ## <a id="silent">silent</a>
@@ -439,6 +480,12 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 可以通过节点方法<a href='#cacheClean'>cacheClean</a>清除缓存数据。
 
 cache一般适用于数据本身使用范围广（或者数据所在的组件使用范围广）、对数据的实时性不敏感的场景。具体含义<a href="#cache">详见</a>
+
+#### onChange
+
+形如 (nextState, prevState) => void 
+
+当数据发生变更时向外发布信息。
 
 
 ## 类型支持

@@ -1,10 +1,7 @@
-import {useEffect, useRef, useState} from "react";
+import { useState} from "react";
 import gluer, {defaultReducer} from "../gluer";
-import subscribe from "../subscribe";
 import {GluerReturn, ModelStatus, Service, ServiceOptions} from "../../index";
-import useCloneModel from "./internalHooks/useCloneModel";
-import useService from "./internalHooks/useService";
-import {defaultServiceOptions} from "../constants";
+import useModel from './useModel';
 
 /**
  * model的生命周期跟随组件，相当于一个内部state
@@ -15,14 +12,6 @@ import {defaultServiceOptions} from "../constants";
  * @param options suspenseKey: string（是否开启Suspense模式）；cache: boolean（是否启用model的缓存）;  onChange: (nextState, prevState) => void;
  */
 const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
-  const finalOptions = {
-    ...defaultServiceOptions,
-    ...options,
-  };
-
-  const optionsRef = useRef(finalOptions);
-  optionsRef.current = finalOptions;
-
   const [model] = useState(() => {
     if (typeof initState === 'function') {
       return gluer(defaultReducer ,(initState as () => S)());
@@ -30,39 +19,8 @@ const useIndividualModel = <S>(initState: S | (() => S), deps?: [Service<S>], op
     return gluer(initState);
   });
 
-  const [modelDeps] = useState(() => [model]);
-  const [clonedModel, status] = useCloneModel(model, [modelDeps]);
-
-  useService(clonedModel, deps, finalOptions);
-
-  const [cachedState] = useState(() => {
-    return {
-      data: model(),
-    }
-  });
-  const [, updateState] = useState(() => {
-    return model();
-  });
-
-  const [unsub] = useState(() => {
-    return subscribe(modelDeps, (modelData) => {
-      const { data } = cachedState;
-      cachedState.data = modelData;
-      if (typeof modelData === 'function') {
-        updateState(() => modelData);
-      } else {
-        updateState(modelData);
-      }
-      // 避免第一次的时候就执行onChange，subscribe是默认注册时就执行
-      if (optionsRef.current.onChange && !Object.is(data, modelData)) {
-        optionsRef.current.onChange(modelData, data);
-      }
-    });
-  });
-
-  useEffect(() => unsub, []);
-
-  return [model(), model, clonedModel, status];
+  const [state, clonedModel, status] = useModel(model, deps, options);
+  return [state, model, clonedModel, status];
 }
 
 export default useIndividualModel;

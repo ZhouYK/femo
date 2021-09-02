@@ -29,7 +29,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
     }
   }
 
-  if (service && firstRenderFlagRef.current) {
+  if (firstRenderFlagRef.current && typeof service === 'function') {
     firstRenderFlagRef.current = false;
     const result = service(model());
     if (isAsync(result)) {
@@ -52,7 +52,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
 
   if (!Object.is(serviceCacheRef.current, service)) {
     serviceCacheRef.current = service;
-    if (service) {
+    if (typeof service === 'function') {
       const result = service(model());
       if (isAsync(result)) {
         model[methodName](() => result as Promise<T>);
