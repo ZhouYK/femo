@@ -47,8 +47,11 @@ export type CacheFn<S> = {
 export type ModelMethod<S> = {
   reset: () => void;
   relyOn: <T extends GluerReturn<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
-  // 请使用relyOff
-  // @deprecated
+  /**
+   * 请使用relyOff
+   * @param deps
+   * @deprecated
+   */
   off: (deps?: GluerReturn<any>[]) => void;
   relyOff: (deps?: GluerReturn<any>[]) => void;
   onChange: (callback: (state: S) => void) => () => void;

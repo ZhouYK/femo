@@ -240,7 +240,10 @@ function gluer(...args: any[]) {
     }
   };
 
-  // @deprecated
+  /**
+   * 请使用relyOff
+   * @deprecated
+   */
   fn.off = relyOffFn
   // 替换off
   fn.relyOff = relyOffFn;
