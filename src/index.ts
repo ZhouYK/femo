@@ -11,4 +11,5 @@ export { default as useBatchDerivedModel } from './hooks/rareHooks/useBatchDeriv
 export { default as useEnhancedCallback } from './hooks/rareHooks/useEnhancedCallback';
 export { default as useDerivedState } from './hooks/useDerivedState';
 export { default as useDerivedStateWithModel } from './hooks/useDerivedStateWithModel';
+export { default as useSubscribe } from './hooks/useSubscribe';
 export { default as Inject } from './hoc/Inject';
