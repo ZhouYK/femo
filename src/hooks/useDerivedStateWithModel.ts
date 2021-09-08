@@ -19,7 +19,7 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
 
   const callWhenChange = useCallback((silent = true) => {
     updateState(callback(model()), silent);
-  }, []);
+  }, [callback]);
 
   const [map] = useState(() => new Map());
 
@@ -35,7 +35,7 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
         }
       }
     }
-  }, []);
+  }, [callWhenChange]);
 
 
   const [cachedDeps] = useState<{
