@@ -1,4 +1,4 @@
-import {promiseTouchedByModel} from "./constants";
+import {promiseTouchedByModel, gluerUniqueFlagKey, gluerUniqueFlagValue} from "./constants";
 
 export const getType = (arg: any) => Object.prototype.toString.call(arg);
 export const isPlainObject = (target: any) => getType(target) === '[object Object]';
@@ -17,4 +17,9 @@ export const tagPromise = (p: Promise<any>) => {
 export const isTagged = (p: Promise<any>) => {
   // @ts-ignore
   return p[promiseTouchedByModel];
+}
+
+export const isModel = (model: any) => {
+  if (!model) return false;
+  return model[gluerUniqueFlagKey] === gluerUniqueFlagValue;
 }

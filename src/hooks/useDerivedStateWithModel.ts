@@ -1,22 +1,48 @@
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import useModel from "./useModel";
 import {GluerReturn} from "../../index";
+import {isArray, isModel} from "../tools";
 
 const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (state: S) => S, deps: any[]): [S] => {
-  const updateState = useCallback((s: S) => {
+  const updateState = useCallback((s: S, silent = true) => {
+    let result: any = s;
     if (typeof s === 'function') {
-      model.silent(() => s);
-    } else {
-      model.silent(s);
+      result = () => s
     }
-  }, [model]);
 
-  let state = model();
+    if (silent) {
+      model.silent(result);
+    } else {
+      model(result);
+    }
+  }, []);
+
+  const callWhenChange = useCallback((silent = true) => {
+    updateState(callback(model()), silent);
+  }, []);
+
+  const [map] = useState(() => new Map());
+
+  const analyzeDeps = useCallback((ds: any[]) => {
+    if (!isArray(ds)) return;
+    for (let i = 0; i < ds.length; i += 1) {
+      const d = ds[i];
+      if (isModel(d)) {
+        if (!map.has(d)) {
+          map.set(d, (d as GluerReturn<any>).onChange(() => {
+            callWhenChange(false);
+          }))
+        }
+      }
+    }
+  }, []);
+
+
   const [cachedDeps] = useState<{
     current: any[],
   }>(() => {
-    state = callback(state);
-    updateState(state);
+    callWhenChange();
+    analyzeDeps(deps);
     return {
       current: deps,
     };
@@ -24,18 +50,25 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
 
   if (deps.length !== cachedDeps.current.length) {
     cachedDeps.current = deps;
-    state = callback(state);
-    updateState(state);
+    callWhenChange();
+    analyzeDeps(deps);
   } else {
     for (let i = 0; i < deps.length; i += 1) {
       if (!Object.is(deps[i], cachedDeps.current[i])) {
         cachedDeps.current = deps;
-        state = callback(state);
-        updateState(state);
+        callWhenChange();
+        analyzeDeps(deps);
         break;
       }
     }
   }
+  useEffect(() => () => {
+    const unsubscribes = Array.from(map.values());
+    for (let i = 0; i < unsubscribes.length; i += 1) {
+      unsubscribes[i]();
+    }
+    map.clear();
+  }, []);
   useModel(model);
   return [model()]
 }
