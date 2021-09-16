@@ -241,9 +241,13 @@ const [listData, listModel, clonedListModel, { loading }] = useIndividualModel({
 ### 比较逻辑由hook处理，类似useEffect
 ### <span id="useDerivedState">useDerivedState</span>
 > 生成衍生数据，并返回model。区别于 useDerivedModel、useBatchDerivedModel，其依赖是个数组，处理更像useEffect
- 
+
+依赖中可以有model，会监听model的变化（model.silent的更新不会通知）
+
 ### <span id="useDerivedStateWithModel">useDerivedStateWithModel</span>
 > 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据。区别于 useDerivedStateToModel、useBatchDerivedStateToModel，其依赖是个数组，处理更像useEffect
+
+依赖中可以有model，会监听model的变化（model.silent的更新不会通知）
 
 ### 比较逻辑由用户代码处理，类似类组件中的getDerivedStateFromProps
 ### <span id="useDerivedStateToModel">useDerivedStateToModel</span>

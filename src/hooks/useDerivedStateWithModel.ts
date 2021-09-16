@@ -28,11 +28,12 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
     for (let i = 0; i < ds.length; i += 1) {
       const d = ds[i];
       if (isModel(d)) {
-        if (!map.has(d)) {
-          map.set(d, (d as GluerReturn<any>).onChange(() => {
-            callWhenChange(false);
-          }))
+        if (map.has(d)) {
+          (d as GluerReturn<any>).offChange(map.get(d));
         }
+        map.set(d, (d as GluerReturn<any>).onChange(() => {
+          callWhenChange(false);
+        }))
       }
     }
   }, [callWhenChange]);
