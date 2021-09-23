@@ -1,9 +1,8 @@
 
 // gluer
-import {Component, DependencyList, FC} from "react";
-import {raceQueue} from "./src/constants";
-import {RaceQueue} from "./src/interface";
+import {DependencyList, FC} from "react";
 import {DerivedSpace} from "./src/hooks/rareHooks/useBatchDerivedStateToModel";
+import {RacePromise} from "./src/genRaceQueue";
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;
@@ -88,7 +87,7 @@ export function gluer<S , D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState
 
 export const promiseDeprecatedError: string;
 
-export function genRaceQueue(): ({ push: <T = any>(p: Promise<T> & { [raceQueue]?: RaceQueue }) => void; clear: () => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null })
+export function genRaceQueue(): ({ push: <T = any>(p: RacePromise) => void; clear: () => void; destroy: () => void; __UNSAFE__getQueue: () => (Promise<any>[]) | null })
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
 export function useModel<T = any, D = any>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus];
 export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];

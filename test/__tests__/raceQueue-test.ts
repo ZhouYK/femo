@@ -1,7 +1,6 @@
 import profile from "../../example/model/profile";
 import {Profile} from "../../example/interface";
-import {promiseDeprecatedError} from "../../src/gluer";
-import { genRaceQueue } from "../../src";
+import genRaceQueue, { promiseDeprecatedError } from "../../src/genRaceQueue";
 import gluer from "../../src/gluer";
 
 const game = gluer<Game>({

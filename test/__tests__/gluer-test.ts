@@ -1,5 +1,6 @@
-import gluer, { promiseDeprecatedError } from '../../src/gluer';
+import gluer from '../../src/gluer';
 import {subscribe} from "../../src";
+import {promiseDeprecatedError} from "../../src/genRaceQueue";
 
 describe('gluer normal test',  () => {
   test('gluer => function', () => {
