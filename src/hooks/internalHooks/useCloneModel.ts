@@ -1,8 +1,17 @@
 import {useEffect, useRef, useState} from "react";
 import {GluerReturn, ModelStatus} from "../../../index";
-import { promiseDeprecatedError, defaultReducer} from '../../gluer';
+import {defaultReducer} from '../../gluer';
 import {isAsync} from "../../tools";
+import {promiseDeprecatedError} from "../../genRaceQueue";
+import runtimeVar from "../../runtimeVar";
+import {promiseDeprecated, promiseDeprecatedFromClonedModel} from "../../constants";
 
+const runtimeVarAssignment = (callback: () => Promise<any>) => {
+  runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecatedFromClonedModel;
+  const result = callback();
+  runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecated;
+  return result;
+}
 /**
  *
  * @param model
@@ -33,7 +42,8 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
         });
       }).catch((err) => {
         if (unmountedFlagRef.current) return;
-        if (err !== promiseDeprecatedError) {
+        // 如果不是异步竞争引起的异常或者不是clonedModel引起的异步竞争，则需要设置loading状态
+        if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && promiseDeprecated in p)) {
           updateStatus((prevState) => {
             return {
               ...prevState,
@@ -67,7 +77,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
         fn.race = (...args: any[]) => {
           // @ts-ignore
           const r = model.preTreat(...args);
-          return statusHandleFn(model.race(r, defaultReducer, args[2] || modelDeps));
+          return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || modelDeps)));
         };
       } else if (key === 'cache') {
         // 理由同 race
@@ -76,7 +86,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
           if (args.length === 0) return model.cache();
           // @ts-ignore
           const r = model.preTreat(...args);
-          return statusHandleFn(model.cache(r, defaultReducer, args[2] || modelDeps));
+          return runtimeVarAssignment(() => statusHandleFn(model.cache(r, defaultReducer, args[2] || modelDeps)));
         };
       } else {
         // @ts-ignore

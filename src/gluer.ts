@@ -8,27 +8,26 @@ import {
 
 import {HandleFunc, GluerReturn, Callback} from '../index';
 import {isArray, isAsync, isTagged, tagPromise} from "./tools";
-import {RaceQueue} from "./interface";
 import subscribe from "./subscribe";
 import unsubscribe, { refToDepsMap, depsToFnMap } from './unsubscribe';
-import genRaceQueue from "./genRaceQueue";
+import genRaceQueue, {ErrorFlag, promiseDeprecatedError, RacePromise} from "./genRaceQueue";
+import runtimeVar from "./runtimeVar";
 
-export const promiseDeprecatedError = 'the promise is deprecated by race condition';
 export const defaultReducer = (data: any, _state: any) => data;
 const warning = '你只传入了一个函数参数给gluer，这会被认为是reducer函数而不是初始值。如果你想存储一个函数类型的初始值，请传入两个参数：reducer和初始值。' +
   'reducer可以是最简单：(data, state) => data。这个的意思是：传入的数据会直接用来更新state。';
 const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
-const raceHandle = (promise: Promise<any> & { [raceQueue]?: RaceQueue; [promiseDeprecated]?: boolean }) => {
-
+const raceHandle = (promise: RacePromise, deprecatedFlag?: ErrorFlag) => {
+  const errorFlag = deprecatedFlag || promiseDeprecated;
   if (raceQueue in promise) {
     delete promise[raceQueue];
   }
 
-  if (promiseDeprecated in promise) {
+  if (errorFlag in promise) {
     throw promiseDeprecatedError;
   }
 
-  promise[promiseDeprecated] = true;
+  promise[errorFlag] = true;
 }
 
 const executeCallback = (targetDeps: GluerReturn<any>[]) => {
@@ -281,7 +280,7 @@ function gluer(...args: any[]) {
     return gluerState;
   }
 
-  fn.race = (...as: any[]) => rq.push(fn(...as));
+  fn.race = (...as: any[]) => rq.push(fn(...as), runtimeVar.runtimePromiseDeprecatedFlag);
 
   fn.preTreat = (...as: any) => preTreat(...as);
 

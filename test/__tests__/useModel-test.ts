@@ -293,4 +293,60 @@ describe('useModel test', () => {
     expect(onChange_mock.mock.calls.length).toBe(5);
 
   })
+
+  test('useModel loading', async () => {
+    model.reset();
+
+    const { result, unmount, waitForNextUpdate } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+      const service = useCallback(() => {
+        if (count < 6) {
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      }, [count]);
+
+      const [age, clonedModel, { loading }] = useModel(model, [service]);
+      return {
+        age,
+        clonedModel,
+        loading,
+        updateCount,
+      }
+    });
+
+    act(() => {
+      result.current.updateCount(2);
+    });
+
+    act(() => {
+      model.race(() => Promise.resolve(3));
+    });
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.age).toBe(0);
+    await waitForNextUpdate();
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.age).toBe(3);
+
+
+
+    act(() => {
+      result.current.clonedModel.race(() => Promise.resolve(4));
+      model.race(() => Promise.resolve(5));
+    });
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.age).toBe(3);
+
+    await waitForNextUpdate();
+
+    expect(result.current.age).toBe(5);
+    expect(result.current.loading).toBe(false);
+
+    act(() => {
+      unmount();
+    });
+  })
 });

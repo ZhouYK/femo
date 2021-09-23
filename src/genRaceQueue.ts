@@ -1,21 +1,27 @@
-import {promiseDeprecated, raceQueue as raceQueueKey} from "./constants";
+import {promiseDeprecated, promiseDeprecatedFromClonedModel, raceQueue as raceQueueKey} from "./constants";
 import {RaceQueue} from "./interface";
 
 const raceQueuePool = new Map();
+export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel;
 
-const genRaceQueue = () => {
+export type RacePromise = Promise<any> & {[raceQueueKey]?: RaceQueue ; [promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; };
 
-  let raceQueue: (Promise<any> & { [promiseDeprecated]?: boolean })[] | null = [];
+export const promiseDeprecatedError = 'the promise is deprecated by race condition';
+
+const genRaceQueue = (deprecatedError?: ErrorFlag) => {
+  const errorFlag = deprecatedError || promiseDeprecated;
+  let raceQueue: RacePromise[] | null = [];
 
   const obj = {
-    push: (p: Promise<any> & { [raceQueueKey]?: RaceQueue } ) => {
+    push: (p: RacePromise, customerErrorFlag?: ErrorFlag ) => {
       if (!(p instanceof Promise)) {
         throw new Error("The race queue item should be Promise");
       }
+      const flag = customerErrorFlag || errorFlag;
       if (raceQueue) {
         raceQueue.forEach((promise) => {
-          if (!(promiseDeprecated in promise)) {
-            promise[promiseDeprecated]  = true;
+          if (!(flag in promise)) {
+            promise[flag]  = true;
           }
         });
         raceQueue.splice(0);
@@ -43,21 +49,23 @@ const genRaceQueue = () => {
       return p;
     },
 
-    clear: () => {
+    clear: (customerErrorFlag?: ErrorFlag) => {
       if (raceQueue) {
+        const flag = customerErrorFlag || errorFlag;
         raceQueue.forEach((rq) => {
-          rq[promiseDeprecated] = true;
+          rq[flag] = true;
         });
         raceQueue.splice(0);
       }
     },
 
-    destroy: () => {
+    destroy: (customerErrorFlag?: ErrorFlag) => {
       raceQueuePool.delete(obj);
       if (raceQueue) {
+        const flag = customerErrorFlag || errorFlag;
         // 摧毁的时候，所有的promise都置为废弃状态
         raceQueue.forEach((rq) => {
-          rq[promiseDeprecated] = true;
+          rq[flag] = true;
         });
         raceQueue.splice(0);
         raceQueue = null;
