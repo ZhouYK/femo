@@ -289,7 +289,7 @@ function gluer(...args: any[]) {
     if (as.length === 0) {
       return cachedData;
     }
-    // 利用js是单线程执行，可设置运行时的状态变量，来给在运行时定义的函数传参
+    // 利用js是单线程执行，可设置运行时的状态变量，来给在运行时定义和调用的函数传参
     fromCache = true;
     let result;
     if (cachedFlag) {

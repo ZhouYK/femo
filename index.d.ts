@@ -97,7 +97,10 @@ export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initSt
 export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
 export function useEnhancedCallback<T extends (...args: any) => any>(callback: T, deps: DependencyList): EnhancedCallback<T>;
 export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[]): [S];
+
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
+export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
+
 export function useSubscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
 
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
