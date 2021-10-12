@@ -37,8 +37,9 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
         const p: CustomerPromise = model[methodName](() => result as Promise<T>).then((data) => {
           p.success = true;
           p.data = data;
-        }).catch(() => {
+        }).catch((err) => {
           p.success = false;
+          return Promise.reject(err);
         });
         cache[suspenseKey] = p;
         throw p
