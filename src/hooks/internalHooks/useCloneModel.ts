@@ -21,6 +21,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
   const unmountedFlagRef = useRef(false);
   const [status, updateStatus] = useState<ModelStatus>({
     loading: false,
+    successful: false,
   });
   // @ts-ignore
   const [clonedModel] = useState<GluerReturn<T>>(() => {
@@ -30,6 +31,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
         return {
           ...prevState,
           loading: true,
+          successful: false,
         }
       });
       p.then(() => {
@@ -37,6 +39,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
         updateStatus((prevState) => {
           return {
             ...prevState,
+            successful: true,
             loading: false,
           }
         });
@@ -48,6 +51,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
             return {
               ...prevState,
               loading: false,
+              successful: false,
             }
           });
         }

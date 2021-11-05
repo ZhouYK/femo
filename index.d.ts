@@ -69,6 +69,7 @@ export type GluerReturn<S> = GluerReturnFn<S> & ModelMethod<S>;
 
 export interface ModelStatus {
   loading: boolean;
+  successful: boolean; // 用于判断promise是否fullfilled了，true代表fullfilled，false则可能是reject、可能还未开始。
 }
 
 export type EnhancedCallback<F extends (...args: any[]) => any> = F & {
