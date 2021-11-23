@@ -3,7 +3,7 @@ import useModel from "./useModel";
 import {GluerReturn} from "../../index";
 import {isArray, isModel} from "../tools";
 
-const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (state: S) => S, deps: any[]): [S] => {
+const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
   const updateState = useCallback((s: S, silent = true) => {
     let result: any = s;
     if (typeof s === 'function') {
@@ -42,6 +42,9 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
   const [cachedDeps] = useState<{
     current: any[],
   }>(() => {
+    if (callWhenInitial) {
+      callWhenChange();
+    }
     analyzeDeps(deps);
     return {
       current: deps,

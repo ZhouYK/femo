@@ -16,7 +16,7 @@ const useDerivedState = (...args: any[]) => {
     initState = callback;
   }
   const [ ,model, clonedModel, status] = useIndividualModel(initState);
-  const [state] = useDerivedStateWithModel(model, callback, deps);
+  const [state] = useDerivedStateWithModel(model, callback, deps, false);
   return [state, model, clonedModel, status];
 }
 
