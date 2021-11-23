@@ -42,7 +42,6 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
   const [cachedDeps] = useState<{
     current: any[],
   }>(() => {
-    callWhenChange();
     analyzeDeps(deps);
     return {
       current: deps,
