@@ -22,12 +22,21 @@ export type GluerReturnFn<S> = {
   <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedDeps: GluerReturn<any>[][]): CR extends Promise<any> ? Promise<S> : S;
 }
 
+export interface ModelStatus {
+  loading: boolean;
+  successful: boolean; // 用于判断promise是否fullfilled了，true代表fullfilled，false则可能是reject、可能还未开始。
+}
+
+export interface ServiceControl extends ModelStatus{
+}
+
 export type Service<T> = (state: T) => Promise<T> | T;
 
 export interface ServiceOptions<S = any> {
   suspenseKey?: string; // 非空字符串
   cache?: boolean; // 是否开启节点的缓存（只针对异步数据有效，底层调用的model.cache）
   onChange?: (nextState: S, prevState: S) => void; // 节点数据变更时向外通知，一般对组件外使用（组件内的有useDerivedxxx系列）
+  control?: GluerReturn<ServiceControl>; //
 }
 
 export type RaceFn<S> = {
@@ -66,11 +75,6 @@ export type ModelMethod<S> = {
 };
 
 export type GluerReturn<S> = GluerReturnFn<S> & ModelMethod<S>;
-
-export interface ModelStatus {
-  loading: boolean;
-  successful: boolean; // 用于判断promise是否fullfilled了，true代表fullfilled，false则可能是reject、可能还未开始。
-}
 
 export type EnhancedCallback<F extends (...args: any[]) => any> = F & {
   renew: () => void;

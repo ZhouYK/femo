@@ -163,8 +163,7 @@ useModel(model, [deps], [options]);
 | :----  | :----  |
 | model  | (必传)gluer定义的数据 |
 | deps   | (可选)依赖的service数组。[service], service为返回model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
-| onChange | (可选)数据发生变化时，执行的回调。onChange: (nextState, prevState) => void;
-| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; } |
+| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; onChange: (nextState, prevState) => void; } |
 
 
 ```typescript
@@ -209,8 +208,7 @@ useIndividualModel(initState, [deps], [options])
 | :----  | :----  |
 | initState  | (必传)可为函数 |
 | deps   | (可选)依赖的service数组。[service], service为返回生成model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
-| onChange | (可选)数据发生变化时，执行的回调。onChange: (nextState, prevState) => void;
-| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; } |
+| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; onChange: (nextState, prevState) => void; } |
 
 ```typescript
 const [query] = useState({
@@ -491,6 +489,12 @@ cache一般适用于数据本身使用范围广（或者数据所在的组件使
 
 当数据发生变更时向外发布信息。
 
+#### control
+
+必须是由gluer定义的model。用来控制 useModel 和 useIndividualModel 返回的status，以及在首次组件渲染禁止调用service。
+
+需要说明的是：如果传入了control model，组件首次渲染时不会调用service；control model会一直控制useModel和useIndividualModel
+返回的status，直到调用service进行了一次异步更新(注意是异步更新，同步更新不会解除control model的控制)。
 
 ## 类型支持
 

@@ -2,6 +2,7 @@ import useModel from '../../src/hooks/useModel';
 import { act, renderHook } from "@testing-library/react-hooks";
 import gluer from "../../src/gluer";
 import {useCallback, useState} from "react";
+import {ServiceControl} from "../../index";
 
 const model = gluer(0);
 
@@ -202,7 +203,7 @@ describe('useModel test', () => {
     });
     expect(result.current.age).toBe(6);
     expect(model()).toBe(4);
-  })
+  });
 
   test('useModel onChange',async () => {
     model.reset();
@@ -292,7 +293,7 @@ describe('useModel test', () => {
     expect(result.current.loading).toBe(false);
     expect(onChange_mock.mock.calls.length).toBe(5);
 
-  })
+  });
 
   test('useModel loading', async () => {
     model.reset();
@@ -348,5 +349,136 @@ describe('useModel test', () => {
     act(() => {
       unmount();
     });
-  })
+  });
+
+  test('useModel control', async () => {
+    const model1 = gluer(0);
+    const service_call_mock = jest.fn(() => {
+    });
+    const { result: result1, unmount: unmount1, waitForNextUpdate: waitForNextUpdate1 } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+      const service = useCallback(() => {
+        service_call_mock();
+        if (count < 6) {
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      }, [count]);
+
+      const [age, clonedModel, { loading }] = useModel(model1, [service]);
+      return {
+        age,
+        clonedModel,
+        loading,
+        updateCount,
+      }
+    });
+
+
+    const controlModel = gluer<ServiceControl>({
+      loading: false,
+      successful: false,
+    });
+    const service_control_call_mock = jest.fn(() => {
+    });
+    const model2 = gluer(0);
+    const { result: result2, unmount: unmount2 } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+      const service = useCallback(() => {
+        service_control_call_mock();
+        if (count < 6) {
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      }, [count]);
+
+      const [age, clonedModel, { loading, successful, }] = useModel(model2, [service], { control: controlModel });
+      return {
+        age,
+        clonedModel,
+        loading,
+        updateCount,
+        successful,
+      }
+    });
+
+    expect(service_call_mock.mock.calls.length).toBe(1);
+    expect(service_control_call_mock.mock.calls.length).toBe(0);
+
+    expect(result1.current.loading).toBe(true);
+    expect(result2.current.loading).toBe(false);
+
+    await waitForNextUpdate1();
+    // await waitForNextUpdate2();
+    expect(result1.current.age).toBe(1);
+    expect(result2.current.age).toBe(0);
+    expect(result1.current.loading).toBe(false);
+    expect(result2.current.loading).toBe(false);
+    expect(service_control_call_mock.mock.calls.length).toBe(0);
+
+    act(() => {
+      controlModel({
+        loading: true,
+        successful: true,
+      });
+    });
+
+    expect(service_control_call_mock.mock.calls.length).toBe(0);
+    expect(result2.current.loading).toBe(true);
+    expect(result2.current.successful).toBe(true);
+
+    act(() => {
+      controlModel({
+        loading: false,
+        successful: false,
+      });
+    });
+
+    expect(service_control_call_mock.mock.calls.length).toBe(0);
+    expect(result2.current.loading).toBe(false);
+    expect(result2.current.successful).toBe(false);
+
+    act(() => {
+      result1.current.updateCount(2);
+      result2.current.updateCount(2);
+    });
+
+    expect(service_call_mock.mock.calls.length).toBe(2);
+    expect(service_control_call_mock.mock.calls.length).toBe(1);
+    expect(result1.current.age).toBe(1);
+    expect(result2.current.age).toBe(0);
+
+    act(() => {
+      // 此时已解绑监听，control的变更不起作用
+      controlModel({
+        loading: false,
+        successful: false,
+      })
+    });
+
+    expect(result1.current.age).toBe(1);
+    expect(result2.current.age).toBe(0);
+    expect(result1.current.loading).toBe(true);
+    expect(result2.current.loading).toBe(true);
+    await waitForNextUpdate1();
+    expect(result1.current.loading).toBe(false);
+    expect(result2.current.loading).toBe(false);
+    expect(result1.current.age).toBe(3);
+    expect(result2.current.age).toBe(3);
+
+    act(() => {
+      // 此时已解绑监听，control的变更不起作用
+      controlModel({
+        loading: true,
+        successful: true,
+      })
+    });
+    expect(result1.current.loading).toBe(false);
+    expect(result2.current.loading).toBe(false);
+
+    act(() => {
+      unmount1();
+      unmount2();
+    })
+  });
 });

@@ -1,6 +1,6 @@
 import {useRef} from "react";
 import {GluerReturn, Service, ServiceOptions} from "../../../index";
-import {isAsync} from "../../tools";
+import {isAsync, isModel} from "../../tools";
 
 type CustomerPromise<T = any> = { success?: boolean; data?: T }  & Promise<T>;
 
@@ -11,7 +11,7 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
   const firstRenderFlagRef = useRef(true);
   const serviceCacheRef = useRef(service);
 
-  const { suspenseKey, cache: cacheFlag } = options || {};
+  const { suspenseKey, cache: cacheFlag, control } = options || {};
   const methodName = cacheFlag ? 'cache' : 'race';
   if (suspenseKey) {
     if (cache[suspenseKey]) {
@@ -29,7 +29,8 @@ const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: Ser
     }
   }
 
-  if (firstRenderFlagRef.current && typeof service === 'function') {
+  // control：组件第一次挂载时，service的调用会被跳过
+  if (firstRenderFlagRef.current && typeof service === 'function' && !isModel(control)) {
     firstRenderFlagRef.current = false;
     const result = service(model());
     if (isAsync(result)) {

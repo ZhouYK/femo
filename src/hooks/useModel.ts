@@ -11,7 +11,12 @@ import {defaultServiceOptions} from "../constants";
  * 区别于useIndividualModel
  * @param model 数据节点函数
  * @param deps 更新model的服务(可选) 每次deps中的service变更就会去获取更新一次model
- * @param options suspenseKey: string（是否开启Suspense模式）；cache: boolean（是否启用model的缓存）; onChange: (nextState, prevState) => void;
+ * @param options {
+ * suspenseKey: string（是否开启Suspense模式）；
+ * cache: boolean（是否启用model的缓存）;
+ * onChange: (nextState, prevState) => void;
+ * control: GluerReturn<ServiceControl>;
+ * } 每次函数运行都是取的最新的options的值
  */
 const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus] => {
   const finalOptions = {
@@ -23,7 +28,7 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
   optionsRef.current = finalOptions;
 
   const [modelDeps] = useState(() => [model]);
-  const [clonedModel, status] = useCloneModel(model, [modelDeps]);
+  const [clonedModel, status] = useCloneModel(model, [modelDeps], options);
   useService(clonedModel, deps, finalOptions);
   const [cachedState] = useState(() => {
     return {

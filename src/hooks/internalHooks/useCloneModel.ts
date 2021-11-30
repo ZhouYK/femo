@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from "react";
-import {GluerReturn, ModelStatus} from "../../../index";
+import {GluerReturn, ModelStatus, ServiceControl, ServiceOptions} from "../../../index";
 import {defaultReducer} from '../../gluer';
-import {isAsync} from "../../tools";
+import {isAsync, isModel} from "../../tools";
 import {promiseDeprecatedError} from "../../genRaceQueue";
 import runtimeVar from "../../runtimeVar";
 import {promiseDeprecated, promiseDeprecatedFromClonedModel} from "../../constants";
@@ -17,16 +17,55 @@ const runtimeVarAssignment = (callback: () => Promise<any>) => {
  * @param model
  * @param modelDeps 用于减少一次组件rerender，因为异步获取状态变更时会去更新loading，所以当loading变更时静默掉订阅的回调。clonedModel中所有异步更新都应该加上这个
  */
-const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][] = []): [GluerReturn<T>, ModelStatus] => {
+const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][] = [], options?: ServiceOptions<T>): [GluerReturn<T>, ModelStatus] => {
+  const { control } = options || {};
   const unmountedFlagRef = useRef(false);
-  const [status, updateStatus] = useState<ModelStatus>({
-    loading: false,
-    successful: false,
+  const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
+  const cacheControlOnChangeUnsub = useRef<() => void>();
+  const underControl = useRef(false);
+
+  const [status, updateStatus] = useState<ModelStatus>(() => {
+    if (isModel(control)) {
+      underControl.current = true;
+      const r = (control as GluerReturn<ServiceControl>)();
+      return {
+        loading: r.loading,
+        successful: r.successful,
+      }
+    }
+    return {
+      loading: false,
+      successful: false,
+    }
   });
+
+  if (cacheControlRef.current !== control && isModel(control) && underControl.current) {
+    cacheControlRef.current = control;
+    if (cacheControlOnChangeUnsub.current) {
+      cacheControlOnChangeUnsub.current();
+    }
+    cacheControlOnChangeUnsub.current = (control as GluerReturn<ServiceControl>).onChange((state) => {
+      updateStatus({
+        loading: state.loading,
+        successful: state.successful,
+      });
+    });
+  }
+
+
   // @ts-ignore
   const [clonedModel] = useState<GluerReturn<T>>(() => {
 
     const statusHandleFn = (p: Promise<any>) => {
+      // 一旦调用statusHandleFn，表示已经不受外部控制状态了
+      underControl.current = false;
+      cacheControlRef.current = undefined;
+      // 如果此时有监听，则需要解绑
+      if (cacheControlOnChangeUnsub.current) {
+        cacheControlOnChangeUnsub.current();
+        cacheControlOnChangeUnsub.current = undefined;
+      }
+
       updateStatus((prevState) => {
         return {
           ...prevState,
