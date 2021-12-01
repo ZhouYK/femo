@@ -86,9 +86,9 @@ export interface InjectProps {
 
 export type Callback = (...args: any[]) => void;
 
-export function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
+export function gluer<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
 export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
-export function gluer<S , D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
+export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
 
 export const promiseDeprecatedError: string;
 
