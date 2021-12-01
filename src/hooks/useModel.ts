@@ -28,7 +28,7 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
   optionsRef.current = finalOptions;
 
   const [modelDeps] = useState(() => [model]);
-  const [clonedModel, status] = useCloneModel(model, [modelDeps], options);
+  const [clonedModel, status] = useCloneModel(model, [modelDeps], finalOptions);
   useService(clonedModel, deps, finalOptions);
   const [cachedState] = useState(() => {
     return {
@@ -59,7 +59,7 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
 
       // 修复bug：不应该用modelData来触发组件更新，因为有可能走到这个回调里面的modelData前后两次一样，因为中间model.silent更新了数据。
       updateState((count) => count + 1);
-    })
+    }, false)
   });
 
   useEffect(() => () => { unsub(); offChange(); }, []);
