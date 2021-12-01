@@ -420,23 +420,27 @@ describe('useModel test', () => {
       controlModel({
         loading: true,
         successful: true,
+        data: 1000,
       });
     });
 
     expect(service_control_call_mock.mock.calls.length).toBe(0);
     expect(result2.current.loading).toBe(true);
     expect(result2.current.successful).toBe(true);
+    expect(result2.current.age).toBe(1000);
 
     act(() => {
       controlModel({
         loading: false,
         successful: false,
+        data: 0,
       });
     });
 
     expect(service_control_call_mock.mock.calls.length).toBe(0);
     expect(result2.current.loading).toBe(false);
     expect(result2.current.successful).toBe(false);
+    expect(result2.current.age).toBe(0);
 
     act(() => {
       result1.current.updateCount(2);

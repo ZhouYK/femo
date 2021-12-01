@@ -27,7 +27,8 @@ export interface ModelStatus {
   successful: boolean; // 用于判断promise是否fullfilled了，true代表fullfilled，false则可能是reject、可能还未开始。
 }
 
-export interface ServiceControl extends ModelStatus{
+export interface ServiceControl<D = any> extends ModelStatus{
+  data?: D;
 }
 
 export type Service<T> = (state: T) => Promise<T> | T;

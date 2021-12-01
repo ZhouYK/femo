@@ -45,6 +45,9 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
       cacheControlOnChangeUnsub.current();
     }
     cacheControlOnChangeUnsub.current = (control as GluerReturn<ServiceControl>).onChange((state) => {
+      if ('data' in state) {
+        model.silent(state.data);
+      }
       updateStatus({
         loading: state.loading,
         successful: state.successful,
