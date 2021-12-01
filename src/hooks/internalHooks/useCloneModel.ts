@@ -28,6 +28,9 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
     if (isModel(control)) {
       underControl.current = true;
       const r = (control as GluerReturn<ServiceControl>)();
+      if (r.successful) {
+        model.silent(r.data);
+      }
       return {
         loading: r.loading,
         successful: r.successful,
@@ -45,7 +48,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
       cacheControlOnChangeUnsub.current();
     }
     cacheControlOnChangeUnsub.current = (control as GluerReturn<ServiceControl>).onChange((state) => {
-      if ('data' in state) {
+      if (state.successful) {
         model.silent(state.data);
       }
       updateStatus({
