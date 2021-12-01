@@ -417,6 +417,7 @@ describe('useModel test', () => {
     expect(service_control_call_mock.mock.calls.length).toBe(0);
 
     act(() => {
+      // successful为true，则更新data
       controlModel({
         loading: true,
         successful: true,
@@ -430,6 +431,7 @@ describe('useModel test', () => {
     expect(result2.current.age).toBe(1000);
 
     act(() => {
+      // successful为false，则不会更新data
       controlModel({
         loading: false,
         successful: false,
@@ -440,7 +442,7 @@ describe('useModel test', () => {
     expect(service_control_call_mock.mock.calls.length).toBe(0);
     expect(result2.current.loading).toBe(false);
     expect(result2.current.successful).toBe(false);
-    expect(result2.current.age).toBe(0);
+    expect(result2.current.age).toBe(1000);
 
     act(() => {
       result1.current.updateCount(2);
@@ -450,10 +452,11 @@ describe('useModel test', () => {
     expect(service_call_mock.mock.calls.length).toBe(2);
     expect(service_control_call_mock.mock.calls.length).toBe(1);
     expect(result1.current.age).toBe(1);
-    expect(result2.current.age).toBe(0);
+    expect(result2.current.age).toBe(1000);
 
     act(() => {
       // 此时已解绑监听，control的变更不起作用
+      // successful为false，则不会更新data
       controlModel({
         loading: false,
         successful: false,
@@ -461,7 +464,7 @@ describe('useModel test', () => {
     });
 
     expect(result1.current.age).toBe(1);
-    expect(result2.current.age).toBe(0);
+    expect(result2.current.age).toBe(1000);
     expect(result1.current.loading).toBe(true);
     expect(result2.current.loading).toBe(true);
     await waitForNextUpdate1();
