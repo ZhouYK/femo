@@ -29,6 +29,7 @@ export interface ModelStatus {
 
 export interface ServiceControl<D = any> extends ModelStatus{
   data?: D;
+  key?: string; // 用来表明control的用途，消费方可根据此标识来决定是否消费数据及状态
 }
 
 export type Service<T> = (state: T) => Promise<T> | T;
