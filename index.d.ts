@@ -12,6 +12,14 @@ type Copy<T> = {
   [key in keyof T]: Transfer<T[key]>;
 }
 
+export interface ExceptionJudge {
+  (): boolean;
+}
+
+export interface ManualException {
+  tryThrow: () => void;
+}
+
 export type HandleFunc<S, D, CR> = (data: D, state: S) => CR;
 
 export type GluerReturnFn<S> = {
@@ -109,5 +117,6 @@ export function useDerivedState<S = any>(initState: S | (() => S), callback: (st
 export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 
 export function useSubscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
+export function useException(...args: ExceptionJudge[]): ManualException;
 
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;

@@ -36,6 +36,7 @@ yarn add femo
 - <a href="#useIndividualModel">useIndividualModel</a>
 - <a href="#useDerivedState">useDerivedState</a>
 - <a href="#useDerivedStateWithModel">useDerivedStateWithModel</a> 
+- <a href="#useException">useException</a>
 - <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
@@ -246,6 +247,25 @@ const [listData, listModel, clonedListModel, { loading }] = useIndividualModel({
 > 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据。区别于 useDerivedStateToModel、useBatchDerivedStateToModel，其依赖是个数组，处理更像useEffect
 
 依赖中可以有model，会监听model的变化（model.silent的更新不会通知）
+
+### <span id="useException">useException</span>
+
+传入判断条件，手动触发异常，用于提前结束逻辑执行。
+
+```js
+const [flag, updateFlag] = useState(false);
+const [visible, updateVisible] = useState(false);
+const [data, updateData] = useState(null);
+
+const manualException = useException(() => flag, () => visible,);
+
+request().then((data) => {
+  manualException.tryThrow();
+  updateData(data);
+});
+
+```
+
 
 ### 比较逻辑由用户代码处理，类似类组件中的getDerivedStateFromProps
 ### <span id="useDerivedStateToModel">useDerivedStateToModel</span>
