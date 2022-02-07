@@ -39,6 +39,7 @@
       "node",
       "d.ts"
     ],
+    "testEnvironment": "jsdom",
     "transformIgnorePatterns": [
       "/node_modules/"
     ],
