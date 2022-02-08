@@ -1,6 +1,6 @@
-import { useState} from "react";
-import gluer, {defaultReducer} from "../gluer";
-import {GluerReturn, ModelStatus, Service, ServiceOptions} from "../../index";
+import { useState} from 'react';
+import gluer, {defaultReducer} from '../gluer';
+import {GluerReturn, ModelStatus, Service, ServiceOptions} from '../../index';
 import useModel from './useModel';
 
 /**

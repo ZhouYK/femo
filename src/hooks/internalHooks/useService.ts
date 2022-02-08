@@ -1,6 +1,6 @@
-import {useRef} from "react";
-import {GluerReturn, Service, ServiceOptions} from "../../../index";
-import {isAsync, isModel} from "../../tools";
+import {useRef} from 'react';
+import {GluerReturn, Service, ServiceOptions} from '../../../index';
+import {isAsync, isModel} from '../../tools';
 
 type CustomerPromise<T = any> = { success?: boolean; data?: T }  & Promise<T>;
 

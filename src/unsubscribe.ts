@@ -1,4 +1,4 @@
-import {Callback, GluerReturn} from "../index";
+import {Callback, GluerReturn} from '../index';
 
 export const refToDepsMap = new Map<GluerReturn<any>, GluerReturn<any>[][]>();
 export const depsToFnMap = new Map<GluerReturn<any>[], Callback[]>();

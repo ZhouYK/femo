@@ -5,12 +5,12 @@ import {
   gluerUniqueFlagValue,
 } from './constants';
 
-import {HandleFunc, GluerReturn, Callback} from '../index';
-import {isArray, isAsync, isTagged, tagPromise} from "./tools";
-import subscribe from "./subscribe";
+import {HandleFunc, GluerReturn, Callback, RacePromise} from '../index';
+import {isArray, isAsync, isTagged, tagPromise} from './tools';
+import subscribe from './subscribe';
 import unsubscribe, { refToDepsMap, depsToFnMap } from './unsubscribe';
-import genRaceQueue, {ErrorFlag, promiseDeprecatedError, RacePromise} from "./genRaceQueue";
-import runtimeVar from "./runtimeVar";
+import genRaceQueue, {ErrorFlag, promiseDeprecatedError} from './genRaceQueue';
+import runtimeVar from './runtimeVar';
 
 export const defaultReducer = (data: any, _state: any) => data;
 const warning = '你只传入了一个函数参数给gluer，这会被认为是reducer函数而不是初始值。如果你想存储一个函数类型的初始值，请传入两个参数：reducer和初始值。' +

@@ -1,10 +1,10 @@
-import {useEffect, useRef, useState} from "react";
-import {GluerReturn, ModelStatus, ServiceControl, ServiceOptions} from "../../../index";
+import {useEffect, useRef, useState} from 'react';
+import {GluerReturn, ModelStatus, ServiceControl, ServiceOptions} from '../../../index';
 import {defaultReducer} from '../../gluer';
-import {isAsync, isModel} from "../../tools";
-import {promiseDeprecatedError} from "../../genRaceQueue";
-import runtimeVar from "../../runtimeVar";
-import {promiseDeprecated, promiseDeprecatedFromClonedModel} from "../../constants";
+import {isAsync, isModel} from '../../tools';
+import {promiseDeprecatedError} from '../../genRaceQueue';
+import runtimeVar from '../../runtimeVar';
+import {promiseDeprecated, promiseDeprecatedFromClonedModel} from '../../constants';
 
 const runtimeVarAssignment = (callback: () => Promise<any>) => {
   runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecatedFromClonedModel;

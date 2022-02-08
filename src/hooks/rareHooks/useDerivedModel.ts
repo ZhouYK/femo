@@ -1,6 +1,6 @@
-import useIndividualModel from "../useIndividualModel";
-import useDerivedStateToModel from "./useDerivedStateToModel";
-import {GluerReturn, ModelStatus} from "../../../index";
+import useIndividualModel from '../useIndividualModel';
+import useDerivedStateToModel from './useDerivedStateToModel';
+import {GluerReturn, ModelStatus} from '../../../index';
 
 /**
  * 在实际运用中发现，如果要使用useDerivedStateToModel，经常会先用useIndividualModel创建一个model。索性就把二者合成一个，方便使用

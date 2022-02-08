@@ -1,7 +1,7 @@
-import {useCallback, useEffect, useState} from "react";
-import useModel from "./useModel";
-import {GluerReturn} from "../../index";
-import {isArray, isModel} from "../tools";
+import {useCallback, useEffect, useState} from 'react';
+import useModel from './useModel';
+import {GluerReturn} from '../../index';
+import {isArray, isModel} from '../tools';
 
 const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
   const updateState = useCallback((s: S, silent = true) => {

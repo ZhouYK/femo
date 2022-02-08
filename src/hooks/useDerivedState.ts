@@ -1,5 +1,5 @@
-import useIndividualModel from "./useIndividualModel";
-import useDerivedStateWithModel from "./useDerivedStateWithModel";
+import useIndividualModel from './useIndividualModel';
+import useDerivedStateWithModel from './useDerivedStateWithModel';
 
 /**
  *

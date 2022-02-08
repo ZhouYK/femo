@@ -1,9 +1,9 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {GluerReturn, ModelStatus, Service, ServiceOptions} from "../../index";
-import subscribe from "../subscribe";
-import useCloneModel from "./internalHooks/useCloneModel";
-import useService from "./internalHooks/useService";
-import {defaultServiceOptions} from "../constants";
+import {GluerReturn, ModelStatus, Service, ServiceOptions} from '../../index';
+import subscribe from '../subscribe';
+import useCloneModel from './internalHooks/useCloneModel';
+import useService from './internalHooks/useService';
+import {defaultServiceOptions} from '../constants';
 
 
 /**

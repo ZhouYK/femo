@@ -1,7 +1,7 @@
-import {Callback, GluerReturn} from "../index";
-import {gluerUniqueFlagKey, gluerUniqueFlagValue} from "./constants";
-import unsubscribe, { depsToFnMap, refToDepsMap} from "./unsubscribe";
-import {isArray} from "./tools";
+import {Callback, GluerReturn} from '../index';
+import {gluerUniqueFlagKey, gluerUniqueFlagValue} from './constants';
+import unsubscribe, { depsToFnMap, refToDepsMap} from './unsubscribe';
+import {isArray} from './tools';
 
 
 

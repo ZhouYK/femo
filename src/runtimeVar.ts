@@ -1,5 +1,5 @@
-import {promiseDeprecated} from "./constants";
-import {ErrorFlag} from "./genRaceQueue";
+import {promiseDeprecated} from './constants';
+import {ErrorFlag} from './genRaceQueue';
 
 const runtimeVar: {
   runtimePromiseDeprecatedFlag: ErrorFlag;
