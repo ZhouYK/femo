@@ -1,10 +1,9 @@
-import {promiseDeprecated, promiseDeprecatedFromClonedModel, raceQueue as raceQueueKey} from "./constants";
-import {RaceQueue} from "./interface";
+import {promiseDeprecated, promiseDeprecatedFromClonedModel} from "./constants";
 
 const raceQueuePool = new Map();
 export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel;
 
-export type RacePromise = Promise<any> & {[raceQueueKey]?: RaceQueue ; [promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; };
+export type RacePromise = Promise<any> & {[promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; };
 
 export const promiseDeprecatedError = 'the promise is deprecated by race condition';
 
@@ -28,23 +27,6 @@ const genRaceQueue = (deprecatedError?: ErrorFlag) => {
         raceQueue.push(p);
       } else {
         console.warn('the race queue has been destroyed');
-        return p;
-      }
-
-      // 如果已经属于一个异步队列了，则再加一个
-      if (raceQueueKey in p) {
-        const value = p[raceQueueKey];
-        if (value && value.indexOf(raceQueue) === -1) {
-          value.push(raceQueue);
-        }
-      } else {
-        // 打标记
-        Object.defineProperty(p, raceQueueKey, {
-          value: [raceQueue],
-          configurable: true, // 可删除
-          writable: false,
-          enumerable: true,
-        });
       }
       return p;
     },

@@ -1,7 +1,5 @@
 import {ServiceOptions} from "../index";
 
-// export const development = 'development';
-export const raceQueue = Symbol('raceQueue');
 export const promiseDeprecated = 'promiseDeprecated';
 export const manualThrownError = 'manual thrown error';
 export const promiseDeprecatedFromClonedModel = 'promiseDeprecatedFromClonedModel';

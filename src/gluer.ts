@@ -1,6 +1,5 @@
 import {
   // development,
-  raceQueue,
   promiseDeprecated,
   gluerUniqueFlagKey,
   gluerUniqueFlagValue,
@@ -19,9 +18,6 @@ const warning = '你只传入了一个函数参数给gluer，这会被认为是r
 const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
 const raceHandle = (promise: RacePromise, deprecatedFlag?: ErrorFlag) => {
   const errorFlag = deprecatedFlag || promiseDeprecated;
-  if (raceQueue in promise) {
-    delete promise[raceQueue];
-  }
 
   if (errorFlag in promise) {
     throw promiseDeprecatedError;
