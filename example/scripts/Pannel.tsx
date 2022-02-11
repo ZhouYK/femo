@@ -1,7 +1,7 @@
 import React, {FC, useCallback, useEffect} from 'react';
-import List from "./List";
-import Profile from "./Profile";
-import {gluer, useModel} from "../../src/index";
+import List from './List';
+import Profile from './Profile';
+import {gluer, useModel} from '../../src/index';
 
 const count = gluer(0);
 
