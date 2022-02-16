@@ -145,22 +145,42 @@ function gluer(...args: any[]) {
   }
   const basicLogic = (silent = false) => (...ags: any[]) => {
     const tempResult = preTreat(...ags);
+    if (ags.length === 0) return tempResult;
+    if (!silent) {
+      // 如果在model的依赖链条中出现过，则中断循环更新，不再执行
+      if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return tempResult;
+      runtimeVar.runtimeDepsModelCollectedMap.set(fn, 0); // 追踪依赖
+    }
+
     // 不执行回调的依赖数组
     // 第三个参数默认就是mutedDeps
     const [, ,mutedDeps] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
+      let forAsyncRuntimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
+      if (!silent) {
+        forAsyncRuntimeDepsModelCollectedMap = new Map(runtimeVar.runtimeDepsModelCollectedMap)
+      }
       if (process.env.NODE_ENV === 'development' && isTagged(tempResult)) {
         console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
       }
       // 只有异步更新才有可能需要缓存
       const tmpFromCache = fromCache;
+      // promise失败的情况则不用关心 forAsyncRuntimeDepsModelCollectedMap
       const promise: any = (tempResult as Promise<any>).catch(e => {
         raceHandle(promise);
         return Promise.reject(e);
       }).then((data) => {
         raceHandle(promise);
+        if (!silent) {
+          // 异步回调中延续依赖
+          runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
+        }
         updateFn(data, silent, mutedDeps, tmpFromCache);
+        if (!silent) {
+          // 每次异步回调都相当于是一个开始，所以需要在异步回调执行完成时将依赖清空
+          runtimeVar.runtimeDepsModelCollectedMap.clear();
+        }
         return data;
       });
       if (process.env.NODE_ENV === 'development') {
@@ -171,6 +191,10 @@ function gluer(...args: any[]) {
     }
 
     updateFn(tempResult, silent, mutedDeps);
+    if (!silent) {
+      // 删掉自己
+      runtimeVar.runtimeDepsModelCollectedMap.delete(fn);
+    }
     // 返回函数处理结果
     return tempResult;
   }
