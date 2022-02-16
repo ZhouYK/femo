@@ -44,6 +44,7 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback) => {
     if (Object.is(targetDeps, undefined) && !Object.is(callback, undefined)) {
       // todo 将来再加这个的解除功能吧
       console.warn('unsubscribe`s param: targetDeps, should not be undefined');
+      return;
     }
 
     depsToFnMap.delete(targetDeps as GluerReturn<any>[]);

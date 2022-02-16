@@ -32,8 +32,9 @@ const subscribe = (deps: GluerReturn<any>[], callback: Callback, callWhenSub = t
     initialDepsValue.push((dep as (...args: any[]) => any)());
   };
 
+  const setDeps = copyDeps.length !== 0;
   // 如果传入依赖为空数组，则不建立依赖。只会执行在初始化的时候执行一次回调。
-  if (copyDeps.length !== 0) {
+  if (setDeps) {
     // 依赖与函数的映射
     if (depsToFnMap.has(copyDeps)) {
       // 需要对传入的callback进行验重
@@ -69,7 +70,7 @@ const subscribe = (deps: GluerReturn<any>[], callback: Callback, callWhenSub = t
 
   return () => {
     // 不等于0才去解除依赖
-    if (copyDeps.length !== 0) {
+    if (setDeps) {
       unsubscribe(copyDeps, callback);
     }
   }
