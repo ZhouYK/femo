@@ -16,10 +16,11 @@ export const defaultReducer = (data: any, _state: any) => data;
 const warning = '你只传入了一个函数参数给gluer，这会被认为是reducer函数而不是初始值。如果你想存储一个函数类型的初始值，请传入两个参数：reducer和初始值。' +
   'reducer可以是最简单：(data, state) => data。这个的意思是：传入的数据会直接用来更新state。';
 const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
-const raceHandle = (promise: RacePromise, deprecatedFlag?: ErrorFlag) => {
+const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?: ErrorFlag) => {
   const errorFlag = deprecatedFlag || promiseDeprecated;
 
   if (errorFlag in promise) {
+    callback();
     throw promiseDeprecatedError;
   }
 
@@ -147,11 +148,17 @@ function gluer(...args: any[]) {
     const tempResult = preTreat(...ags);
     if (ags.length === 0) return tempResult;
     if (!silent) {
-      // 如果在model的依赖链条中出现过，则中断循环更新，不再执行
+      // 如果在model的调用链中出现过，则中断循环更新，不再执行
       if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return tempResult;
       runtimeVar.runtimeDepsModelCollectedMap.set(fn, 0); // 追踪依赖
     }
 
+    const deleteSelf = () => {
+      if (!silent) {
+        // 删掉自己
+        runtimeVar.runtimeDepsModelCollectedMap.delete(fn);
+      }
+    };
     // 不执行回调的依赖数组
     // 第三个参数默认就是mutedDeps
     const [, ,mutedDeps] = ags;
@@ -167,11 +174,17 @@ function gluer(...args: any[]) {
       // 只有异步更新才有可能需要缓存
       const tmpFromCache = fromCache;
       // promise失败的情况则不用关心 forAsyncRuntimeDepsModelCollectedMap
+      // 需要在promise失效时清除 runtimeVar.runtimeDepsModelCollectedMap
+
+      const depsClearCallback = () => {
+        // @ts-ignore
+        forAsyncRuntimeDepsModelCollectedMap = null;
+      };
       const promise: any = (tempResult as Promise<any>).catch(e => {
-        raceHandle(promise);
+        raceHandle(promise, depsClearCallback);
         return Promise.reject(e);
       }).then((data) => {
-        raceHandle(promise);
+        raceHandle(promise, depsClearCallback);
         if (!silent) {
           // 异步回调中延续依赖
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
@@ -186,15 +199,13 @@ function gluer(...args: any[]) {
       if (process.env.NODE_ENV === 'development') {
         tagPromise(promise);
       }
+      deleteSelf();
       // 返回函数处理结果
       return promise;
     }
 
     updateFn(tempResult, silent, mutedDeps);
-    if (!silent) {
-      // 删掉自己
-      runtimeVar.runtimeDepsModelCollectedMap.delete(fn);
-    }
+    deleteSelf();
     // 返回函数处理结果
     return tempResult;
   }
@@ -239,8 +250,9 @@ function gluer(...args: any[]) {
     }
 
     const unsub = subscribe(models, (...data: any[]) => {
-      const modelData = data;
-      fn(() => callback(modelData, fn()));
+      // 如果当前fn已经出现在调用链中，则不执行回调，因为回调中很可能有副作用
+      if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return;
+      fn(() => callback(data, fn()));
     }, false);
     unsubscribeRelyArr.push(unsub);
     return unsub;
