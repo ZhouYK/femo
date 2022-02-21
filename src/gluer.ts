@@ -308,7 +308,12 @@ function gluer(...args: any[]) {
   }
 
   fn.go = (step: number) => {
+    // 如果在model的调用链中出现过，则中断循环更新，不再执行
+    if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return gluerState;
+    runtimeVar.runtimeDepsModelCollectedMap.set(fn, 0);
     historyGoUpdateFn(step);
+    // 删掉自己
+    runtimeVar.runtimeDepsModelCollectedMap.delete(fn);
     return gluerState;
   }
 
