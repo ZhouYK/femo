@@ -7,7 +7,7 @@
     "allowSyntheticDefaultImports": true, // 看下面
     "baseUrl": ".", // 可以相对这个目录 import 文件
     "sourceMap": false, // 使 TypeScript 生成 sourcemaps
-    "outDir": "", // 构建输出目录 (因为我们大部分时间都在使用 Webpack，所以不太相关)
+//    "outDir": "dist/umd/ts", // 构建输出目录
     "jsx": "preserve", // 开启 JSX 模式, 但是 "preserve" 告诉 TypeScript 不要转换它(我们将使用 Babel)
     "strict": true,
     "rootDir": ".",

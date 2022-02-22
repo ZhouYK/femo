@@ -1,5 +1,5 @@
-import React, {FC, useState} from "react";
-import {InjectProps} from "../../index";
+import React, {FC, useState} from 'react';
+import {InjectProps} from '../../index';
 
 const keyPrefix = 'femo-suspense-key';
 let key = 0;

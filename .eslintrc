@@ -5,7 +5,7 @@
       "jsx": false
     },
     "useJSXTextNode": true,
-    "project": "./tsconfig-for-dev.json",
+    "project": "./tsconfig.json",
     "tsconfigRootDir": "./"
   },
   "settings": {

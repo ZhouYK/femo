@@ -1,7 +1,12 @@
-import profile from "../../example/model/profile";
-import {Profile} from "../../example/interface";
 import genRaceQueue, { promiseDeprecatedError } from "../../src/genRaceQueue";
 import gluer from "../../src/gluer";
+
+interface Profile {
+  name: string;
+  id: string;
+  desc: string;
+}
+
 
 const game = gluer<Game>({
   price: 0,
@@ -12,6 +17,12 @@ interface Game {
   price: number;
   name: string;
 }
+
+const profile = gluer({
+  id: '',
+  name: '',
+  desc: '',
+});
 
 describe('Correctness test', () => {
   const newProfile_1: Profile = {

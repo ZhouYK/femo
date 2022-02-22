@@ -1,5 +1,5 @@
 import {useCallback, DependencyList, useRef} from 'react';
-import {useDerivedModel} from '../../index';
+import useDerivedModel from './useDerivedModel';
 import {EnhancedCallback, GluerReturn} from '../../../index';
 
 /**
