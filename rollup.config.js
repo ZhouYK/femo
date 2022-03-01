@@ -29,6 +29,6 @@ export default {
       babelHelpers: 'bundled',
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
     } ),
-    // terser(),
+    terser(),
   ]
 }

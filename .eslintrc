@@ -5,8 +5,8 @@
       "jsx": false
     },
     "useJSXTextNode": true,
-    "project": "./tsconfig.json",
-    "tsconfigRootDir": "./"
+    "project": "./tsconfig-for-eslint.json",
+    "tsconfigRootDir": "."
   },
   "settings": {
     "import/resolver": {
