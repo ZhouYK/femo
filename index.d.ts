@@ -1,9 +1,9 @@
 
 // gluer
-import {DependencyList, FC} from "react";
-import {DerivedSpace} from "./src/hooks/rareHooks/useBatchDerivedStateToModel";
-import {promiseDeprecated, promiseDeprecatedFromClonedModel} from "./src/constants";
-import {ErrorFlag} from "./src/genRaceQueue";
+import {DependencyList, FC} from 'react';
+import {DerivedSpace} from './src/hooks/rareHooks/useBatchDerivedStateToModel';
+import {promiseDeprecated, promiseDeprecatedFromClonedModel} from './src/constants';
+import {ErrorFlag} from './src/genRaceQueue';
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;
