@@ -5,7 +5,6 @@
       "jsx": false
     },
     "useJSXTextNode": true,
-    "project": "./tsconfig-for-eslint.json",
     "tsconfigRootDir": "."
   },
   "settings": {
@@ -73,5 +72,11 @@
 		"tsx": "never"
 	  }
 	]
-  }
+  },
+  "overrides": [{
+    "files": ["src", "typings", "test"],
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  }]
 }

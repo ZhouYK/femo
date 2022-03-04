@@ -10,7 +10,7 @@
 //    "outDir": "dist/umd/ts", // 构建输出目录
     "jsx": "preserve", // 开启 JSX 模式, 但是 "preserve" 告诉 TypeScript 不要转换它(我们将使用 Babel)
     "strict": true,
-    "rootDir": ".",
+//    "rootDir": ".",
     "allowJs": true,
     "moduleResolution": "node",
     "noImplicitReturns": true,
