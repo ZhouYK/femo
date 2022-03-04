@@ -28,15 +28,14 @@ const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?:
 }
 
 const executeCallback = (targetDeps: GluerReturn<any>[]) => {
-  const callback = depsToFnMap.get(targetDeps) as Callback[];
-  for (let j = 0; j < callback.length; j += 1) {
-    const call = callback[j];
+  const callback = depsToFnMap.get(targetDeps) as Set<Callback>;
+  callback.forEach((call) => {
     const values: any[] = [];
     for (let k = 0; k < targetDeps.length; k += 1) {
       values.push(targetDeps[k]());
     }
     call(...values);
-  }
+  })
 }
 
 /**
@@ -110,14 +109,13 @@ function gluer(...args: any[]) {
           trackArr.push(gluerState);
           curIndex += 1;
         }
-        const targetDeps = refToDepsMap.get(fn) as GluerReturn<any>[][];
+        const targetDeps = refToDepsMap.get(fn) as Set<GluerReturn<any>[]>;
         if (targetDeps) {
-          for (let i = 0; i < targetDeps.length; i += 1) {
-            const target = targetDeps[i];
+          targetDeps.forEach((target) => {
             if (!mutedDeps.includes(target)) {
               executeCallback(target);
             }
-          }
+          })
         }
       }
     }
@@ -225,11 +223,11 @@ function gluer(...args: any[]) {
     const data = trackArr[curIndex];
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
-      const targetDeps = refToDepsMap.get(fn) as GluerReturn<any>[][];
+      const targetDeps = refToDepsMap.get(fn) as Set<GluerReturn<any>[]>;
       if (targetDeps) {
-        for (let i = 0; i < targetDeps.length; i += 1) {
-          executeCallback(targetDeps[i]);
-        }
+        targetDeps.forEach((targetDep) => {
+          executeCallback(targetDep);
+        })
       }
     }
   }

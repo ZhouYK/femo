@@ -38,13 +38,11 @@ const subscribe = (deps: GluerReturn<any>[], callback: Callback, callWhenSub = t
     // 依赖与函数的映射
     if (depsToFnMap.has(copyDeps)) {
       // 需要对传入的callback进行验重
-      const result = depsToFnMap.get(copyDeps) as Callback[];
+      const result = depsToFnMap.get(copyDeps) as Set<Callback>;
       // 如果是重复的，则只记录一次
-      if (!result.includes(callback)) {
-        result.push(callback);
-      }
+      result.add(callback);
     } else {
-      depsToFnMap.set(copyDeps, [callback])
+      depsToFnMap.set(copyDeps, new Set([callback]))
     }
 
     // 模型节点与依赖的映射
@@ -53,11 +51,9 @@ const subscribe = (deps: GluerReturn<any>[], callback: Callback, callWhenSub = t
       if (refToDepsMap.has(dep)) {
         const value = refToDepsMap.get(dep);
         // 如果是重复的，则只记录一次
-        if ((value as any[]).indexOf(copyDeps) < 0) {
-          (value as any[]).push(copyDeps);
-        }
+        (value as Set<any>).add(copyDeps);
       } else {
-        refToDepsMap.set(dep, [copyDeps]);
+        refToDepsMap.set(dep, new Set([copyDeps]));
       }
     }
   }
