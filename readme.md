@@ -20,6 +20,79 @@ yarn add femo
 ---
 ## 概述
 
+### 在react中使用
+
+方式一：先声明定义model，再在组件中使用
+
+```js
+// model.js
+import { gluer } from 'femo';
+
+const student = gluer({
+  name: '',
+  age: 0,
+});
+
+export default student;
+
+```
+
+```jsx
+// Student组件
+import { useModel } from 'femo';
+import model from './model.js';
+
+const Student = (props) => {
+  const [student] = useModel(model);
+  
+  return (
+    <section>
+      <section>{ student.name }</section>
+      <section>{ student.age }</section>
+    </section>  
+  )
+}
+export default Student;
+```
+
+方式二：直接在组件中声明定义并使用
+
+```jsx
+// Student组件
+import { useIndividualModel } from 'femo';
+
+const Student = (props) => {
+  const [student, model] = useIndividualModel({
+    name: '',
+    age: 0,
+  });
+  
+  return (
+    <section>
+      <section>{ student.name }</section>
+      <section>{ student.age }</section>
+    </section>  
+  )
+}
+export default Student;
+```
+
+### 脱离react使用
+
+脱离react后，就不能使用react hooks了
+
+```js
+import { gluer, subscribe } from 'femo';
+const name = gluer('初始名字');
+
+const unsubscribe = subscribe([name], (nameData) => { console.log(nameData) });
+name('张胜男');
+// 会打印 张胜男
+
+// 取消监听。调用返回的函数即可
+unsubscribe();
+```
+
 ### 核心思想
 
 数据以独立的节点形式存在，没有中心存储，完全是散状分布的。
@@ -191,12 +264,12 @@ const getList = useCallback(() => {
   return get('/api/list', query).then((res) => res.data);
 }, []);
 // 在函数组件中使用useModel消费数据
-// clonedListModel是对listModel的克隆，clonedListModel本质上是对listModel的一层包装，底层使用的是listModel，所以核心还是listModel。
-// loading状态是clonedListModel带来的，用于表明异步更新时数据的加载状态
+// listModelWithStatus本质上是对listModel的一层包装，底层使用的是listModel
+// loading状态是listModelWithStatus带来的，用于表明异步更新时数据的加载状态
 
 // getList用于获取数据，getList的每一次变化都会触发去远端拉取数据
 // suspenseKey 有值了，会开启suspense模式，上层组件中需要有Suspense组件包裹
-const [listData, clonedListModel, { loading }] = useModel(listModel, [getList], {
+const [listData, listModelWithStatus, { loading }] = useModel(listModel, [getList], {
   suspenseKey: 'list',
 });
 
@@ -227,7 +300,7 @@ const getList = useCallback(() => {
 }, []);
 
 // 和useModel一致，除了返回参数里面多了一个生成的model节点，这里就是listModel
-const [listData, listModel, clonedListModel, { loading }] = useIndividualModel({
+const [listData, listModel, listModelWithStatus, { loading }] = useIndividualModel({
   page: 1,
   size: 20,
   list: [],
