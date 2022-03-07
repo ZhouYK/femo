@@ -7,9 +7,9 @@
 ![license](https://img.shields.io/github/license/ZhouYK/glue-redux.svg)
 # femo
 
-*针对数据操作的可预知、易测试的抽象封装*
+*拒绝反直觉，直观地管理数据*
 
-## 发布 [![NPM version](https://img.shields.io/npm/v/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
+## 安装 [![NPM version](https://img.shields.io/npm/v/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
 
 ```bash
 npm i femo
@@ -18,8 +18,6 @@ yarn add femo
 ```
 
 ---
-## 概述
-
 ### 在react中使用
 
 方式一：先声明定义model，再在组件中使用
