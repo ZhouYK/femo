@@ -18,7 +18,7 @@ yarn add femo
 ```
 
 ---
-### 在react中使用
+## 在react中使用
 
 方式一：先声明定义model，再在组件中使用
 
@@ -75,7 +75,7 @@ const Student = (props) => {
 export default Student;
 ```
 
-### 脱离react使用
+## 脱离react使用
 
 脱离react后，就不能使用react hooks了
 
@@ -91,55 +91,20 @@ name('张胜男');
 unsubscribe();
 ```
 
-### 核心思想
+## 核心
 
-数据以独立的节点形式存在，没有中心存储，完全是散状分布的。
+数据之间轻耦合，数据本身具有完备的处理能力。
 
-### 循环依赖
-一旦发现在模型的调用链中出现了循环，会在那个点终止，在代码层面表现为直接返回。终止点不会执行更新逻辑，终止以前的调用不受影响。
+## API
 
-模型在异步回调函数中的每一次调用都会被视为一次调用链的起始。也就是在说异步回调进行模型调用更新，不会记录之前的调用栈。
-
-### <a href="#tool-function">工具函数</a>
+### 核心函数
 
 - <a href="#gluer">gluer</a>
 - <a href="#subscribe">subscribe</a>
 - <a href="#genRaceQueue">genRaceQueue</a>
 
-### <a href="#react-hook">react hook</a>
 
-- <a href="#useModel">useModel</a>
-- <a href="#useIndividualModel">useIndividualModel</a>
-- <a href="#useDerivedState">useDerivedState</a>
-- <a href="#useDerivedStateWithModel">useDerivedStateWithModel</a> 
-- <a href="#useException">useException</a>
-- <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
-- <a href="#useDerivedModel">useDerivedModel</a>
-- <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
-- <a href="#useBatchDerivedStateToModel">useBatchDerivedStateToModel</a>
-
-### <a href="#HOC">HOC</a>
-
-- <a href="#Inject">Inject</a>
-
-### <a href="#methods">节点方法</a>
-
-- <a href="#relyOn">relyOn</a>
-- <a href="#relyOff">relyOff</a>
-- <a href="#onChange">onChange</a>
-- <a href="#offChange">offChange</a>
-- <a href="#silent">silent</a>
-- <a href="#track">track</a>
-- <a href="#flush">flush</a>
-- <a href="#go">go</a>
-- <a href="#race">race</a>
-- <a href="#preTreat">preTreat</a>
-- <a href="#cache">cache</a>
-- <a href="#cacheClean">cacheClean</a>
-
-## <span id="tool-function">工具函数</span>
-
-## <span id="gluer">gluer</span>
+### <span id="gluer">gluer</span>
 
 > 定义数据节点
 
@@ -179,7 +144,7 @@ const name = gluer('初始名字');
 ```
 当入参是异步函数的时候，数据节点会异步地去更新数据。
 
-## <span id="subscribe">subscribe</span>
+### <span id="subscribe">subscribe</span>
 > 订阅数据节点
 
 数据节点被订阅过后，其数据的变化会通知到订阅的回调函数里面。
@@ -196,7 +161,7 @@ name('张胜男');
 unsubscribe();
 ```
 
-## genRaceQueue
+### genRaceQueue
 > 数据节点更新出现竞争时，需要确保当前的数据正确。
 
 什么是竞争？
@@ -224,7 +189,224 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 ```
 <strong>数据节点自身也提供了处理竞争的方法<a href="#race">race</a>。很多时候可以通过<a href="#race">race</a>方法来简化上面<a href="#genRaceQueue">genRaceQueue</a>的使用。</strong>
 
-## <span id="react-hook">react hook</span>
+
+### 节点方法
+
+- <a href="#relyOn">relyOn</a>
+- <a href="#relyOff">relyOff</a>
+- <a href="#onChange">onChange</a>
+- <a href="#offChange">offChange</a>
+- <a href="#silent">silent</a>
+- <a href="#track">track</a>
+- <a href="#flush">flush</a>
+- <a href="#go">go</a>
+- <a href="#race">race</a>
+- <a href="#preTreat">preTreat</a>
+- <a href="#cache">cache</a>
+- <a href="#cacheClean">cacheClean</a>
+
+### <span id="relyOn">relyOn</span>
+> 声明节点的依赖，并注册回调
+
+适用的场景：多个数据节点的变化都可引起一个数据节点更新，多对一的关系。
+
+```javascript
+const demo1 = gluer(null);
+const demo2 = gluer(null);
+const demo3 = gluer(null);
+
+const demo = gluer(null);
+
+const unsubscribe = demo.relyOn([demo1, demo2, demo3], (data, state) => 
+{
+ // data[0] 为 demo1的值
+ // data[1] 为 demo2的值
+ // data[2] 为 demo3的值
+ // state 为 demo的值
+ // 需要返回demo的最新值
+  const newState = { ...state };
+  return newState;
+});
+
+// 解除依赖
+unsubscribe();
+```
+
+定义节点之间的单向依赖关系，入参返回如下：
+
+|入参   | 含义 |
+| :----| :---- |
+| 节点数组 |定义依赖的节点。放置的顺序会直接影响取值顺序|
+
+|入参   | 含义 |
+| :---- | :---- |
+| 回调函数 | 形如(data, state) => state。data是节点数据值的数组，与节点数组一一对应。state 是监听的节点的值。回调函数需要返回监听节点的新值 |
+
+relyOn处理数据依赖更新是单向的。通常情况下适合处理结构上没有嵌套的彼此独立的节点。
+
+需要注意的是，如果是要处理数据的双向依赖，比如：
+```javascript
+const a = gluer('');
+const b = gluer('');
+
+a.relyOn([b], (data, state) => {
+  // todo
+});
+
+b.relyOn([a], (data, state) => {
+  // todo
+})
+```
+
+### <span id="relyOff">relyOff</span>
+
+解绑节点上所有的依赖监听
+
+```javascript
+const a = gluer('');
+a.relyOff();
+```
+
+### <span id="#onChange">onChange</span>
+
+节点数据发生变化时会执行通过该方法传入的回调函数
+
+| 入参 | 含义 |
+| :---- | :---- |
+| callback函数(必填) | 节点数据发生变化时会执行的回调 |
+
+```javascript
+const model = gluer('');
+
+model.onChange((state) => { console.log(state) });
+
+```
+
+这个方法用于需要节点主动向外发布数据的场景。
+
+### <span id="#offChange">offChange</span>
+
+解除通过onChange注册的回调
+
+| 入参 | 含义 |
+| :---- | :---- |
+| callback函数（可选） | 注册的回调 |
+
+```javascript
+const model = gluer('');
+
+const callback = (state) => {
+  console.log(state);
+};
+
+model.onChange(callback);
+
+model.offChange(callback);
+
+model.offChange(); // 解除节点上所有通过onChange注册的回调函数
+```
+
+### <span id="silent">silent</span>
+> 静默地更新数据节点的内容
+
+该方法和直接使用节点更新内容一样，只是不会进行数据更新的广播，订阅了该数据的回调函数或者组件不会在此次更行中被执行或者重新渲染。
+在需要优化组件渲染频率的时候可以考虑使用它。
+
+上面<a href="#useDerivedStateToModel">useDerivedStateToModel</a>内部就调用了silent方法。
+这方法感觉还挺有用的😁。
+
+```js
+const [, casesModel] = useIndividualModel < Flow.Case[] > (node.switch_case || []);
+const [cases] = useDerivedStateToModel(props, casesModel, (nextProps, prevProps, state) => {
+  if (nextProps.node !== prevProps.node) {
+    return nextProps.node.switch_case || [];
+  }
+  return state;
+});
+```
+
+### <span id="track">track</span>
+> 开始记录数据节点每次更新后的内容
+
+节点开始记录数据节点每次更新后的内容，并把当前内容做为第一条记录。
+
+```javascript
+const page = gluer('page 1');
+page.track(); // 开始记录 page的变更历史
+```
+### <span id="flush">flush</span>
+> 清除记录，并停止记录
+
+节点停止记录状态历史，并把记录的状态历史清空。和track搭配使用
+
+```javascript
+const page = gluer('page 1');
+page.track(); // 开始记录 page的变更历史
+// 中间省略若干代码
+page.flush(); // 停止记录 清除page变更历史
+```
+### <span id="go">go</span>
+> 将数据节点的内容更新为指定记录内容
+
+在节点记录的状态历史中前进后退，达到历史状态的快速重现和恢复。
+
+| 入参 | 含义 |
+| :--- | :--- |
+| step(Number类型) | 整数。负数表示后退多少个记录，正数表示前进多少个记录 |
+
+```javascript
+const page = gluer('page 1');
+page.track(); // 开始记录 page的变更历史
+
+page('page 2');
+
+page('page 4');
+
+page.go(-1); // 回退到page 2
+page.go(-1); // 回退到page 1
+page.go(2); // 前进到page 4
+page.go(-2); // 后退到page 1
+
+page.flush(); // 停止记录 清除page变更历史
+```
+
+### <span id="race">race</span>
+> 处理数据节点更新出现的竞争问题
+
+简化上面<a href="#genRaceQueue">genRaceQueue</a>的例子
+```js
+// p1请求
+someModel.race(params, async (data, state) => {
+  return await fetchRemote(data);
+});
+// p2请求
+someModel.race(async (data, state) => { return await fetchRemote() })
+```
+
+### <span id="preTreat">preTreat</span>
+> 预处理数据，可得到结果而不更新节点
+
+此方法可能用于一些依据处理结果来做条件判断的场景
+
+### <span id="cache">cache</span>
+> 缓存异步数据，使用方式同race，因为内部调用的<a href="#race">race</a>方法。详情见[issue#31](https://github.com/ZhouYK/femo/issues/31)
+
+### <span id="cacheClean">cacheClean</span>
+> 清除异步数据的缓存
+
+## 搭配React
+
+### <span href="#react-hook">react hook</a>
+
+- <a href="#useModel">useModel</a>
+- <a href="#useIndividualModel">useIndividualModel</a>
+- <a href="#useDerivedState">useDerivedState</a>
+- <a href="#useDerivedStateWithModel">useDerivedStateWithModel</a>
+- <a href="#useException">useException</a>
+- <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
+- <a href="#useDerivedModel">useDerivedModel</a>
+- <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
+- <a href="#useBatchDerivedStateToModel">useBatchDerivedStateToModel</a>
 
 react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
 
@@ -363,9 +545,11 @@ request().then((data) => {
 > 结合了useIndividualModel和useBatchDerivedStateToModel
 
 
-## <span id="HOC">HOC</span>
+### <span href="#HOC">HOC</a>
 
-## <a id="Inject">Inject</a>
+- <a href="#Inject">Inject</a>
+
+### <span id="Inject">Inject</a>
 
 Inject会向组件注入一些属性，目前(v1.10.1)会向组件注入：
 
@@ -373,200 +557,9 @@ Inject会向组件注入一些属性，目前(v1.10.1)会向组件注入：
 | :----  | :----  |
 | suspenseKeys | 一组唯一的key。类型为string[]。用于<a href="#options">options</a>中的suspenseKey，保证suspenseKey的唯一性。 |
 
-## <span id="methods">节点方法</span>
-
-## <a id="relyOn">relyOn</a>
-> 数据节点上的方法
-
-适用的场景：多个数据节点的变化都可引起一个数据节点更新，多对一的关系。
-
-```javascript
-const demo1 = gluer(null);
-const demo2 = gluer(null);
-const demo3 = gluer(null);
-
-const demo = gluer(null);
-
-const unsubscribe = demo.relyOn([demo1, demo2, demo3], (data, state) => 
-{
- // data[0] 为 demo1的值
- // data[1] 为 demo2的值
- // data[2] 为 demo3的值
- // state 为 demo的值
- // 需要返回demo的最新值
-  const newState = { ...state };
-  return newState;
-});
-
-// 解除依赖
-unsubscribe();
-```
-
-定义节点之间的单向依赖关系，入参返回如下：
-
-|入参   | 含义 |
-| :----| :---- |
-| 节点数组 |定义依赖的节点。放置的顺序会直接影响取值顺序|
-
-|入参   | 含义 |
-| :---- | :---- |
-| 回调函数 | 形如(data, state) => state。data是节点数据值的数组，与节点数组一一对应。state 是监听的节点的值。回调函数需要返回监听节点的新值 |
-
-relyOn处理数据依赖更新是单向的。通常情况下适合处理结构上没有嵌套的彼此独立的节点。
-
-需要注意的是，如果是要处理数据的双向依赖，比如：
-```javascript
-const a = gluer('');
-const b = gluer('');
-
-a.relyOn([b], (data, state) => {
-  // todo
-});
-
-b.relyOn([a], (data, state) => {
-  // todo
-})
-```
-
-## <a id="relyOff">relyOff</a>
-
-解绑节点上所有的依赖监听
-
-```javascript
-const a = gluer('');
-a.relyOff();
-```
-
-## <a id="#onChange">onChange</a>
-
-节点数据发生变化时会执行通过该方法传入的回调函数
-
-| 入参 | 含义 |
-| :---- | :---- |
-| callback函数(必填) | 节点数据发生变化时会执行的回调 |
-
-```javascript
-const model = gluer('');
-
-model.onChange((state) => { console.log(state) });
-
-```
-
-这个方法用于需要节点主动向外发布数据的场景。
-
-## <a id="#offChange">offChange</a>
-
-解除通过onChange注册的回调
-
-| 入参 | 含义 |
-| :---- | :---- |
-| callback函数（可选） | 注册的回调 |
-
-```javascript
-const model = gluer('');
-
-const callback = (state) => {
-  console.log(state);
-};
-
-model.onChange(callback);
-
-model.offChange(callback);
-
-model.offChange(); // 解除节点上所有通过onChange注册的回调函数
-```
-
-## <a id="silent">silent</a>
-> 静默地更新数据节点的内容
-
-该方法和直接使用节点更新内容一样，只是不会进行数据更新的广播，订阅了该数据的回调函数或者组件不会在此次更行中被执行或者重新渲染。
-在需要优化组件渲染频率的时候可以考虑使用它。
-
-上面<a href="#useDerivedStateToModel">useDerivedStateToModel</a>内部就调用了silent方法。
-这方法感觉还挺有用的😁。
-
-```js
-const [, casesModel] = useIndividualModel < Flow.Case[] > (node.switch_case || []);
-const [cases] = useDerivedStateToModel(props, casesModel, (nextProps, prevProps, state) => {
-  if (nextProps.node !== prevProps.node) {
-    return nextProps.node.switch_case || [];
-  }
-  return state;
-});
-```
-
-## <a id="track">track</a>
-> 开始记录数据节点每次更新后的内容
-
-节点开始记录数据节点每次更新后的内容，并把当前内容做为第一条记录。
-
-```javascript
-const page = gluer('page 1');
-page.track(); // 开始记录 page的变更历史
-```
-## <a id="flush">flush</a>
- > 清除记录，并停止记录
-
-节点停止记录状态历史，并把记录的状态历史清空。和track搭配使用
-
-```javascript
-const page = gluer('page 1');
-page.track(); // 开始记录 page的变更历史
-// 中间省略若干代码
-page.flush(); // 停止记录 清除page变更历史
-```
-## <a id="go">go</a>
-> 将数据节点的内容更新为指定记录内容
-
-在节点记录的状态历史中前进后退，达到历史状态的快速重现和恢复。
-
-| 入参 | 含义 |
-| :--- | :--- |
-| step(Number类型) | 整数。负数表示后退多少个记录，正数表示前进多少个记录 |
-
-```javascript
-const page = gluer('page 1');
-page.track(); // 开始记录 page的变更历史
-
-page('page 2');
-
-page('page 4');
-
-page.go(-1); // 回退到page 2
-page.go(-1); // 回退到page 1
-page.go(2); // 前进到page 4
-page.go(-2); // 后退到page 1
-
-page.flush(); // 停止记录 清除page变更历史
-```
-
-## <a id="race">race</a>
-> 处理数据节点更新出现的竞争问题
-
-简化上面<a href="#genRaceQueue">genRaceQueue</a>的例子
-```js
-// p1请求
-someModel.race(params, async (data, state) => {
-  return await fetchRemote(data);
-});
-// p2请求
-someModel.race(async (data, state) => { return await fetchRemote() })
-```
-
-## <a id="preTreat">preTreat</a>
-> 预处理数据，可得到结果而不更新节点
-
-此方法可能用于一些依据处理结果来做条件判断的场景
-
-## <a id="cache">cache</a>
-> 缓存异步数据，使用方式同race，因为内部调用的<a href="#race">race</a>方法。详情见[issue#31](https://github.com/ZhouYK/femo/issues/31)
-
-## <a id="cacheClean">cacheClean</a>
-> 清除异步数据的缓存
-
 ## 补充说明
 
-### <a id='options'>options</a>
+### <span id='options'>options</a>
 
 #### suspenseKey
 字符串类型。如果传入了非空的字符串，则表示开启Suspense模式，需要和Suspense组件配合使用。尽量保证不会出现两个相同的suspenseKey。可以使用<a href='#Inject'>Inject</a>高阶函数来为组件注入suspenseKey，可以省去自定义suspenseKey的工作。
@@ -595,6 +588,13 @@ cache一般适用于数据本身使用范围广（或者数据所在的组件使
 
 需要说明的是：如果传入了control model，组件首次渲染时不会调用service；control model会一直控制useModel和useIndividualModel
 返回的status，直到调用service进行了一次异步更新(注意是异步更新，同步更新不会解除control model的控制)。
+
+
+### 循环依赖
+
+一旦发现在模型的调用链中出现了循环，会在那个点终止，在代码层面表现为直接返回。终止点不会执行更新逻辑，终止以前的调用不受影响。
+模型在异步回调函数中的每一次调用都会被视为一次调用链的起始。也就是在说异步回调进行模型调用更新，不会记录之前的调用栈。
+
 
 ## 类型支持
 
