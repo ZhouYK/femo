@@ -71,7 +71,7 @@
 		"ts": "never",
 		"tsx": "never"
 	  }
-	]
+	],
   },
   "overrides": [{
     "files": ["src", "typings", "test"],

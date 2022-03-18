@@ -3,9 +3,7 @@ import useDerivedStateWithModel from './useDerivedStateWithModel';
 
 /**
  *
- * @param initState S | (() => S)，可能没有
- * @param callback (state: S) => S， 如果没有initState，callback的返回值将用来初始化
- * @param deps any[]
+ * @param args
  */
 const useDerivedState = (...args: any[]) => {
   const { length } = args;

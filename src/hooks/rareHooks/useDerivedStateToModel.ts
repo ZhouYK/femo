@@ -12,7 +12,7 @@ import {GluerReturn} from '../../../index';
  * @param perf 是否开启source的潜比较，优化性能
  */
 
-const useDerivedStateToModel = <P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf = false) => {
+const useDerivedStateToModel = <P, S>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf = false): [S] => {
 
   let state = model();
   const [cachedProps] = useState<{

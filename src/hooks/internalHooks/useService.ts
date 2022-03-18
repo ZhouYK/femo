@@ -6,7 +6,7 @@ type CustomerPromise<T = any> = { success?: boolean; data?: T }  & Promise<T>;
 
 const cache: { [index: string]: CustomerPromise } = {  };
 
-const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions) => {
+const useService = <T>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions): void => {
   const [service] = deps || [];
   const firstRenderFlagRef = useRef(true);
   const serviceCacheRef = useRef(service);

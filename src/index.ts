@@ -8,7 +8,6 @@ export { default as useDerivedStateToModel } from './hooks/rareHooks/useDerivedS
 export { default as useDerivedModel } from './hooks/rareHooks/useDerivedModel';
 export { default as useBatchDerivedStateToModel } from './hooks/rareHooks/useBatchDerivedStateToModel';
 export { default as useBatchDerivedModel } from './hooks/rareHooks/useBatchDerivedModel';
-export { default as useEnhancedCallback } from './hooks/rareHooks/useEnhancedCallback';
 export { default as useDerivedState } from './hooks/useDerivedState';
 export { default as useDerivedStateWithModel } from './hooks/useDerivedStateWithModel';
 export { default as useSubscribe } from './hooks/useSubscribe';

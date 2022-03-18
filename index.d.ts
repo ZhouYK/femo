@@ -1,6 +1,5 @@
-
 // gluer
-import {DependencyList, FC} from 'react';
+import {FC} from 'react';
 import {DerivedSpace} from './src/hooks/rareHooks/useBatchDerivedStateToModel';
 import {promiseDeprecated, promiseDeprecatedFromClonedModel} from './src/constants';
 import {ErrorFlag} from './src/genRaceQueue';
@@ -87,10 +86,6 @@ export type ModelMethod<S> = {
 
 export type GluerReturn<S> = GluerReturnFn<S> & ModelMethod<S>;
 
-export type EnhancedCallback<F extends (...args: any[]) => any> = F & {
-  renew: () => void;
-};
-
 export interface InjectProps {
   suspenseKeys: string[];
 }
@@ -120,7 +115,6 @@ export function useIndividualModel<S = any>(initState: S | (() => S), deps?: [Se
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
-export function useEnhancedCallback<T extends (...args: any) => any>(callback: T, deps: DependencyList): EnhancedCallback<T>;
 export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
 
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];

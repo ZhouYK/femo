@@ -6,7 +6,7 @@ import {promiseDeprecatedError} from '../../genRaceQueue';
 import runtimeVar from '../../runtimeVar';
 import {promiseDeprecated, promiseDeprecatedFromClonedModel} from '../../constants';
 
-const runtimeVarAssignment = (callback: () => Promise<any>) => {
+const runtimeVarAssignment = <P>(callback: () => Promise<P>) => {
   runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecatedFromClonedModel;
   const result = callback();
   runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecated;
@@ -16,8 +16,9 @@ const runtimeVarAssignment = (callback: () => Promise<any>) => {
  *
  * @param model
  * @param modelDeps 用于减少一次组件rerender，因为异步获取状态变更时会去更新loading，所以当loading变更时静默掉订阅的回调。clonedModel中所有异步更新都应该加上这个
+ * @param options
  */
-const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][] = [], options?: ServiceOptions<T>): [GluerReturn<T>, ModelStatus] => {
+const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][] = [], options?: ServiceOptions<T>): [GluerReturn<T>, ModelStatus] => {
   const { control } = options || {};
   const unmountedFlagRef = useRef(false);
   const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
@@ -62,7 +63,7 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
   // @ts-ignore
   const [clonedModel] = useState<GluerReturn<T>>(() => {
 
-    const statusHandleFn = (p: Promise<any>) => {
+    const statusHandleFn = <P>(p: Promise<P>) => {
       // 一旦调用statusHandleFn，表示已经不受外部控制状态了
       underControl.current = false;
       cacheControlRef.current = undefined;
@@ -105,7 +106,8 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
     };
 
     // ModelMethod<T>
-    const fn = (...args: any[]) => {
+    // @ts-ignore
+    const fn: GluerReturn<T> = (...args: never[]) => {
       // @ts-ignore
       const res = model.preTreat(...args);
       if (args.length === 0) return res;
@@ -119,29 +121,20 @@ const useCloneModel = <T>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][]
       return model(res);
     };
 
-    Object.keys(model).forEach((key) => {
-      // 需要对异步数据做单独处理，因为要加上异步状态的追踪
-      if (key === 'race') {
-        // @ts-ignore
-        fn.race = (...args: any[]) => {
-          // @ts-ignore
-          const r = model.preTreat(...args);
-          return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || modelDeps)));
-        };
-      } else if (key === 'cache') {
-        // 理由同 race
-        // @ts-ignore
-        fn.cache = (...args: any[]) => {
-          if (args.length === 0) return model.cache();
-          // @ts-ignore
-          const r = model.preTreat(...args);
-          return runtimeVarAssignment(() => statusHandleFn(model.cache(r, defaultReducer, args[2] || modelDeps)));
-        };
-      } else {
-        // @ts-ignore
-        fn[key] = (...args: any[]) => model[key](...args);
-      }
-    });
+    Object.setPrototypeOf(fn, model);
+    fn.race = (...args: any[]) => {
+      // @ts-ignore
+      const r = model.preTreat(...args);
+      return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || modelDeps)));
+    };
+
+    // @ts-ignore
+    fn.cache = (...args: never[]) => {
+      if (args.length === 0) return model.cache();
+      // @ts-ignore
+      const r = model.preTreat(...args);
+      return runtimeVarAssignment(() => statusHandleFn(model.cache(r, defaultReducer, args[2] || modelDeps)));
+    };
     return fn;
   });
 
