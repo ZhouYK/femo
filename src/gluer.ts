@@ -235,11 +235,7 @@ function gluer(...args: any[]) {
   fn = basicLogic(false);
 
   fn.reset = () => {
-    if (typeof initState === 'function') {
-      fn(() => initialState);
-    } else {
-      fn(initState);
-    }
+    fn(initState);
   }
 
   fn.relyOn = (models: GluerReturn<any>[], callback: (data: any[], state: typeof gluerState) => any) => {

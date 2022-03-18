@@ -1,6 +1,6 @@
 {
   "description": "frontend data management",
-  "version": "1.15.2",
+  "version": "1.15.3",
   "keywords": [
     "functional program",
     "frontend",
@@ -11,7 +11,7 @@
   "author": "zhouyk",
   "license": "MIT",
   "main": "dist/cj/index.js",
-  "name": "femo",
+  "name": "femo-local",
   "publishConfig": {
     "access": "public"
   },
@@ -58,8 +58,8 @@
   "scripts": {
     "codecov": "codecov -t 49032a93-7d9a-4205-b14f-2ce81b8a8662",
     "clean": "rm -rf dist",
-    "build:cj": "cross-env NODE_ENV=cj babel --extensions \".ts\" --presets @babel/preset-typescript src --out-dir dist/cj",
-    "build:es": "babel --extensions \".ts\" --presets @babel/preset-typescript src --out-dir dist/es",
+    "build:cj": "cross-env NODE_ENV=cj babel --extensions \".ts,.tsx\" --presets @babel/preset-typescript src --out-dir dist/cj",
+    "build:es": "babel --extensions \".ts,.tsx\" --presets @babel/preset-typescript src --out-dir dist/es",
     "prebuild": "concurrently \"npm run clean\" \"npm run test\"",
     "build": "concurrently -m 6 'npm:build:*'",
     "test": "jest --no-cache",
