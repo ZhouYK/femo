@@ -1,5 +1,6 @@
 import { useState} from 'react';
-import gluer, {defaultReducer} from '../gluer';
+import { defaultReducer } from '../funcs/basic';
+import gluer from '../gluer';
 import {GluerReturn, ModelStatus, Service, ServiceOptions} from '../../index';
 import useModel from './useModel';
 

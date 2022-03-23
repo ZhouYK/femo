@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {GluerReturn, ModelStatus, ServiceControl, ServiceOptions} from '../../../index';
-import {defaultReducer} from '../../gluer';
+import { clonedModelNeededKeys } from '../../funcs/api';
+import { defaultReducer } from '../../funcs/basic';
 import {isAsync, isModel} from '../../tools';
 import {promiseDeprecatedError} from '../../genRaceQueue';
 import runtimeVar from '../../runtimeVar';
@@ -121,7 +122,6 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<
       return model(res);
     };
 
-    Object.setPrototypeOf(fn, model);
     fn.race = (...args: any[]) => {
       // @ts-ignore
       const r = model.preTreat(...args);
@@ -135,6 +135,11 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<
       const r = model.preTreat(...args);
       return runtimeVarAssignment(() => statusHandleFn(model.cache(r, defaultReducer, args[2] || modelDeps)));
     };
+    for (let i = 0; i < clonedModelNeededKeys.length; i += 1) {
+      const key = clonedModelNeededKeys[i];
+      // @ts-ignore
+      fn[key] = (...args: any[]) => model[key](...args);
+    }
     return fn;
   });
 
