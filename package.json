@@ -1,6 +1,6 @@
 {
   "description": "frontend data management",
-  "version": "1.15.3",
+  "version": "1.15.6",
   "keywords": [
     "functional program",
     "frontend",
@@ -11,7 +11,7 @@
   "author": "zhouyk",
   "license": "MIT",
   "main": "dist/cj/index.js",
-  "name": "femo-local",
+  "name": "femo",
   "publishConfig": {
     "access": "public"
   },
