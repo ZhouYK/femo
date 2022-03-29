@@ -35,7 +35,7 @@ const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model
   if (flag.current) {
     derivedSpace.forEach((ds, index) => {
       const prevSource = cachedMap.current.get(index);
-      if (ds.perf) {
+      if (ds.perf ?? true) {
         if (!Object.is(prevSource, ds.source)) {
           state = ds.callback(ds.source, prevSource, state);
         }
