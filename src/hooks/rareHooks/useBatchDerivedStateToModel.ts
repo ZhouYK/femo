@@ -2,10 +2,14 @@ import {useState} from 'react';
 import {GluerReturn} from '../../../index';
 import useModel from '../useModel';
 
+interface PreviousDerivedStatus<T = any> {
+  source: T;
+  prev: PreviousDerivedStatus;
+  stateChanged?: boolean;
+}
 export interface DerivedSpace<S, T> {
   source: T;
-  callback: (nextSource: T, prevSource: T, state: S) => S;
-  perf?: boolean;
+  callback: (nextSource: T, prevSource: T, state: S, previousStatus: PreviousDerivedStatus) => S;
 }
 
 /**
@@ -21,10 +25,17 @@ const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model
     }
   });
   const [cachedMap] = useState(() => {
-    const map = new Map<number, any>();
+    const map = new Map<number, PreviousDerivedStatus>();
     derivedSpace.forEach((ds, index) => {
-      map.set(index, ds.source);
-      state = ds.callback(ds.source, ds.source, state);
+      const prevDerivedSpacePositionState = map.get(index - 1);
+      const tmp = ds.callback(ds.source, ds.source, state, prevDerivedSpacePositionState);
+      const derivedSpacePositionState: PreviousDerivedStatus = {
+        source: ds.source,
+        stateChanged: !Object.is(tmp, state),
+        prev: prevDerivedSpacePositionState,
+      };
+      map.set(index, derivedSpacePositionState);
+      state = tmp;
     });
     return {
       current: map,
@@ -34,25 +45,18 @@ const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model
   // 不是第一次了
   if (flag.current) {
     derivedSpace.forEach((ds, index) => {
-      const prevSource = cachedMap.current.get(index);
-      if (ds.perf ?? true) {
-        if (!Object.is(prevSource, ds.source)) {
-          state = ds.callback(ds.source, prevSource, state);
-        }
-      } else {
-        state = ds.callback(ds.source, prevSource, state);
-      }
-      cachedMap.current.set(index, ds.source);
+      const derivedStatus = cachedMap.current.get(index);
+      const { source, prev } = derivedStatus;
+      const tmp = ds.callback(ds.source, source, state, prev);
+      derivedStatus.source = ds.source;
+      derivedStatus.stateChanged = !Object.is(tmp, state);
+      state = tmp;
     });
   }
   if (!flag.current) {
     flag.current = true;
   }
-  if (typeof state === 'function') {
-    model.silent(() => state);
-  } else {
-    model.silent(state);
-  }
+  model.silent(state);
   useModel(model);
   return [model()];
 }
