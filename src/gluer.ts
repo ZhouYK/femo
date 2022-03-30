@@ -246,7 +246,7 @@ function gluer(...args: any[]) {
     const unsub = subscribe(models, (...data: any[]) => {
       // 如果当前fn已经出现在调用链中，则不执行回调，因为回调中很可能有副作用
       if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return;
-      fn(() => callback(data, fn()));
+      fn(callback(data, fn()));
     }, false);
     unsubscribeRelyArr.push(unsub);
     return unsub;
