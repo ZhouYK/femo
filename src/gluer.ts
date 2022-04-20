@@ -37,7 +37,9 @@ const executeCallback = (targetDeps: GluerReturn<any>[]) => {
     call(...values);
   })
 }
-
+interface Reducer {
+  (data: any, state: any): any;
+}
 /**
  * 节点生成函数
  * @returns {function(): {action: *, reducer: *, initState: *}}
