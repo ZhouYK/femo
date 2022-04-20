@@ -27,7 +27,7 @@ const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model
   const [cachedMap] = useState(() => {
     const map = new Map<number, PreviousDerivedStatus>();
     derivedSpace.forEach((ds, index) => {
-      const prevDerivedSpacePositionState = map.get(index - 1);
+      const prevDerivedSpacePositionState = map.get(index - 1) as PreviousDerivedStatus;
       const tmp = ds.callback(ds.source, ds.source, state, prevDerivedSpacePositionState);
       const derivedSpacePositionState: PreviousDerivedStatus = {
         source: ds.source,
@@ -46,10 +46,10 @@ const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model
   if (flag.current) {
     derivedSpace.forEach((ds, index) => {
       const derivedStatus = cachedMap.current.get(index);
-      const { source, prev } = derivedStatus;
+      const { source, prev } = derivedStatus as PreviousDerivedStatus;
       const tmp = ds.callback(ds.source, source, state, prev);
-      derivedStatus.source = ds.source;
-      derivedStatus.stateChanged = !Object.is(tmp, state);
+      (derivedStatus as PreviousDerivedStatus).source = ds.source;
+      (derivedStatus as PreviousDerivedStatus).stateChanged = !Object.is(tmp, state);
       state = tmp;
     });
   }
