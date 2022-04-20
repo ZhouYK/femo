@@ -62,7 +62,7 @@
     "build:es": "babel --extensions \".ts,.tsx\" --presets @babel/preset-typescript src --out-dir dist/es",
     "prebuild": "concurrently \"npm run clean\" \"npm run test\"",
     "build": "concurrently -m 6 'npm:build:*'",
-    "test": "jest --no-cache",
+    "test": "jest --no-cache --maxWorkers 2",
     "build:umd": "rollup --config rollup.config.js --environment NODE_ENV:production"
   },
   "devDependencies": {

@@ -91,12 +91,16 @@ describe('customHandler test', () => {
       return Promise.resolve(data);
     }).catch((err: any) => Promise.reject(err))
 
-    const rejectPromise = name('promise reject', async () => {
-      await Promise.reject('promise reject');
-      return 'promise reject';
+    const rejectPromise = name('promise reject', async (_d, s) => {
+      try {
+        await Promise.reject('promise reject');
+        return 'promise reject';
+      } catch (err) {
+        return s;
+      }
     });
 
-    expect(rejectPromise).toEqual(Promise.reject('promise reject'));
+    expect(rejectPromise).toEqual(Promise.resolve('promise reject'));
 
     const newAge = age(5, async (data) => {
       return data + 1;
