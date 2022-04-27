@@ -140,6 +140,9 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<
 
   useEffect(() => () => {
     unmountedFlagRef.current = true;
+    if (cacheControlOnChangeUnsub.current) {
+      cacheControlOnChangeUnsub.current();
+    }
   }, []);
 
   return [clonedModel, status];

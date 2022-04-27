@@ -42,8 +42,18 @@ export interface ServiceControl<D = any> extends ModelStatus{
 
 export type Service<T> = (state: T) => Promise<T> | T;
 
+
+export interface SuspenseOptions {
+  key: string;
+  persist?: boolean;
+}
+
 export interface ServiceOptions<S = any> {
+  /** @deprecated
+   *  please use suspense.key
+   * */
   suspenseKey?: string; // 非空字符串
+  suspense?: SuspenseOptions;
   cache?: boolean; // 是否开启节点的缓存（只针对异步数据有效，底层调用的model.cache）
   onChange?: (nextState: S, prevState: S) => void; // 节点数据变更时向外通知，一般对组件外使用（组件内的有useDerivedxxx系列）
   control?: GluerReturn<ServiceControl>; //
@@ -109,9 +119,9 @@ export const promiseDeprecatedError: string;
 
 export function genRaceQueue(): RaceQueueObj;
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
-export function useModel<T = any, D = any>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus];
+export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus];
 export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
-export function useIndividualModel<S = any>(initState: S | (() => S), deps?: [Service<S>], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
+export function useIndividualModel<S = any>(initState: S | (() => S), service?: Service<S>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];

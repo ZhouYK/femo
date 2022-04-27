@@ -1,7 +1,7 @@
 import useModel from '../../src/hooks/useModel';
 import { act, renderHook } from "@testing-library/react-hooks";
 import gluer from "../../src/gluer";
-import {useCallback, useState} from "react";
+import {useState} from "react";
 import {ServiceControl} from "../../index";
 
 const model = gluer(0);
@@ -67,13 +67,13 @@ describe('useModel test', () => {
     model.reset();
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback((s) => {
+      const service = (s: number) => {
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return s;
-      }, [count]);
-      const [age, clonedModel, { loading }] = useModel(model, [service]);
+      };
+      const [age, clonedModel, { loading }] = useModel(model, service, [count]);
       return {
         age,
         clonedModel,
@@ -126,13 +126,15 @@ describe('useModel test', () => {
     model.reset();
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback(() => {
+
+      const service = () => {
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return count;
-      }, [count]);
-      const [age, clonedModel, { loading }] = useModel(model, [service], { cache: true });
+      };
+
+      const [age, clonedModel, { loading }] = useModel(model, service, [count], { cache: true });
       return {
         age,
         clonedModel,
@@ -212,14 +214,14 @@ describe('useModel test', () => {
     });
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback(() => {
+      const service = () => {
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return count;
-      }, [count]);
+      };
 
-      const [age, clonedModel, { loading }] = useModel(model, [service], { onChange: onChange_mock });
+      const [age, clonedModel, { loading }] = useModel(model, service, [count], { onChange: onChange_mock });
       return {
         age,
         clonedModel,
@@ -300,14 +302,15 @@ describe('useModel test', () => {
 
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback(() => {
+
+      const service = () => {
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return count;
-      }, [count]);
+      };
 
-      const [age, clonedModel, { loading }] = useModel(model, [service]);
+      const [age, clonedModel, { loading }] = useModel(model,  service,[count]);
       return {
         age,
         clonedModel,
@@ -357,15 +360,15 @@ describe('useModel test', () => {
     });
     const { result: result1, unmount: unmount1, waitForNextUpdate: waitForNextUpdate1 } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback(() => {
+
+      const service = () => {
         service_call_mock();
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return count;
-      }, [count]);
-
-      const [age, clonedModel, { loading }] = useModel(model1, [service]);
+      };
+      const [age, clonedModel, { loading }] = useModel(model1, service, [count]);
       return {
         age,
         clonedModel,
@@ -384,15 +387,15 @@ describe('useModel test', () => {
     const model2 = gluer(0);
     const { result: result2, unmount: unmount2 } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback(() => {
+      const service = () => {
         service_control_call_mock();
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return count;
-      }, [count]);
+      };
 
-      const [age, clonedModel, { loading, successful, }] = useModel(model2, [service], { control: controlModel });
+      const [age, clonedModel, { loading, successful, }] = useModel(model2, service, [count], { control: controlModel });
       return {
         age,
         clonedModel,

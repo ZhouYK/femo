@@ -1,6 +1,6 @@
 import useIndividualModel from "../../src/hooks/useIndividualModel";
 import {act, renderHook} from "@testing-library/react-hooks";
-import {useCallback, useState} from "react";
+import {useState} from "react";
 
 
 describe('useIndividualModel test', () => {
@@ -76,13 +76,13 @@ describe('useIndividualModel test', () => {
 
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback((s) => {
+      const service = (s: number) => {
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return s;
-      }, [count]);
-      const [state, model, clonedModel, { loading }] = useIndividualModel(count, [service]);
+      };
+      const [state, model, clonedModel, { loading }] = useIndividualModel(count, service, [count]);
       return {
         state,
         model,
@@ -136,13 +136,13 @@ describe('useIndividualModel test', () => {
   test('useIndividualModel cache', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = useCallback(() => {
+      const service = () => {
         if (count < 6) {
           return Promise.resolve(count + 1);
         }
         return count;
-      }, [count]);
-      const [state, model, clonedModel, { loading }] = useIndividualModel(count, [service], {
+      };
+      const [state, model, clonedModel, { loading }] = useIndividualModel(count, service, [count], {
         cache: true,
       });
       return {

@@ -10,7 +10,8 @@ import {defaultServiceOptions} from '../constants';
  * 将外部model注入到组件内部的自定义钩子函数，model生命周期不跟随组件，是共享数据
  * 区别于useIndividualModel
  * @param model 数据节点函数
- * @param deps 更新model的服务(可选) 每次deps中的service变更就会去获取更新一次model
+ * @param service (可选) 更新model的服务
+ * @param deps (可选) 每次deps中的元素变更就会去获取更新一次model
  * @param options {
  * suspenseKey: string（是否开启Suspense模式）；
  * cache: boolean（是否启用model的缓存）;
@@ -18,7 +19,7 @@ import {defaultServiceOptions} from '../constants';
  * control: GluerReturn<ServiceControl>;
  * } 每次函数运行都是取的最新的options的值
  */
-const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus] => {
+const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus] => {
   const finalOptions = {
     ...defaultServiceOptions,
     ...options,
@@ -29,7 +30,7 @@ const useModel = <T = any>(model: GluerReturn<T>, deps?: [Service<T>], options?:
 
   const [modelDeps] = useState(() => [model]);
   const [clonedModel, status] = useCloneModel(model, [modelDeps], finalOptions);
-  useService(clonedModel, deps, finalOptions);
+  useService(clonedModel, service, deps, finalOptions);
   const [cachedState] = useState(() => {
     return {
       data: model(),
