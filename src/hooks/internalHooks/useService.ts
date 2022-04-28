@@ -20,14 +20,13 @@ const depsDifferent = (source: any[] = [], target: any[] = []) => {
 }
 
 const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[], options?: ServiceOptions): void => {
-  const { suspenseKey, suspense, cache: cacheFlag, control } = options || {};
+  const { suspenseKey, suspense, control } = options || {};
   const susKey = suspenseKey || suspense?.key;
   const depsRef = useRef<any[] | undefined>(deps);
 
   const firstRenderFlagRef = useRef(true);
 
   const susPersist = suspense?.persist;
-  const methodName = cacheFlag ? 'cache' : 'race';
   let depsIsDifferent = false;
   let promise;
 
@@ -59,7 +58,7 @@ const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[]
     const result = service(model());
     if (isAsync(result)) {
       if (susKey) {
-        const p: CustomerPromise = model[methodName](() => result as Promise<T>).then((data) => {
+        const p: CustomerPromise = model.race(() => result as Promise<T>).then((data) => {
           p.success = true;
           p.data = data;
         }).catch((err) => {
@@ -71,7 +70,7 @@ const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[]
         throw p
       }
       // 这里更新了loading，会跳过当次渲染
-      model[methodName](() => result as Promise<T>);
+      model.race(() => result as Promise<T>);
     } else if (depsIsDifferent) {
       // 首次渲染出现了suspense状态下依赖变更的情况，这时会跳过上面的throw逻辑，重新执行一遍首次的请求逻辑
       // 当发现这次请求不是异步更新时，为了避免首次数据出现重置的情况（重置是发生suspense组件的特性），需要将上一次的promise throw出去以保证首次渲染时有数据
@@ -92,7 +91,7 @@ const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[]
     } else if (typeof service === 'function') {
         const result = service(model());
         if (isAsync(result)) {
-          const p = model[methodName](() => result as Promise<T>)
+          const p = model.race(() => result as Promise<T>)
           if (susPersist && susKey) {
             const tmpP: CustomerPromise = p.then((data) => {
               tmpP.success = true;

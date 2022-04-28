@@ -85,21 +85,11 @@ function gluer(...args: any[]) {
 
   let unsubscribeRelyArr: (() => void)[] = [];
 
-  let cachedData: any;
-  let cachedFlag = false;
-  let fromCache = false;
-
   let fn: any;
   let selfDeps: GluerReturn<any>[] = [];
 
   // mutedDeps：不执行其回调的依赖数组
-  // curFromCache：是否来自cache方法的异步更新，默认 false（否）
-  const updateFn = (data: any, silent: boolean, mutedDeps: GluerReturn<any>[][] = [], curFromCache = false) => {
-    if (curFromCache && !cachedFlag) {
-      cachedFlag = true;
-      cachedData = data;
-    }
-
+  const updateFn = (data: any, silent: boolean, mutedDeps: GluerReturn<any>[][] = []) => {
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
       if (!silent) {
@@ -171,8 +161,6 @@ function gluer(...args: any[]) {
       if (process.env.NODE_ENV === 'development' && isTagged(tempResult)) {
         console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
       }
-      // 只有异步更新才有可能需要缓存
-      const tmpFromCache = fromCache;
       // promise失败的情况则不用关心 forAsyncRuntimeDepsModelCollectedMap
       // 需要在promise失效时清除 runtimeVar.runtimeDepsModelCollectedMap
 
@@ -189,7 +177,7 @@ function gluer(...args: any[]) {
           // 异步回调中延续依赖
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
         }
-        updateFn(data, silent, mutedDeps, tmpFromCache);
+        updateFn(data, silent, mutedDeps);
         if (!silent) {
           // 每次异步回调都相当于是一个开始，所以需要在异步回调执行完成时将依赖清空
           runtimeVar.runtimeDepsModelCollectedMap.clear();
@@ -316,29 +304,6 @@ function gluer(...args: any[]) {
   fn.race = (...as: any[]) => rq.push(fn(...as), runtimeVar.runtimePromiseDeprecatedFlag);
 
   fn.preTreat = (...as: any) => preTreat(...as);
-
-  // cache只针对异步更新
-  fn.cache = (...as: any[]) => {
-    if (as.length === 0) {
-      return cachedData;
-    }
-    // 利用js是单线程执行，可设置运行时的状态变量，来给在运行时定义和调用的函数传参
-    fromCache = true;
-    let result;
-    if (cachedFlag) {
-      result = fn.race(() => Promise.resolve(cachedData));
-    } else {
-      result = fn.race(...as);
-    }
-
-    fromCache = false;
-    return result;
-  };
-
-  fn.cacheClean = () => {
-    cachedFlag = false;
-    cachedData = undefined;
-  };
 
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,

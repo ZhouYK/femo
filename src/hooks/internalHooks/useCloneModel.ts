@@ -127,14 +127,6 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<
       const r = model.preTreat(...args);
       return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || modelDeps)));
     };
-
-    // @ts-ignore
-    fn.cache = (...args: never[]) => {
-      if (args.length === 0) return model.cache();
-      // @ts-ignore
-      const r = model.preTreat(...args);
-      return runtimeVarAssignment(() => statusHandleFn(model.cache(r, defaultReducer, args[2] || modelDeps)));
-    };
     return fn;
   });
 

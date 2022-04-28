@@ -14,7 +14,6 @@ import {defaultServiceOptions} from '../constants';
  * @param deps (可选) 每次deps中的元素变更就会去获取更新一次model
  * @param options {
  * suspenseKey: string（是否开启Suspense模式）；
- * cache: boolean（是否启用model的缓存）;
  * onChange: (nextState, prevState) => void;
  * control: GluerReturn<ServiceControl>;
  * } 每次函数运行都是取的最新的options的值

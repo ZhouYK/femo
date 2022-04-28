@@ -10,7 +10,7 @@ import useModel from './useModel';
  * @param initState
  * @param service (可选) 更新model的服务
  * @param deps (可选) 每次deps中的元素变更就会去获取更新一次model
- * @param options suspenseKey: string（是否开启Suspense模式）；cache: boolean（是否启用model的缓存）;  onChange: (nextState, prevState) => void;
+ * @param options suspenseKey: string（是否开启Suspense模式）; onChange: (nextState, prevState) => void;
  */
 const useIndividualModel = <S>(initState: S | (() => S), service?: Service<S>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {
   const [model] = useState(() => {

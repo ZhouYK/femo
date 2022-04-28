@@ -54,7 +54,6 @@ export interface ServiceOptions<S = any> {
    * */
   suspenseKey?: string; // 非空字符串
   suspense?: SuspenseOptions;
-  cache?: boolean; // 是否开启节点的缓存（只针对异步数据有效，底层调用的model.cache）
   onChange?: (nextState: S, prevState: S) => void; // 节点数据变更时向外通知，一般对组件外使用（组件内的有useDerivedxxx系列）
   control?: GluerReturn<ServiceControl>; //
 }
