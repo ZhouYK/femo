@@ -168,11 +168,12 @@ function gluer(...args: any[]) {
         // @ts-ignore
         forAsyncRuntimeDepsModelCollectedMap = null;
       };
+      const errorFlag = runtimeVar.runtimePromiseDeprecatedFlag;
       const promise: any = (tempResult as Promise<any>).catch(e => {
-        raceHandle(promise, depsClearCallback);
+        raceHandle(promise, depsClearCallback, errorFlag);
         return Promise.reject(e);
       }).then((data) => {
-        raceHandle(promise, depsClearCallback);
+        raceHandle(promise, depsClearCallback, errorFlag);
         if (!silent) {
           // 异步回调中延续依赖
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;

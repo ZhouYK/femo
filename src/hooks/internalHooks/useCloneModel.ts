@@ -6,6 +6,13 @@ import {promiseDeprecatedError} from '../../genRaceQueue';
 import runtimeVar from '../../runtimeVar';
 import {promiseDeprecated, promiseDeprecatedFromClonedModel} from '../../constants';
 
+/**
+ * 需要区分promise竞争是由谁引起的，由origin model还是cloned model
+ * 这里变的差异会导致loading状态的处理会有不同
+ * origin model引发的，意味着 cloned model的更新被取代了，则应该设置loading为false
+ * cloned model引发的，意味着 cloned model自己取代了自己，则loading状态可以保持延续，不用设置
+  */
+
 const runtimeVarAssignment = <P>(callback: () => Promise<P>) => {
   runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecatedFromClonedModel;
   const result = callback();
@@ -92,6 +99,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<
       }).catch((err) => {
         if (unmountedFlagRef.current) return;
         // 如果不是异步竞争引起的异常或者不是clonedModel引起的异步竞争，则需要设置loading状态
+        // 详细信息请看上面的 runtimeVarAssignment 注释
         if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && promiseDeprecated in p)) {
           updateStatus((prevState) => {
             return {
