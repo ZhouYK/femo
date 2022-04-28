@@ -197,13 +197,13 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 - <a href="#onChange">onChange</a>
 - <a href="#offChange">offChange</a>
 - <a href="#silent">silent</a>
-- <a href="#track">track</a>
-- <a href="#flush">flush</a>
-- <a href="#go">go</a>
+- <a href="#track">~~track~~（2.0.0版本已删除）</a>
+- <a href="#flush">~~flush~~（2.0.0版本已删除）</a>
+- <a href="#go">~~go~~（2.0.0版本已删除）</a>
 - <a href="#race">race</a>
 - <a href="#preTreat">preTreat</a>
-- <a href="#cache">cache</a>
-- <a href="#cacheClean">cacheClean</a>
+- <a href="#cache">~~cache~~（2.0.0版本已删除）</a>
+- <a href="#cacheClean">~~cacheClean~~（2.0.0版本已删除）</a>
 
 ### <span id="relyOn">relyOn</span>
 > 声明节点的依赖，并注册回调
@@ -312,9 +312,6 @@ model.offChange(); // 解除节点上所有通过onChange注册的回调函数
 该方法和直接使用节点更新内容一样，只是不会进行数据更新的广播，订阅了该数据的回调函数或者组件不会在此次更行中被执行或者重新渲染。
 在需要优化组件渲染频率的时候可以考虑使用它。
 
-上面<a href="#useDerivedStateToModel">useDerivedStateToModel</a>内部就调用了silent方法。
-这方法感觉还挺有用的😁。
-
 ```js
 const [, casesModel] = useIndividualModel < Flow.Case[] > (node.switch_case || []);
 const [cases] = useDerivedStateToModel(props, casesModel, (nextProps, prevProps, state) => {
@@ -416,13 +413,24 @@ react hook返回的model都是经过包装的，不要对其进行订阅，订�
 用react hook的方式订阅并获取数据节点的内容
 
 
-useModel(model, [deps], [options]);
+2.0.0版本之前：useModel(model, [deps], [options]);
 
-|入参    |含义     |
-| :----  | :----  |
-| model  | (必传)gluer定义的数据 |
-| deps   | (可选)依赖的service数组。[service], service为返回model所需数据的函数，该函数会被注入当前model的值，可返回Promise |
-| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; onChange: (nextState, prevState) => void; control: GluerReturn<{ loading: boolean; successful: boolean; key?: string; data?: any; }>} |
+
+|入参    | 含义                                                                         |
+| :----  |:---------------------------------------------------------------------------|
+| model(必传)  | gluer定义的模型                                                                 |
+| deps(可选)   | 依赖的service数组，形如[service]. service是更新model的函数，形如 (state: S) => S / Promise\<S> |
+| <a href="#options">options(可选)</a> | 一些配置                                                                       |
+
+
+2.0.0版本： useModel(model, service, deps, options);
+
+| 入参                                 | 含义                                |
+|:-----------------------------------|:----------------------------------|
+| model(必传)                          | gluer定义的模型                        |
+| service(可选)                        | 形如: (state: S) => S \ Promise\<S> |
+| deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据     |        
+| <a href="#options">options(可选)</a> | 一些配置 |
 
 
 ```typescript
@@ -440,16 +448,24 @@ const [query] = useState({
   pageSize: 20,
 });
 
-const getList = useCallback(() => {
-  return get('/api/list', query).then((res) => res.data);
-}, []);
-// 在函数组件中使用useModel消费数据
-// listModelWithStatus本质上是对listModel的一层包装，底层使用的是listModel
-// loading状态是listModelWithStatus带来的，用于表明异步更新时数据的加载状态
-
+// 2.0.0版本之前
 // getList用于获取数据，getList的每一次变化都会触发去远端拉取数据
 // suspenseKey 有值了，会开启suspense模式，上层组件中需要有Suspense组件包裹
-const [listData, listModelWithStatus, { loading }] = useModel(listModel, [getList], {
+const getList = useCallback(() => {
+  return get('/api/list', query).then((res) => res.data);
+}, [query]);
+
+const [listData, listModelWithStatus, { loading, successful }] = useModel(listModel, [getList], {
+  suspenseKey: 'list',
+});
+
+// 2.0.0版本
+// 不再依赖getList的变化去触发更新，而是直接依赖变化的条件
+const getList = () => {
+  return get('/api/list', query).then((res) => res.data);
+};
+
+const [listData, listModelWithStatus, { loading, successful }] = useModel(listModel, getList, [query], {
   suspenseKey: 'list',
 });
 
@@ -461,13 +477,22 @@ const [listData, listModelWithStatus, { loading }] = useModel(listModel, [getLis
 ## <span id="useIndividualModel">useIndividualModel</span>
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
 
-useIndividualModel(initState, [deps], [options])
+2.0.0版本之前：useIndividualModel(initState, deps, options)
 
-|入参    | 含义                                                                                                                                                                                        |
-| :----  |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| initState  | (必传)可为函数                                                                                                                                                                                  |
-| deps   | (可选)依赖的service数组。[service], service为返回生成model所需数据的函数，该函数会被注入当前model的值，可返回Promise                                                                                                          |
-| <a href="#options">options</a> | (可选)一些配置。{ suspenseKey?: string; cache?: boolean; onChange: (nextState, prevState) => void; control: GluerReturn<{ loading: boolean; successful: boolean; key?: string; data?: any; }>; } |
+|入参    | 含义                                                                            |
+| :----  |:------------------------------------------------------------------------------|
+| initState(必传)  | 可为函数                                                                          |
+| deps(可选)   | 依赖的service数组，形如[service]. service是更新model的函数，形如 (state: S) => S / Promise\<S> |
+| <a href="#options">options(可选)</a> | 一些配置                                                                          |
+
+2.0.0版本之后：useIndividualModel(initState, service, deps, options)
+
+| 入参                                 | 含义                                             |
+|:-----------------------------------|:-----------------------------------------------|
+| initState(必传)                      | 可为函数， S / () => S                              |
+| service(可选)                        | 用于更新model的函数，形如 (state: S) => S / Promise\<S>; |
+| deps(可选)                           | 依赖数组，更新会驱动service更新model                       |
+| <a href="#options">options(可选)</a> | 一些配置                                           |
 
 ```typescript
 const [query] = useState({
@@ -475,12 +500,12 @@ const [query] = useState({
   pageSize: 20,
 });
 
+// 2.0.0版本之前
 const getList = useCallback(() => {
   return get('/api/list', query).then((res) => res.data);
-}, []);
+}, [query]);
 
-// 和useModel一致，除了返回参数里面多了一个生成的model节点，这里就是listModel
-const [listData, listModel, listModelWithStatus, { loading }] = useIndividualModel({
+const [listData, listModel, listModelWithStatus, { loading, successful }] = useIndividualModel({
   page: 1,
   size: 20,
   list: [],
@@ -488,8 +513,17 @@ const [listData, listModel, listModelWithStatus, { loading }] = useIndividualMod
   suspenseKey: 'list',
 });
 
-// 每次list的变动都会通知useModel，useModel更新listData，rerender组件
-// 和useState很类似
+// 2.0.0版本
+const getList = () => {
+  return get('/api/list', query).then((res) => res.data);
+};
+const [listData, listModel, listModelWithStatus, { loading, successful }] = useIndividualModel({
+  page: 1,
+  size: 20,
+  list: [],
+}, getList, [query], {
+  suspenseKey: 'list',
+});
 
 ```
 
@@ -499,50 +533,61 @@ const [listData, listModel, listModelWithStatus, { loading }] = useIndividualMod
 ### <span id="useDerivedState">useDerivedState</span>
 > 生成衍生数据，并返回model。区别于 useDerivedModel、useBatchDerivedModel，其依赖是个数组，处理更像useEffect
 
-依赖中可以有model，会监听model的变化（model.silent的更新不会通知）
+依赖中可以有model，会监听model的变化。
 
-### <span id="useDerivedStateWithModel">useDerivedStateWithModel</span>
-> 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据。区别于 useDerivedStateToModel、useBatchDerivedStateToModel，其依赖是个数组，处理更像useEffect
+useDerivedState(initState, callback, deps)
+或者
+useDerivedState(callback, deps) // 此时callback充当initState，并且承担依赖变化更新model的职责
 
-依赖中可以有model，会监听model的变化（model.silent的更新不会通知）
+| 入参        | 含义                                        |
+|:----------|:------------------------------------------|
+| initState | S \ () => S                               |
+| callback  | (state: S) => S。更新model的函数，还可以充当initState |
+| deps      | 依赖数组                                      |
+```javascript
+const { count } = props;
 
-### <span id="useException">useException</span>
+const [value, valueModel, valueModelWithStatus, { loading, successful }] = useDerivedState(count, (s: number) => count, [count]);
 
-传入判断条件，手动触发异常，用于提前结束逻辑执行。
-
-```js
-const [flag, updateFlag] = useState(false);
-const [visible, updateVisible] = useState(false);
-const [data, updateData] = useState(null);
-
-const manualException = useException(() => flag, () => visible,);
-
-request().then((data) => {
-  manualException.tryThrow();
-  updateData(data);
-});
+// 其实可以简写为
+const [value, valueModel, valueModelWithStatus, { loading, successful }] = useDerivedState((s: number) => count, [count]);
 
 ```
 
-
 ### 比较逻辑由用户代码处理，类似类组件中的getDerivedStateFromProps
-### <span id="useDerivedStateToModel">useDerivedStateToModel</span>
+### <span id="useDerivedModel">useDerivedModel</span>
 > 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据
 > 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致。
 > useDerivedStateToModel更具泛用性，不仅限于props，而是一切被依赖的数据都可以通过这个方法来处理衍生数据
 
-主要使用场景为：想要使用model的能力，但不希望model是全局共享的。（在可复用组件里面数据共享可能会造成一些问题，这时就期望数据是独立的）
+useDerivedModel(initState, source, callback)
 
-### <span id="useDerivedModel">useDerivedModel</span>
-> 结合了useIndividualModel和useDerivedStateToModel
+| 入参        | 含义                                                                         |
+|:----------|:---------------------------------------------------------------------------|
+| initState | 初始值，形如: S \ () => S                                                        |
+| source    | 衍生来源                                                                       |
+| callback  | 形如：(nextSource, prevSource, state: S) => S，根据前后两次记录的衍生来源，结合当前state，更新model |
+```javascript
 
-在实际运用中发现，如果要使用useDerivedStateToModel，经常会先用useIndividualModel创建一个model。索性就把二者合成一个，方便使用
+const [value, valueModel, valueModelWithStatus, {  loading, successful }] = useDerivedModel(props.defaultValue ?? 0, props, (nextSource, prevSource, state) => {
+  if (nextSource !== prevSource) {
+    if ('value' in nextSource) {
+      return nextSource.value;
+    }
+  } 
+  return state;
+})
 
-### <span id="useBatchDerivedStateToModel">useBatchDerivedStateToModel</span>
-> 是useDerivedStateToModel的扩展版，可以一次处理很多衍生数据依赖
+```
 
 ### <span id="useBatchDerivedModel">useBatchDerivedModel</span>
-> 结合了useIndividualModel和useBatchDerivedStateToModel
+> useDerivedModel只能处理单一的衍生来源，useBatchDerivedModel则可以处理任意多衍生来源
+
+useBatchDerivedModel(initState, {
+    source: source_1,
+    callback: (nextSource, prevSource, state, )
+})
+
 
 
 ### <span href="#HOC">HOC</a>
@@ -561,15 +606,16 @@ Inject会向组件注入一些属性，目前(v1.10.1)会向组件注入：
 
 ### <span id='options'>options</a>
 
-#### suspenseKey
+#### ~~suspenseKey~~(2.0.0已被标记为deprecated)
 字符串类型。如果传入了非空的字符串，则表示开启Suspense模式，需要和Suspense组件配合使用。尽量保证不会出现两个相同的suspenseKey。可以使用<a href='#Inject'>Inject</a>高阶函数来为组件注入suspenseKey，可以省去自定义suspenseKey的工作。
 
-#### cache
-布尔类型。true代表开启异步缓存，false代表关闭异步缓存。开启异步缓存的含义是：一旦开启，则后续所有对数据的异步更新都将以第一次成功更新的异步数据为结果。具体一些开启异步缓存后，第一次异步更新成功的数据会被缓存下来；后续再进行异步更新，数据将保持不变。
-
-可以通过节点方法<a href='#cacheClean'>cacheClean</a>清除缓存数据。
-
-cache一般适用于数据本身使用范围广（或者数据所在的组件使用范围广）、对数据的实时性不敏感的场景。具体含义<a href="#cache">详见</a>
+#### suspense
+```typescript
+export interface SuspenseOptions {
+  key: string; // 等同于suspenseKey，唯一，一旦确定就不要变动，否则会有意外
+  persist?: boolean; // 默认false。false：只在第一次渲染时使用suspense能力；true：一直使用suspense能力
+}
+```
 
 #### onChange
 
