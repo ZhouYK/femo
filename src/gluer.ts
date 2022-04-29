@@ -78,9 +78,6 @@ function gluer(...args: any[]) {
 
   let gluerState = initState;
 
-  const trackArr: any[] = [];
-  let curIndex = 0;
-
   const rq = genRaceQueue();
 
   let unsubscribeRelyArr: (() => void)[] = [];
@@ -93,14 +90,6 @@ function gluer(...args: any[]) {
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
       if (!silent) {
-        const { length } = trackArr;
-        if (length) {
-          if (curIndex < length - 1) {
-            trackArr.splice(curIndex + 1);
-          }
-          trackArr.push(gluerState);
-          curIndex += 1;
-        }
         const targetDeps = refToDepsMap.get(fn) as Set<GluerReturn<any>[]>;
         if (targetDeps) {
           targetDeps.forEach((target) => {
@@ -198,30 +187,6 @@ function gluer(...args: any[]) {
     // 返回函数处理结果
     return tempResult;
   }
-  const historyGoUpdateFn = (step: number) => {
-    const { length } = trackArr;
-    if (length === 0) {
-      return;
-    }
-
-    curIndex += step;
-    if (curIndex < 0) {
-      curIndex = 0;
-    } else if (curIndex > length - 1) {
-      curIndex = length - 1;
-    }
-
-    const data = trackArr[curIndex];
-    if (!(Object.is(data, gluerState))) {
-      gluerState = data;
-      const targetDeps = refToDepsMap.get(fn) as Set<GluerReturn<any>[]>;
-      if (targetDeps) {
-        targetDeps.forEach((targetDep) => {
-          executeCallback(targetDep);
-        })
-      }
-    }
-  }
 
   fn = basicLogic(false);
 
@@ -277,30 +242,6 @@ function gluer(...args: any[]) {
 
 
   fn.silent = basicLogic(true);
-
-  fn.track = () => {
-    if (!trackArr.length) {
-      trackArr.push(gluerState);
-      curIndex = 0;
-    }
-  }
-
-  fn.flush = () => {
-    if (trackArr.length) {
-      trackArr.splice(0);
-      curIndex = 0;
-    }
-  }
-
-  fn.go = (step: number) => {
-    // 如果在model的调用链中出现过，则中断循环更新，不再执行
-    if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return gluerState;
-    runtimeVar.runtimeDepsModelCollectedMap.set(fn, 0);
-    historyGoUpdateFn(step);
-    // 删掉自己
-    runtimeVar.runtimeDepsModelCollectedMap.delete(fn);
-    return gluerState;
-  }
 
   fn.race = (...as: any[]) => rq.push(fn(...as), runtimeVar.runtimePromiseDeprecatedFlag);
 

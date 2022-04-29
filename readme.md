@@ -322,51 +322,6 @@ const [cases] = useDerivedStateToModel(props, casesModel, (nextProps, prevProps,
 });
 ```
 
-### <span id="track">track</span>
-> 开始记录数据节点每次更新后的内容
-
-节点开始记录数据节点每次更新后的内容，并把当前内容做为第一条记录。
-
-```javascript
-const page = gluer('page 1');
-page.track(); // 开始记录 page的变更历史
-```
-### <span id="flush">flush</span>
-> 清除记录，并停止记录
-
-节点停止记录状态历史，并把记录的状态历史清空。和track搭配使用
-
-```javascript
-const page = gluer('page 1');
-page.track(); // 开始记录 page的变更历史
-// 中间省略若干代码
-page.flush(); // 停止记录 清除page变更历史
-```
-### <span id="go">go</span>
-> 将数据节点的内容更新为指定记录内容
-
-在节点记录的状态历史中前进后退，达到历史状态的快速重现和恢复。
-
-| 入参 | 含义 |
-| :--- | :--- |
-| step(Number类型) | 整数。负数表示后退多少个记录，正数表示前进多少个记录 |
-
-```javascript
-const page = gluer('page 1');
-page.track(); // 开始记录 page的变更历史
-
-page('page 2');
-
-page('page 4');
-
-page.go(-1); // 回退到page 2
-page.go(-1); // 回退到page 1
-page.go(2); // 前进到page 4
-page.go(-2); // 后退到page 1
-
-page.flush(); // 停止记录 清除page变更历史
-```
-
 ### <span id="race">race</span>
 > 处理数据节点更新出现的竞争问题
 

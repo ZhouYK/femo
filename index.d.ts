@@ -84,13 +84,8 @@ export type ModelMethod<S> = {
   onChange: (callback: (state: S) => void) => () => void;
   offChange: (callback?: (state: S) => void) => void;
   silent: GluerReturnFn<S>;
-  track: () => void;
-  flush: () => void;
-  go: (step: number) => S;
   race: RaceFn<S>;
   preTreat: GluerReturnFn<S>;
-  cache: CacheFn<S>;
-  cacheClean: () => void;
 };
 
 export type GluerReturn<S> = GluerReturnFn<S> & ModelMethod<S>;
