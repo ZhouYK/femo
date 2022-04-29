@@ -27,15 +27,25 @@ const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: a
   const optionsRef = useRef(finalOptions);
   optionsRef.current = finalOptions;
 
-  const [modelDeps] = useState(() => [model]);
-  const [clonedModel, status] = useCloneModel(model, [modelDeps], finalOptions);
+  const [, updateState] = useState(0);
+  const subscribeCallback = useCallback((_modelData: T) => {
+    // 这里的回调并不会每次变更都执行，因为做了优化
+    // 每次异步更新不同的数据成功时，都不会执行这里
+    // 因为每次异步更新成功后，都有Loading状态更新来rerender组件
+    // 不需要使用updateState来触发更新，所以在useCloneModel中做了静默处理
+    // 所以options中的onChange不应该放在这里
+
+    // 修复bug：不应该用modelData来触发组件更新，因为有可能走到这个回调里面的modelData前后两次一样，因为中间model.silent更新了数据。
+    updateState((count) => count + 1);
+  }, []);
+
+  const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
   useService(clonedModel, service, deps, finalOptions);
   const [cachedState] = useState(() => {
     return {
       data: model(),
     }
   });
-  const [, updateState] = useState(0);
 
   const onChangeCallback = useCallback((state: T) => {
     if (optionsRef.current.onChange) {
@@ -45,24 +55,11 @@ const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: a
     }
   }, []);
 
-  const [offChange] = useState(() => {
-    return model.onChange(onChangeCallback);
-  });
-
-  const [unsub] = useState(() => {
-    return subscribe(modelDeps, (_modelData: T) => {
-      // 这里的回调并不会每次变更都执行，因为做了优化
-      // 每次异步更新不同的数据成功时，都不会执行这里
-      // 因为每次异步更新成功后，都有Loading状态更新来rerender组件
-      // 不需要使用updateState来触发更新，所以在useCloneModel中做了静默处理
-      // 所以options中的onChange不应该放在这里
-
-      // 修复bug：不应该用modelData来触发组件更新，因为有可能走到这个回调里面的modelData前后两次一样，因为中间model.silent更新了数据。
-      updateState((count) => count + 1);
-    }, false)
-  });
-
-  useEffect(() => () => { unsub(); offChange(); }, []);
+  useEffect(() => {
+    const offChange = model.onChange(onChangeCallback);
+    const unsub = subscribe([model], subscribeCallback, false);
+    return () => { unsub(); offChange(); }
+  }, [model]);
 
   return [model(), clonedModel, status];
 };

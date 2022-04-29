@@ -8,7 +8,7 @@ import {
 import {HandleFunc, GluerReturn, Callback, RacePromise} from '../index';
 import {isArray, isAsync, isTagged, tagPromise} from './tools';
 import subscribe from './subscribe';
-import unsubscribe, { refToDepsMap, depsToFnMap } from './unsubscribe';
+import { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
 import genRaceQueue, {ErrorFlag, promiseDeprecatedError} from './genRaceQueue';
 import runtimeVar from './runtimeVar';
 
@@ -27,16 +27,6 @@ const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?:
   promise[errorFlag] = true;
 }
 
-const executeCallback = (targetDeps: GluerReturn<any>[]) => {
-  const callback = depsToFnMap.get(targetDeps) as Set<Callback>;
-  callback.forEach((call) => {
-    const values: any[] = [];
-    for (let k = 0; k < targetDeps.length; k += 1) {
-      values.push(targetDeps[k]());
-    }
-    call(...values);
-  })
-}
 interface Reducer {
   (data: any, state: any): any;
 }
@@ -80,21 +70,26 @@ function gluer(...args: any[]) {
 
   const rq = genRaceQueue();
 
-  let unsubscribeRelyArr: (() => void)[] = [];
-
   let fn: any;
-  let selfDeps: GluerReturn<any>[] = [];
 
   // mutedDeps：不执行其回调的依赖数组
-  const updateFn = (data: any, silent: boolean, mutedDeps: GluerReturn<any>[][] = []) => {
+  const updateFn = (data: any, silent: boolean, mutedCallback: Callback) => {
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
       if (!silent) {
-        const targetDeps = refToDepsMap.get(fn) as Set<GluerReturn<any>[]>;
-        if (targetDeps) {
-          targetDeps.forEach((target) => {
-            if (!mutedDeps.includes(target)) {
-              executeCallback(target);
+        const cbs = modelToCallbacksMap.get(fn) as Set<Callback>;
+        if (cbs) {
+          cbs.forEach((callback) => {
+            if (callback !== mutedCallback) {
+              if (callbackToModelsMap.has(callback)) {
+                const mods = callbackToModelsMap.get(callback) as Set<GluerReturn<any>>;
+                if (mods.has(fn)) {
+                  const values = Array.from(mods).reduce((pre, cur) => {
+                    return [...pre, cur()];
+                  }, [] as any);
+                  callback(...values);
+                }
+              }
             }
           })
         }
@@ -140,7 +135,7 @@ function gluer(...args: any[]) {
     };
     // 不执行回调的依赖数组
     // 第三个参数默认就是mutedDeps
-    const [, ,mutedDeps] = ags;
+    const [, ,mutedCallback] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
       let forAsyncRuntimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
@@ -167,7 +162,7 @@ function gluer(...args: any[]) {
           // 异步回调中延续依赖
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
         }
-        updateFn(data, silent, mutedDeps);
+        updateFn(data, silent, mutedCallback);
         if (!silent) {
           // 每次异步回调都相当于是一个开始，所以需要在异步回调执行完成时将依赖清空
           runtimeVar.runtimeDepsModelCollectedMap.clear();
@@ -182,7 +177,7 @@ function gluer(...args: any[]) {
       return promise;
     }
 
-    updateFn(tempResult, silent, mutedDeps);
+    updateFn(tempResult, silent, mutedCallback);
     deleteSelf();
     // 返回函数处理结果
     return tempResult;
@@ -194,52 +189,29 @@ function gluer(...args: any[]) {
     fn(initState);
   }
 
-  fn.relyOn = (models: GluerReturn<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
+  fn.watch = (models: GluerReturn<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
     if (!isArray(models) || models.length === 0) {
       throw new Error('dependencies should be Array, ant not empty');
     }
 
-    const unsub = subscribe(models, (...data: any[]) => {
+    const subCallback = (...data: any[]) => {
       // 如果当前fn已经出现在调用链中，则不执行回调，因为回调中很可能有副作用
       if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return;
       fn(callback(data, fn()));
-    }, false);
-    unsubscribeRelyArr.push(unsub);
-    return unsub;
+    };
+    return subscribe(models, subCallback, false);
   };
-
-  const relyOffFn = (targetDeps?: GluerReturn<any>[]) => {
-    // 没有传值，则认为是删除节点的全部依赖订阅
-    if (targetDeps === undefined) {
-      for (let i = 0; i < unsubscribeRelyArr.length; i += 1) {
-        const f = unsubscribeRelyArr[i];
-        f();
-      }
-      unsubscribeRelyArr = [];
-    } else {
-      unsubscribe(targetDeps);
-    }
-  };
-
-  /**
-   * 请使用relyOff
-   * @deprecated
-   */
-  fn.off = relyOffFn
-  // 替换off
-  fn.relyOff = relyOffFn;
 
   fn.onChange = (callback: (state: typeof gluerState) => void) => {
     if (typeof callback !== 'function') {
       throw new Error('callback should be function');
     }
-    return subscribe(selfDeps, callback, false);
-  }
 
-  fn.offChange = (callback?: (state: typeof gluerState) => void) => {
-    unsubscribe(selfDeps, callback);
-  }
+    // @ts-ignore
+    const wrappedCallback = (...a: any[]) => callback(...a);
 
+    return subscribe([fn], wrappedCallback, false);
+  }
 
   fn.silent = basicLogic(true);
 
@@ -254,7 +226,6 @@ function gluer(...args: any[]) {
     enumerable: true,
   });
 
-  selfDeps = [fn];
   return fn;
 }
 

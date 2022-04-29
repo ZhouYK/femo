@@ -192,20 +192,20 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 
 ### 节点方法
 
-- <a href="#relyOn">relyOn</a>
-- <a href="#relyOff">relyOff</a>
+- <a href="#watch">watch（原来的relyOn）</a>
 - <a href="#onChange">onChange</a>
-- <a href="#offChange">offChange</a>
 - <a href="#silent">silent</a>
+- <a href="#race">race</a>
+- <a href="#preTreat">preTreat</a>
+- <a href="#offChange">~~offChange~~（2.0.0版本已删除）</a>
 - <a href="#track">~~track~~（2.0.0版本已删除）</a>
 - <a href="#flush">~~flush~~（2.0.0版本已删除）</a>
 - <a href="#go">~~go~~（2.0.0版本已删除）</a>
-- <a href="#race">race</a>
-- <a href="#preTreat">preTreat</a>
+- <a href="#relyOff">~~relyOff~~（2.0.0版本已删除）</a>
 - <a href="#cache">~~cache~~（2.0.0版本已删除）</a>
 - <a href="#cacheClean">~~cacheClean~~（2.0.0版本已删除）</a>
 
-### <span id="relyOn">relyOn</span>
+### <span id="watch">watch</span>
 > 声明节点的依赖，并注册回调
 
 适用的场景：多个数据节点的变化都可引起一个数据节点更新，多对一的关系。
@@ -217,7 +217,7 @@ const demo3 = gluer(null);
 
 const demo = gluer(null);
 
-const unsubscribe = demo.relyOn([demo1, demo2, demo3], (data, state) => 
+const unsubscribe = demo.watch([demo1, demo2, demo3], (data, state) => 
 {
  // data[0] 为 demo1的值
  // data[1] 为 demo2的值
@@ -232,39 +232,30 @@ const unsubscribe = demo.relyOn([demo1, demo2, demo3], (data, state) =>
 unsubscribe();
 ```
 
-定义节点之间的单向依赖关系，入参返回如下：
+定义节点之间的单向依赖关系。
 
-|入参   | 含义 |
-| :----| :---- |
-| 节点数组 |定义依赖的节点。放置的顺序会直接影响取值顺序|
+model.watch(models, callback)
+入参返回如下：
 
-|入参   | 含义 |
-| :---- | :---- |
-| 回调函数 | 形如(data, state) => state。data是节点数据值的数组，与节点数组一一对应。state 是监听的节点的值。回调函数需要返回监听节点的新值 |
+| 入参           | 含义                                                                                |
+|:-------------|:----------------------------------------------------------------------------------|
+| models(必填)   | 模型数组，定义依赖的模型。放置的顺序会直接影响取值顺序                                                       |
+| callback(必填) | 回调函数，形如(data, state) => state。data是模型值的数组，与模型数组一一对应。state 是当前模型的值。回调函数需要返回当前模型的新值 |
 
-relyOn处理数据依赖更新是单向的。通常情况下适合处理结构上没有嵌套的彼此独立的节点。
+watch处理数据依赖更新是单向的。通常情况下适合处理结构上没有嵌套的彼此独立的模型。
 
 需要注意的是，如果是要处理数据的双向依赖，比如：
 ```javascript
 const a = gluer('');
 const b = gluer('');
 
-a.relyOn([b], (data, state) => {
+a.watch([b], (data, state) => {
   // todo
 });
 
-b.relyOn([a], (data, state) => {
+b.watch([a], (data, state) => {
   // todo
 })
-```
-
-### <span id="relyOff">relyOff</span>
-
-解绑节点上所有的依赖监听
-
-```javascript
-const a = gluer('');
-a.relyOff();
 ```
 
 ### <span id="#onChange">onChange</span>
@@ -283,28 +274,6 @@ model.onChange((state) => { console.log(state) });
 ```
 
 这个方法用于需要节点主动向外发布数据的场景。
-
-### <span id="#offChange">offChange</span>
-
-解除通过onChange注册的回调
-
-| 入参 | 含义 |
-| :---- | :---- |
-| callback函数（可选） | 注册的回调 |
-
-```javascript
-const model = gluer('');
-
-const callback = (state) => {
-  console.log(state);
-};
-
-model.onChange(callback);
-
-model.offChange(callback);
-
-model.offChange(); // 解除节点上所有通过onChange注册的回调函数
-```
 
 ### <span id="silent">silent</span>
 > 静默地更新数据节点的内容
@@ -339,12 +308,6 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 > 预处理数据，可得到结果而不更新节点
 
 此方法可能用于一些依据处理结果来做条件判断的场景
-
-### <span id="cache">cache</span>
-> 缓存异步数据，使用方式同race，因为内部调用的<a href="#race">race</a>方法。详情见[issue#31](https://github.com/ZhouYK/femo/issues/31)
-
-### <span id="cacheClean">cacheClean</span>
-> 清除异步数据的缓存
 
 ## 搭配React
 

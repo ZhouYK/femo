@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import {GluerReturn, ModelStatus, ServiceControl, ServiceOptions} from '../../../index';
+import { Callback, GluerReturn, ModelStatus, ServiceControl, ServiceOptions } from '../../../index';
 import {defaultReducer} from '../../gluer';
 import {isAsync, isModel} from '../../tools';
 import {promiseDeprecatedError} from '../../genRaceQueue';
@@ -22,10 +22,10 @@ const runtimeVarAssignment = <P>(callback: () => Promise<P>) => {
 /**
  *
  * @param model
- * @param modelDeps 用于减少一次组件rerender，因为异步获取状态变更时会去更新loading，所以当loading变更时静默掉订阅的回调。clonedModel中所有异步更新都应该加上这个
+ * @param mutedCallback 用于减少一次组件rerender，因为异步获取状态变更时会去更新loading，所以当loading变更时静默掉订阅的回调。clonedModel中所有异步更新都应该加上这个
  * @param options
  */
-const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<any>[][] = [], options?: ServiceOptions<T>): [GluerReturn<T>, ModelStatus] => {
+const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback, options?: ServiceOptions<T>): [GluerReturn<T>, ModelStatus] => {
   const { control } = options || {};
   const unmountedFlagRef = useRef(false);
   const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
@@ -124,7 +124,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<
         // 目前最多三个参数
         // 如果第三个参数手动传了，以手动为准
         // 没传，以传入的modelDeps为准
-        return statusHandleFn(model(res, defaultReducer, args[2] || modelDeps) as Promise<T>);
+        return statusHandleFn(model(res, defaultReducer, args[2] || mutedCallback) as Promise<T>);
       }
       return model(res);
     };
@@ -133,7 +133,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, modelDeps: GluerReturn<
     fn.race = (...args: any[]) => {
       // @ts-ignore
       const r = model.preTreat(...args);
-      return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || modelDeps)));
+      return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback)));
     };
     return fn;
   });

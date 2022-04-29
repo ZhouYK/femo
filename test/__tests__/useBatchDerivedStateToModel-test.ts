@@ -143,7 +143,6 @@ describe('useBatchDerivedStateToModel test', () => {
     })
 
     act(() => {
-      result = null;
       unmount();
     })
   })

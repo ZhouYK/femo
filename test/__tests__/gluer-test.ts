@@ -126,14 +126,14 @@ describe('gluer update data test', () => {
 })
 
 
-describe('relyOn test', () => {
+describe('watch test', () => {
   test('normal test', () => {
     const name = gluer('小军');
     const person = gluer({
       name: name(),
       age: 22
     });
-    const unsub = person.relyOn([name], (result, state) => {
+    const unsub = person.watch([name], (result, state) => {
       return {
         ...state,
         name: result[0],
@@ -195,7 +195,7 @@ describe('relyOn test', () => {
       age: 20,
     });
 
-    const unsub = person.relyOn([name], (data, state) => {
+    const unsub = person.watch([name], (data, state) => {
       return Promise.resolve({
         ...state,
         name: data[0],
@@ -229,14 +229,14 @@ describe('relyOff test', () => {
       name: name(),
       age: age(),
     });
-    student.relyOn([age], (result, stu) => {
+    const unsub_1 = student.watch([age], (result, stu) => {
       return {
         ...stu,
         age: result[0],
       }
     });
 
-    student.relyOn([name], (result, stu) => {
+    const unsub_2 = student.watch([name], (result, stu) => {
       return {
         ...stu,
         name: result[0],
@@ -249,7 +249,8 @@ describe('relyOff test', () => {
       name: '小张',
     });
 
-    student.off();
+    unsub_1();
+    unsub_2();
     name('小红');
     expect(name()).toBe('小红');
     expect(student()).toEqual({
@@ -268,14 +269,14 @@ describe('relyOff test', () => {
       age: 20,
     });
 
-    person.relyOn([name], callback);
+    const unsub = person.watch([name], callback);
 
     expect(callback.mock.calls.length).toBe(0);
     await name(Promise.resolve('吴欢'));
     expect(name()).toBe('吴欢');
     expect(callback.mock.calls.length).toBe(1);
 
-    person.off();
+    unsub();
 
     await name(Promise.resolve('小刘'));
     expect(name()).toBe('小刘');
@@ -314,22 +315,22 @@ describe('changeOn & changeOff test', () => {
   const age = gluer(1);
   const callback_1 = jest.fn((n) => n);
   const callback_2 = jest.fn((n) => n);
-  age.onChange(callback_1);
-  age.onChange(callback_2);
+  const unsub_1 = age.onChange(callback_1);
+  const unsub_2 = age.onChange(callback_2);
 
   age(2);
 
   expect(callback_1.mock.calls.length).toBe(1);
   expect(callback_2.mock.calls.length).toBe(1);
 
-  age.offChange(callback_1);
+  unsub_1();
 
   age(3);
 
   expect(callback_1.mock.calls.length).toBe(1);
   expect(callback_2.mock.calls.length).toBe(2);
 
-  age.offChange();
+  unsub_2();
 
   age(4);
   expect(callback_1.mock.calls.length).toBe(1);

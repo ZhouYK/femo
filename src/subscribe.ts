@@ -1,6 +1,6 @@
 import {Callback, GluerReturn} from '../index';
 import {gluerUniqueFlagKey, gluerUniqueFlagValue} from './constants';
-import unsubscribe, { depsToFnMap, refToDepsMap} from './unsubscribe';
+import unsubscribe, { modelToCallbacksMap, callbackToModelsMap, maintainCallbackToModelsMap } from './unsubscribe';
 import {isArray} from './tools';
 
 
@@ -36,26 +36,22 @@ const subscribe = (deps: GluerReturn<any>[], callback: Callback, callWhenSub = t
   // 如果传入依赖为空数组，则不建立依赖。只会执行在初始化的时候执行一次回调。
   if (setDeps) {
     // 依赖与函数的映射
-    if (depsToFnMap.has(copyDeps)) {
-      // 需要对传入的callback进行验重
-      const result = depsToFnMap.get(copyDeps) as Set<Callback>;
-      // 如果是重复的，则只记录一次
-      result.add(callback);
-    } else {
-      depsToFnMap.set(copyDeps, new Set([callback]))
-    }
-
-    // 模型节点与依赖的映射
-    for (let i = 0; i < copyDeps.length; i += 1) {
+    const l = copyDeps.length;
+    for (let i = 0; i < l; i += 1) {
       const dep = copyDeps[i];
-      if (refToDepsMap.has(dep)) {
-        const value = refToDepsMap.get(dep);
-        // 如果是重复的，则只记录一次
-        (value as Set<any>).add(copyDeps);
+      if (modelToCallbacksMap.has(dep)) {
+        const set = modelToCallbacksMap.get(dep);
+        set?.add(callback);
       } else {
-        refToDepsMap.set(dep, new Set([copyDeps]));
+        modelToCallbacksMap.set(dep, new Set([callback]))
       }
     }
+    // 每次绑定都重新设置callback对应的依赖数组
+    // 所以如果有两次或两次以上同一callback的设置，对应的model会以最后一次设置的model数组为准
+    callbackToModelsMap.set(callback, new Set<GluerReturn<any>>(copyDeps));
+
+    // 每次绑定都去执行一次callbackToModelsMap的检查，把callbackToModelsMap中已经没有被使用的callback给干掉
+    maintainCallbackToModelsMap();
   }
 
   // 映射建立完毕之后，初始化时，执行一次回调，注入初始值

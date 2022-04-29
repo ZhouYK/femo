@@ -1,10 +1,10 @@
 import subscribe from '../../src/subscribe';
 import gluer from '../../src/gluer';
 describe('loop dependencies test', () => {
-  test('relyOn', () => {
+  test('watch', () => {
     const callback_mock = jest.fn(() => {});
     const a = gluer(0);
-    a.relyOn([a], ([aData]) => {
+    a.watch([a], ([aData]) => {
       callback_mock();
       return aData + 1;
     });
@@ -19,20 +19,20 @@ describe('loop dependencies test', () => {
     const d = gluer(3);
     const e = gluer(4);
     const callback_mock_1 = jest.fn(() => {});
-    b.relyOn([e], ([eData]) => {
+    b.watch([e], ([eData]) => {
       callback_mock_1();
       return eData + 1;
     });
 
-    c.relyOn([b], ([bData]) => {
+    c.watch([b], ([bData]) => {
       callback_mock_1();
       return bData + 1;
     })
-    d.relyOn([c], ([cData]) => {
+    d.watch([c], ([cData]) => {
       callback_mock_1();
       return cData + 1;
     });
-    e.relyOn([d], ([dData]) => {
+    e.watch([d], ([dData]) => {
       callback_mock_1();
       return dData + 1;
     });
@@ -53,7 +53,7 @@ describe('loop dependencies test', () => {
 
     const f = gluer(9);
 
-    f.relyOn([e], ([eData]) => {
+    f.watch([e], ([eData]) => {
       callback_mock_1();
       c(99); // 如果调用链中包含了c，则更新不会生效；如果调用链条没有包含c，则更新会生效;
       return eData + 1;
@@ -199,12 +199,12 @@ describe('loop dependencies test', () => {
     expect(f()).toBe(7);
   });
 
-  test('relyOn-onChange-subscribe mixin', () => {
+  test('watch-onChange-subscribe mixin', () => {
     const callback_mock_1 = jest.fn(() => {});
     const callback_mock_2 = jest.fn(() => {});
     const callback_mock_3 = jest.fn(() => {});
     const a = gluer(1);
-    a.relyOn([a], ([aData]) => {
+    a.watch([a], ([aData]) => {
       callback_mock_1();
       return aData + 1;
     });
@@ -253,7 +253,7 @@ describe('loop dependencies test', () => {
       c(bData + 1);
     });
 
-    c.relyOn([b], ([bData]) => {
+    c.watch([b], ([bData]) => {
       callback_mock_5();
       return bData + 2;
     });
@@ -263,12 +263,12 @@ describe('loop dependencies test', () => {
       d(cData + 1);
     }, false);
 
-    e.relyOn([d], ([dData]) => {
+    e.watch([d], ([dData]) => {
       callback_mock_4();
       return dData + 1;
     });
 
-    f.relyOn([d], ([dData]) => {
+    f.watch([d], ([dData]) => {
       callback_mock_4();
       return dData + 1;
     });
@@ -278,7 +278,7 @@ describe('loop dependencies test', () => {
       b(eData + 1);
     }, false);
 
-    c.relyOn([f], ([fData]) => {
+    c.watch([f], ([fData]) => {
       callback_mock_4();
       return fData + 1;
     });
@@ -287,7 +287,7 @@ describe('loop dependencies test', () => {
 
     b(3);
 
-    // 有4个调用链， b 到 c 有两种路径： b的onChange里面调用c和c的relyOn里面调用c
+    // 有4个调用链， b 到 c 有两种路径： b的onChange里面调用c和c的watch里面调用c
     // 1，b ->-> c -> d -> e -> b
     // 2，b ->-> c -> d -> f -> c
     expect(b()).toBe(3);
@@ -296,7 +296,7 @@ describe('loop dependencies test', () => {
     // expect(e()).toBe(6);
     // expect(f()).toBe(6);
 
-    expect(c()).toBe(5); // c后面会更新成5，在c自己的relyOn中触发更新的
+    expect(c()).toBe(5); // c后面会更新成5，在c自己的watch中触发更新的
     expect(d()).toBe(6);
     expect(e()).toBe(7);
     expect(f()).toBe(7);
