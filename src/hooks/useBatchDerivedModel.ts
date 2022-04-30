@@ -1,6 +1,6 @@
-import useBatchDerivedStateToModel, {DerivedSpace} from './useBatchDerivedStateToModel';
-import useIndividualModel from '../useIndividualModel';
-import {GluerReturn, ModelStatus} from '../../../index';
+import useBatchDerivedStateToModel, {DerivedSpace} from './rareHooks/useBatchDerivedStateToModel';
+import useIndividualModel from './useIndividualModel';
+import {GluerReturn, ModelStatus} from '../../index';
 
 
 const useBatchDerivedModel = <S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus] => {

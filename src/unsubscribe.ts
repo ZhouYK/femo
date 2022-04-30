@@ -8,9 +8,9 @@ export const modelToCallbacksMap = new Map<GluerReturn<any>, Set<Callback>>();
 export const callbackToModelsMap = new Map<Callback, Set<GluerReturn<any>>>();
 
 export const maintainCallbackToModelsMap = () => {
+  const mods = Array.from(modelToCallbacksMap.keys());
+  const l = mods.length;
   callbackToModelsMap.forEach((models: Set<GluerReturn<any>>, cb: Callback) => {
-    const mods = Array.from(modelToCallbacksMap.keys());
-    const l = mods.length;
     let flag = false;
     for (let i = 0; i < l; i += 1) {
       const ms = mods[i];

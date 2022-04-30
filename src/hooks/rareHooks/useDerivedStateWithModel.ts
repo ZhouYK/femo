@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
-import useModel from './useModel';
-import {GluerReturn} from '../../index';
-import {isArray, isModel} from '../tools';
+import useModel from '../useModel';
+import {GluerReturn} from '../../../index';
+import {isArray, isModel} from '../../tools';
 
 const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
   const updateState = useCallback((s: S, silent = true) => {
@@ -29,8 +29,10 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
       const d = ds[i];
       if (isModel(d)) {
         if (map.has(d)) {
-          (d as GluerReturn<any>).offChange(map.get(d));
+          // 解绑
+          map.get(d)();
         }
+        // 绑定
         map.set(d, (d as GluerReturn<any>).onChange(() => {
           callWhenChange(false);
         }))

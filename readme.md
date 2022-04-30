@@ -9,6 +9,7 @@
 
 *拒绝反直觉，直观地管理数据*
 
+## 当前版本是2.x.x版本，1.x.x版本请点击<a href="https://github.com/ZhouYK/femo/tree/v1.15.14">查看</a>    
 ## 安装 [![NPM version](https://img.shields.io/npm/v/femo.svg?style=flat)](https://www.npmjs.com/package/femo)
 
 ```bash
@@ -196,7 +197,7 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 - <a href="#onChange">onChange</a>
 - <a href="#silent">silent</a>
 - <a href="#race">race</a>
-- <a href="#preTreat">preTreat</a>
+- <a href="#preTreat">~~preTreat~~（2.0.0版本不再对外提供）</a>
 - <a href="#offChange">~~offChange~~（2.0.0版本已删除）</a>
 - <a href="#track">~~track~~（2.0.0版本已删除）</a>
 - <a href="#flush">~~flush~~（2.0.0版本已删除）</a>
@@ -304,11 +305,6 @@ someModel.race(params, async (data, state) => {
 someModel.race(async (data, state) => { return await fetchRemote() })
 ```
 
-### <span id="preTreat">preTreat</span>
-> 预处理数据，可得到结果而不更新节点
-
-此方法可能用于一些依据处理结果来做条件判断的场景
-
 ## 搭配React
 
 ### <span href="#react-hook">react hook</a>
@@ -316,12 +312,12 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 - <a href="#useModel">useModel</a>
 - <a href="#useIndividualModel">useIndividualModel</a>
 - <a href="#useDerivedState">useDerivedState</a>
-- <a href="#useDerivedStateWithModel">useDerivedStateWithModel</a>
-- <a href="#useException">useException</a>
-- <a href="#useDerivedStateToModel">useDerivedStateToModel</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
-- <a href="#useBatchDerivedStateToModel">useBatchDerivedStateToModel</a>
+- <a href="#useDerivedStateToModel">~~useDerivedStateToModel~~（2.0.0版本不再对外提供）</a>
+- <a href="#useDerivedStateWithModel">~~useDerivedStateWithModel~~（2.0.0版本不再对外提供）</a>
+- <a href="#useException">~~useException~~（2.0.0版本不再对外提供）</a>
+- <a href="#useBatchDerivedStateToModel">~~useBatchDerivedStateToModel~~（2.0.0版本不再对外提供）</a>
 
 react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
 

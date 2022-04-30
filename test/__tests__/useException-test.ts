@@ -1,4 +1,4 @@
-import useException from '../../src/hooks/useException';
+import useException from '../../src/hooks/rareHooks/useException';
 import {act, renderHook} from "@testing-library/react-hooks";
 import {useState} from "react";
 import {manualThrownError} from "../../src/constants";

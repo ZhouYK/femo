@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import {Callback, GluerReturn} from '../../index';
-import subscribe from '../subscribe';
+import {Callback, GluerReturn} from '../../../index';
+import subscribe from '../../subscribe';
 
 const useSubscribe = (models: GluerReturn<any>[], callback: Callback, callWhenSub?: boolean) => {
 

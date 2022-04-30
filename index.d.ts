@@ -64,13 +64,6 @@ export type RaceFn<S> = {
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
 }
 
-export type CacheFn<S> = {
-  (): S;
-  <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
-}
-
 export type ModelMethod<S> = {
   reset: () => void;
   watch: <T extends GluerReturn<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
@@ -96,27 +89,28 @@ export interface RaceQueueObj {
 }
 
 export type Callback = (...args: any[]) => void;
+export const promiseDeprecatedError: string;
 
 export function gluer<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
 export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
 export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
 
-export const promiseDeprecatedError: string;
-
-export function genRaceQueue(): RaceQueueObj;
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
+export function genRaceQueue(): RaceQueueObj;
+
 export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus];
-export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
 export function useIndividualModel<S = any>(initState: S | (() => S), service?: Service<S>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
-export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
-export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
 
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, ModelStatus];
 
-export function useSubscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
-export function useException(...args: ExceptionJudge[]): ManualException;
-
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
+
+// export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
+// export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
+// export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
+// export function useSubscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
+// export function useException(...args: ExceptionJudge[]): ManualException;
+
