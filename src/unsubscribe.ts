@@ -1,32 +1,9 @@
 import {Callback, GluerReturn} from '../index';
 import { isArray } from './tools';
 
-export const refToDepsMap = new Map<GluerReturn<any>, Set<GluerReturn<any>[]>>();
-export const depsToFnMap = new Map<GluerReturn<any>[], Set<Callback>>();
-
 export const modelToCallbacksMap = new Map<GluerReturn<any>, Set<Callback>>();
 export const callbackToModelsMap = new Map<Callback, Set<GluerReturn<any>>>();
 
-export const maintainCallbackToModelsMap = () => {
-  const mods = Array.from(modelToCallbacksMap.keys());
-  const l = mods.length;
-  callbackToModelsMap.forEach((models: Set<GluerReturn<any>>, cb: Callback) => {
-    let flag = false;
-    for (let i = 0; i < l; i += 1) {
-      const ms = mods[i];
-      if (models.has(ms)) {
-        const cbs = modelToCallbacksMap.get(ms);
-        if (cbs?.has(cb)) {
-          flag = true;
-          break;
-        }
-      }
-    }
-    if (!flag) {
-      callbackToModelsMap.delete(cb);
-    }
-  })
-}
 
 const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Callback[]) => {
   if (!targetDeps && !callback) {
@@ -49,6 +26,17 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Call
         for (let j = 0; j < cl; j += 1) {
           const cb = callbacks[j];
           cbs.delete(cb);
+          // 这里能够保证删除都是一起删除
+          /**
+           * 比如 [a, b, c] -> callback_1
+           * [a, d, e] -> callback_2
+           * 当出现在a中删除callback_1时，一定是a,b,c同时删除callback_1，因为解绑都是通过返回的闭包解绑的
+           * 当在a中删除callback_2时，一定是a,d,e同时删除callback_2，原因同上。
+           * 所以可以在此时同时删除掉 callbackToModelsMap 中的 callback_1和callback_2
+           */
+          if (callbackToModelsMap.has(cb)) {
+            callbackToModelsMap.delete(cb);
+          }
         }
         if (cbs.size === 0) {
           modelToCallbacksMap.delete(model);
@@ -63,14 +51,12 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Call
         const set = modelToCallbacksMap.get(model);
         delCallback(model, set);
       }
-      maintainCallbackToModelsMap();
       return;
     }
     // 如果是传的空数组或者不传，则在所有model中去删除传入的callback
     modelToCallbacksMap.forEach((cbSet, model) => {
       delCallback(model, cbSet);
     });
-    maintainCallbackToModelsMap();
     return;
   }
 
@@ -78,10 +64,14 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Call
   for (let i = 0; i < l; i += 1) {
     const model = targetDeps?.[i] as GluerReturn<any>;
     const set = modelToCallbacksMap.get(model);
+    set?.forEach((cb) => {
+      if (callbackToModelsMap.has(cb)) {
+        callbackToModelsMap.delete(cb);
+      }
+    })
     set?.clear();
     modelToCallbacksMap.delete(model);
   }
-  maintainCallbackToModelsMap();
 }
 
 export default unsubscribe;

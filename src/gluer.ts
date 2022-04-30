@@ -83,12 +83,21 @@ function gluer(...args: any[]) {
             if (callback !== mutedCallback) {
               if (callbackToModelsMap.has(callback)) {
                 const mods = callbackToModelsMap.get(callback) as Set<GluerReturn<any>>;
-                if (mods.has(fn)) {
-                  const values = Array.from(mods).reduce((pre, cur) => {
-                    return [...pre, cur()];
-                  }, [] as any);
-                  callback(...values);
-                }
+                // mods里面不管有没有当前model都去执行callback
+                // 这里可能出现callback对应的mods中没有当前model，什么情况下会出现这种情况？
+                // 当同一个callback被绑定到不同的模型依赖数组上时，callback对应的模型依赖数组总以最后一个绑定的模型依赖数组为准。
+                /**
+                 * const callback = (dataArr, state) => {};
+                 * model_a.watch([model_b, model_c], callback);
+                 * model_d.watch([model_e, model_f], callback);
+                 * 当model_e变化时，callback会执行，注入callback的dataArr会是[model_e, model_f];
+                 * 当model_b变化时，callback也会执行，但此时注入callback的dataArr会是[model_e, model_f]。
+                 */
+
+                const values = Array.from(mods).reduce((pre, cur) => {
+                  return [...pre, cur()];
+                }, [] as any);
+                callback(...values);
               }
             }
           })
@@ -207,10 +216,7 @@ function gluer(...args: any[]) {
       throw new Error('callback should be function');
     }
 
-    // @ts-ignore
-    const wrappedCallback = (...a: any[]) => callback(...a);
-
-    return subscribe([fn], wrappedCallback, false);
+    return subscribe([fn], callback, false);
   }
 
   fn.silent = basicLogic(true);

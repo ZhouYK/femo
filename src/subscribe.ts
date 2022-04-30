@@ -1,13 +1,18 @@
 import {Callback, GluerReturn} from '../index';
 import {gluerUniqueFlagKey, gluerUniqueFlagValue} from './constants';
-import unsubscribe, { modelToCallbacksMap, callbackToModelsMap, maintainCallbackToModelsMap } from './unsubscribe';
+import unsubscribe, { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
 import {isArray} from './tools';
 
 
 
-const subscribe = (deps: GluerReturn<any>[], callback: Callback, callWhenSub = true) => {
+const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true) => {
   if (!isArray(deps)) {
     throw new Error(`Error: the first param must be array！${ deps }`);
+  }
+
+  // 每一个callback传进来都会被包装，所以可以保证每次订阅的callback都是唯一的
+  const callback = (...args: any[]) => {
+    return cb(...args);
   }
 
   if (typeof callback !== 'function') {
@@ -49,9 +54,6 @@ const subscribe = (deps: GluerReturn<any>[], callback: Callback, callWhenSub = t
     // 每次绑定都重新设置callback对应的依赖数组
     // 所以如果有两次或两次以上同一callback的设置，对应的model会以最后一次设置的model数组为准
     callbackToModelsMap.set(callback, new Set<GluerReturn<any>>(copyDeps));
-
-    // 每次绑定都去执行一次callbackToModelsMap的检查，把callbackToModelsMap中已经没有被使用的callback给干掉
-    maintainCallbackToModelsMap();
   }
 
   // 映射建立完毕之后，初始化时，执行一次回调，注入初始值

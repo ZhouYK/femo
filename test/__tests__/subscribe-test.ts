@@ -1,5 +1,16 @@
 import * as family from '../models/family';
 import {gluer, subscribe} from "../../src";
+import { modelToCallbacksMap, callbackToModelsMap } from '../../src/unsubscribe';
+
+beforeAll(() => {
+  modelToCallbacksMap.clear();
+  callbackToModelsMap.clear();
+});
+
+afterEach(() => {
+  modelToCallbacksMap.clear();
+  callbackToModelsMap.clear();
+})
 
 describe('subscribe tests', () => {
 
@@ -106,22 +117,66 @@ describe('subscribe tests', () => {
     const test = gluer(1);
     const deps = [test];
 
+    expect(modelToCallbacksMap.size).toBe(0);
+    expect(callbackToModelsMap.size).toBe(0);
+
     const mockCall_1 = jest.fn((data) => data);
     const mockCall_2 = jest.fn((data) => data);
     const unsubscribe_1 = subscribe(deps, mockCall_1, false);
+    expect(modelToCallbacksMap.size).toBe(1);
+    expect(modelToCallbacksMap.get(test)?.size).toBe(1);
+    expect(callbackToModelsMap.size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[0].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[0].has(test)).toBe(true);
+
     const unsubscribe_2 = subscribe(deps, mockCall_2, false);
-    subscribe(deps, mockCall_2, false);
+    expect(modelToCallbacksMap.size).toBe(1);
+    expect(modelToCallbacksMap.get(test)?.size).toBe(2);
+    expect(callbackToModelsMap.size).toBe(2);
+    expect(Array.from(callbackToModelsMap.values())[0].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[0].has(test)).toBe(true);
+    expect(Array.from(callbackToModelsMap.values())[1].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[1].has(test)).toBe(true);
+
+    const unsubscribe_3 = subscribe(deps, mockCall_2, false);
+
+    expect(modelToCallbacksMap.size).toBe(1);
+    expect(modelToCallbacksMap.get(test)?.size).toBe(3);
+    expect(callbackToModelsMap.size).toBe(3);
+    expect(Array.from(callbackToModelsMap.values())[0].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[0].has(test)).toBe(true);
+    expect(Array.from(callbackToModelsMap.values())[1].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[1].has(test)).toBe(true);
+    expect(Array.from(callbackToModelsMap.values())[2].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[2].has(test)).toBe(true);
+
     test(3);
     expect(mockCall_1.mock.calls.length).toBe(1);
-    expect(mockCall_2.mock.calls.length).toBe(1);
+    expect(mockCall_2.mock.calls.length).toBe(2);
     unsubscribe_1();
+    expect(modelToCallbacksMap.size).toBe(1);
+    expect(modelToCallbacksMap.get(test)?.size).toBe(2);
+    expect(callbackToModelsMap.size).toBe(2);
+    expect(Array.from(callbackToModelsMap.values())[0].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[0].has(test)).toBe(true);
+    expect(Array.from(callbackToModelsMap.values())[1].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[1].has(test)).toBe(true);
+
     test(4);
     expect(mockCall_1.mock.calls.length).toBe(1);
-    expect(mockCall_2.mock.calls.length).toBe(2);
+    expect(mockCall_2.mock.calls.length).toBe(4);
     unsubscribe_2();
+    expect(modelToCallbacksMap.size).toBe(1);
+    expect(modelToCallbacksMap.get(test)?.size).toBe(1);
+    expect(callbackToModelsMap.size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[0].size).toBe(1);
+    expect(Array.from(callbackToModelsMap.values())[0].has(test)).toBe(true);
+
     test(5);
     expect(mockCall_1.mock.calls.length).toBe(1);
-    expect(mockCall_2.mock.calls.length).toBe(2);
-
+    expect(mockCall_2.mock.calls.length).toBe(5);
+    unsubscribe_3();
+    expect(modelToCallbacksMap.size).toBe(0);
+    expect(callbackToModelsMap.size).toBe(0);
   })
 });
