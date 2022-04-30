@@ -197,14 +197,6 @@ raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }))
 - <a href="#onChange">onChange</a>
 - <a href="#silent">silent</a>
 - <a href="#race">race</a>
-- <a href="#preTreat">~~preTreat~~（2.0.0版本不再对外提供）</a>
-- <a href="#offChange">~~offChange~~（2.0.0版本已删除）</a>
-- <a href="#track">~~track~~（2.0.0版本已删除）</a>
-- <a href="#flush">~~flush~~（2.0.0版本已删除）</a>
-- <a href="#go">~~go~~（2.0.0版本已删除）</a>
-- <a href="#relyOff">~~relyOff~~（2.0.0版本已删除）</a>
-- <a href="#cache">~~cache~~（2.0.0版本已删除）</a>
-- <a href="#cacheClean">~~cacheClean~~（2.0.0版本已删除）</a>
 
 ### <span id="watch">watch</span>
 > 声明节点的依赖，并注册回调
@@ -270,7 +262,10 @@ b.watch([a], (data, state) => {
 ```javascript
 const model = gluer('');
 
-model.onChange((state) => { console.log(state) });
+const unsubscribe = model.onChange((state) => { console.log(state) });
+
+// 解除变化监听
+unsubscribe();
 
 ```
 
@@ -314,10 +309,6 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 - <a href="#useDerivedState">useDerivedState</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
-- <a href="#useDerivedStateToModel">~~useDerivedStateToModel~~（2.0.0版本不再对外提供）</a>
-- <a href="#useDerivedStateWithModel">~~useDerivedStateWithModel~~（2.0.0版本不再对外提供）</a>
-- <a href="#useException">~~useException~~（2.0.0版本不再对外提供）</a>
-- <a href="#useBatchDerivedStateToModel">~~useBatchDerivedStateToModel~~（2.0.0版本不再对外提供）</a>
 
 react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
 
@@ -472,7 +463,7 @@ const [value, valueModel, valueModelWithStatus, { loading, successful }] = useDe
 ### <span id="useDerivedModel">useDerivedModel</span>
 > 将依据其他数据产生的衍生数据更新到model中去，统一使用model的数据
 > 和react组件中[getDerivedStateFromProps](https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops) 功能一致。
-> useDerivedStateToModel更具泛用性，不仅限于props，而是一切被依赖的数据都可以通过这个方法来处理衍生数据
+> 更具泛用性，不仅限于props，而是一切被依赖的数据都可以通过这个方法来处理衍生数据
 
 useDerivedModel(initState, source, callback)
 
@@ -519,9 +510,6 @@ Inject会向组件注入一些属性，目前(v1.10.1)会向组件注入：
 ## 补充说明
 
 ### <span id='options'>options</a>
-
-#### ~~suspenseKey~~(2.0.0已被标记为deprecated)
-字符串类型。如果传入了非空的字符串，则表示开启Suspense模式，需要和Suspense组件配合使用。尽量保证不会出现两个相同的suspenseKey。可以使用<a href='#Inject'>Inject</a>高阶函数来为组件注入suspenseKey，可以省去自定义suspenseKey的工作。
 
 #### suspense
 ```typescript
