@@ -57,7 +57,7 @@ const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: a
 
   useEffect(() => {
     const offChange = model.onChange(onChangeCallback);
-    const unsub = subscribe([model], subscribeCallback, false);
+    const unsub = subscribe([model], subscribeCallback, false, true);
     return () => { unsub(); offChange(); }
   }, [model]);
 

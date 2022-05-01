@@ -3,25 +3,30 @@ import {gluerUniqueFlagKey, gluerUniqueFlagValue} from './constants';
 import unsubscribe, { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
 import {isArray} from './tools';
 
-
-
-const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true) => {
+/**
+ *
+ * @param deps 监听的model数组
+ * @param cb 监听回调
+ * @param callWhenSub 是否在注册监听时执行一次监听回调
+ * @param noCallbackWrapper false：进行包装；true：不进行包装
+ */
+const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, noCallbackWrapper?: boolean) => {
   if (!isArray(deps)) {
     throw new Error(`Error: the first param must be array！${ deps }`);
   }
 
-  // 每一个callback传进来都会被包装，所以可以保证每次订阅的callback都是唯一的
-  const callback = (...args: any[]) => {
-    return cb(...args);
+  let callback = cb;
+  if (!noCallbackWrapper) {
+    // 每一个callback传进来都会被包装，所以可以保证每次订阅的callback都是唯一的
+    callback = (...args: any[]) => {
+      return cb(...args);
+    }
   }
 
   if (typeof callback !== 'function') {
     throw new Error(`Error: the second param muse be function! ${ callback }`);
   }
 
-  // 需要保持外部引用
-  // 和mutedDeps功能相关
-  // 外部会以传入的依赖数组作为判断依据，所以在内部也需要和外部的数组引用保持一致
   const copyDeps = deps;
   const initialDepsValue: any[] = [];
   for (let i = 0; i < copyDeps.length; i += 1) {

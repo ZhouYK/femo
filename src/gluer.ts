@@ -72,7 +72,7 @@ function gluer(...args: any[]) {
 
   let fn: any;
 
-  // mutedDeps：不执行其回调的依赖数组
+  // mutedCallback：不执的回调
   const updateFn = (data: any, silent: boolean, mutedCallback: Callback) => {
     if (!(Object.is(data, gluerState))) {
       gluerState = data;
