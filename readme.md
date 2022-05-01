@@ -371,7 +371,9 @@ const getList = () => {
 };
 
 const [listData, listModelWithStatus, { loading, successful }] = useModel(listModel, getList, [query], {
-  suspenseKey: 'list',
+  suspense: {
+    key: 'list',
+  },
 });
 
 // 每次list的变动都会通知useModel，useModel更新listData，rerender组件
@@ -427,7 +429,9 @@ const [listData, listModel, listModelWithStatus, { loading, successful }] = useI
   size: 20,
   list: [],
 }, getList, [query], {
-  suspenseKey: 'list',
+  suspense: {
+    key: 'list',
+  }
 });
 
 ```
