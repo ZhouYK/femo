@@ -53,6 +53,7 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true) =
     }
     // 每次绑定都重新设置callback对应的依赖数组
     // 所以如果有两次或两次以上同一callback的设置，对应的model会以最后一次设置的model数组为准
+    // 但是由于 subscribe 内部对每一个传入的callback进行了一次包装，所以这里的callback永远不会重复。
     callbackToModelsMap.set(callback, new Set<GluerReturn<any>>(copyDeps));
   }
 
