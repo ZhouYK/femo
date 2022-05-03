@@ -221,42 +221,61 @@ describe('watch test', () => {
   })
 })
 
-describe('relyOff test', () => {
+describe('unbind watch test', () => {
   test('normal test', () => {
-    const name = gluer('小明');
-    const age = gluer(10);
-    const student = gluer({
-      name: name(),
-      age: age(),
-    });
-    const unsub_1 = student.watch([age], (result, stu) => {
+
+    const mock_fn_1 = jest.fn((result, stu) => {
       return {
         ...stu,
         age: result[0],
       }
     });
 
-    const unsub_2 = student.watch([name], (result, stu) => {
+    const mock_fn_2 = jest.fn((result, stu) => {
       return {
         ...stu,
         name: result[0],
       }
-    })
+    });
+    const name = gluer('小明');
+    const age = gluer(10);
+    const student = gluer({
+      name: name(),
+      age: age(),
+    });
+    const unsub_1 = student.watch([age], mock_fn_1);
+
+    const unsub_2 = student.watch([name], mock_fn_2);
     name('小张');
     expect(name()).toBe('小张');
     expect(student()).toEqual({
       age: 10,
       name: '小张',
     });
+    expect(mock_fn_1.mock.calls.length).toBe(0);
+    expect(mock_fn_2.mock.calls.length).toBe(1);
+
+    age(20);
+    expect(age()).toBe(20);
+    expect(student()).toEqual({
+      age: 20,
+      name: '小张',
+    });
+    expect(mock_fn_1.mock.calls.length).toBe(1);
+    expect(mock_fn_2.mock.calls.length).toBe(1);
 
     unsub_1();
     unsub_2();
     name('小红');
+    age(30);
     expect(name()).toBe('小红');
+    expect(age()).toBe(30);
     expect(student()).toEqual({
-      age: 10,
+      age: 20,
       name: '小张',
     });
+    expect(mock_fn_1.mock.calls.length).toBe(1);
+    expect(mock_fn_2.mock.calls.length).toBe(1);
   });
 
   test('async test', async () => {
@@ -300,10 +319,11 @@ describe('test rest', () => {
   unsubscribe();
 })
 
-describe('changeOn & changeOff test', () => {
+describe('onChange & unbind onChange test', () => {
   const name = gluer('初始名字');
   const callback = jest.fn((n) => n);
   const unsub = name.onChange(callback);
+  expect(callback.mock.calls.length).toBe(0);
   name('张三');
   expect(callback.mock.calls.length).toBe(1);
   name('张四');

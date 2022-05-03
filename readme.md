@@ -376,9 +376,6 @@ const [listData, listModelWithStatus, { loading, successful }] = useModel(listMo
   },
 });
 
-// 每次list的变动都会通知useModel，useModel更新listData，rerender组件
-// 和useState很类似
-
 ```
 
 ## <span id="useIndividualModel">useIndividualModel</span>
