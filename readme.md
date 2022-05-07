@@ -277,16 +277,6 @@ unsubscribe();
 该方法和直接使用节点更新内容一样，只是不会进行数据更新的广播，订阅了该数据的回调函数或者组件不会在此次更行中被执行或者重新渲染。
 在需要优化组件渲染频率的时候可以考虑使用它。
 
-```js
-const [, casesModel] = useIndividualModel < Flow.Case[] > (node.switch_case || []);
-const [cases] = useDerivedStateToModel(props, casesModel, (nextProps, prevProps, state) => {
-  if (nextProps.node !== prevProps.node) {
-    return nextProps.node.switch_case || [];
-  }
-  return state;
-});
-```
-
 ### <span id="race">race</span>
 > 处理数据节点更新出现的竞争问题
 
