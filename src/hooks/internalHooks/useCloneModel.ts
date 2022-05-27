@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Callback, GluerReturn, ModelStatus, ServiceControl, ServiceOptions } from '../../../index';
 import {defaultReducer} from '../../gluer';
 import {isAsync, isModel} from '../../tools';
@@ -30,6 +30,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   const unmountedFlagRef = useRef(false);
   const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
   const cacheControlOnChangeUnsub = useRef<() => void>();
+  const cacheModelRef = useRef<GluerReturn<T>>(model);
   const underControl = useRef(false);
 
   const [status, updateStatus] = useState<ModelStatus>(() => {
@@ -66,9 +67,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     });
   }
 
-
-  // @ts-ignore
-  const [clonedModel] = useState<GluerReturn<T>>(() => {
+  const genClonedModel = () => {
 
     const statusHandleFn = <P>(p: Promise<P>) => {
       // 一旦调用statusHandleFn，表示已经不受外部控制状态了
@@ -136,7 +135,19 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
       return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback)));
     };
     return fn;
+  };
+
+  // @ts-ignore
+  const [clonedModel] = useState<GluerReturn<T>>(() => {
+    return genClonedModel();
   });
+
+  const cacheClonedModelRef = useRef<GluerReturn<T>>(clonedModel);
+
+  if (!Object.is(model, cacheModelRef.current)) {
+    cacheModelRef.current = model;
+    cacheClonedModelRef.current = genClonedModel();
+  }
 
   useEffect(() => () => {
     unmountedFlagRef.current = true;
@@ -145,7 +156,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     }
   }, []);
 
-  return [clonedModel, status];
+  return [cacheClonedModelRef.current, status];
 }
 
 export default useCloneModel;
