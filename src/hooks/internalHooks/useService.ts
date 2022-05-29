@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { GluerReturn, Service, ServiceOptions } from '../../../index';
+import { useCallback, useEffect, useRef } from 'react';
+import { GluerReturn, LocalService, Service, ServiceOptions } from '../../../index';
 import {isAsync, isModel} from '../../tools';
 
 type CustomerPromise<T = any> = { success?: boolean; data?: T }  & Promise<T>;
@@ -19,10 +19,22 @@ const depsDifferent = (source: any[] = [], target: any[] = []) => {
   return false;
 }
 
-const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[], options?: ServiceOptions): void => {
+const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[], options?: ServiceOptions): [LocalService<T>] => {
   const { suspenseKey, suspense, control } = options || {};
   const susKey = suspenseKey || suspense?.key;
   const depsRef = useRef<any[] | undefined>(deps);
+  const serviceRef = useRef(service);
+  serviceRef.current = service;
+  const modelRef = useRef(model);
+  modelRef.current = model;
+
+  const localService = useCallback<LocalService<T>>((data) => {
+    const r = serviceRef.current?.(modelRef.current(), data);
+    if (isAsync(r)) {
+      return modelRef.current.race(() => r as Promise<T>);
+    }
+    return Promise.resolve(modelRef.current(r as T)) as Promise<T>;
+  }, []);
 
   const firstRenderFlagRef = useRef(true);
 
@@ -117,11 +129,13 @@ const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[]
   } else if (susKey && cache.has(susKey)) {
     cache.delete(susKey);
   }
+
   useEffect(() => {
     return () => {
       cacheDeps.delete(susKey as string);
     };
   }, []);
+  return [localService];
 }
 
 export default useService;

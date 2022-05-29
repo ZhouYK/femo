@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {GluerReturn, ModelStatus, Service, ServiceOptions} from '../../index';
+import { GluerReturn, Service, ServiceOptions, ServiceStatus } from '../../index';
 import subscribe from '../subscribe';
 import useCloneModel from './internalHooks/useCloneModel';
 import useService from './internalHooks/useService';
@@ -18,7 +18,7 @@ import {defaultServiceOptions} from '../constants';
  * control: GluerReturn<ServiceControl>;
  * } 每次函数运行都是取的最新的options的值
  */
-const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ModelStatus] => {
+const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T>] => {
   const finalOptions = {
     ...defaultServiceOptions,
     ...options,
@@ -40,7 +40,7 @@ const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: a
   }, []);
 
   const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
-  useService(clonedModel, service, deps, finalOptions);
+  const [localService] = useService(clonedModel, service, deps, finalOptions);
   const [cachedState] = useState(() => {
     return {
       data: model(),
@@ -61,7 +61,10 @@ const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: a
     return () => { unsub(); offChange(); }
   }, [model]);
 
-  return [model(), clonedModel, status];
+  return [model(), clonedModel, {
+    ...status,
+    service: localService,
+  }];
 };
 
 export default useModel;

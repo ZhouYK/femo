@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Callback, GluerReturn, ModelStatus, ServiceControl, ServiceOptions } from '../../../index';
+import { Callback, GluerReturn, ServiceStatus, ServiceControl, ServiceOptions } from '../../../index';
 import {defaultReducer} from '../../gluer';
 import {isAsync, isModel} from '../../tools';
 import {promiseDeprecatedError} from '../../genRaceQueue';
@@ -25,7 +25,7 @@ const runtimeVarAssignment = <P>(callback: () => Promise<P>) => {
  * @param mutedCallback 用于减少一次组件rerender，因为异步获取状态变更时会去更新loading，所以当loading变更时静默掉订阅的回调。clonedModel中所有异步更新都应该加上这个
  * @param options
  */
-const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback, options?: ServiceOptions<T>): [GluerReturn<T>, ModelStatus] => {
+const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback, options?: ServiceOptions<T>): [GluerReturn<T>, Omit<ServiceStatus<T>, 'service'>] => {
   const { control } = options || {};
   const unmountedFlagRef = useRef(false);
   const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
@@ -33,7 +33,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   const cacheModelRef = useRef<GluerReturn<T>>(model);
   const underControl = useRef(false);
 
-  const [status, updateStatus] = useState<ModelStatus>(() => {
+  const [status, updateStatus] = useState<Omit<ServiceStatus<T>, 'service'>>(() => {
     if (isModel(control)) {
       underControl.current = true;
       const r = (control as GluerReturn<ServiceControl>)();
