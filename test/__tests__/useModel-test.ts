@@ -269,6 +269,87 @@ describe('useModel test', () => {
     });
   });
 
+  test('useModel localService', async () => {
+    model.reset();
+
+    const { result, unmount, waitForNextUpdate } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+
+      const serviceFn = (_s: number, data: number) => {
+        if (count < 6) {
+          if (typeof data === 'number') {
+            return Promise.resolve(data + count)
+          }
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      };
+
+      const [age, clonedModel, { loading, service }] = useModel(model,  serviceFn,[count]);
+      return {
+        age,
+        clonedModel,
+        loading,
+        service,
+        updateCount,
+      }
+    });
+
+    act(() => {
+      result.current.service();
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.age).toBe(0);
+    await waitForNextUpdate();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.age).toBe(1);
+
+    act(() => {
+      result.current.service(5);
+    });
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.age).toBe(1);
+    await waitForNextUpdate();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.age).toBe(5);
+
+    act(() => {
+      result.current.updateCount(1);
+    });
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.age).toBe(5);
+    await waitForNextUpdate();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.age).toBe(2);
+
+    act(() => {
+      result.current.service(2);
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.age).toBe(2);
+    await waitForNextUpdate();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.age).toBe(3);
+
+    act(() => {
+      result.current.updateCount(6);
+    });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.age).toBe(6);
+
+    act(() => {
+      result.current.service(2);
+    });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.age).toBe(6);
+
+    act(() => {
+      unmount();
+    });
+  });
+
   test('useModel control', async () => {
     const model1 = gluer(0);
     const service_call_mock = jest.fn(() => {

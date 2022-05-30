@@ -36,7 +36,7 @@ export type Service<T, D = any> = (state: T, data?: D) => Promise<T> | T;
 // LocalService 内部默认会调用 Service
 // LocalService 是给外部使用的，所以返回是一个确定的 Promise<S>
 export type LocalService<S> = {
-  <D>(data: D): Promise<S>;
+  <D>(data?: D): Promise<S>;
 }
 
 export interface ServiceStatus<S> {

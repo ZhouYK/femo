@@ -28,11 +28,13 @@ const useService = <T>(model: GluerReturn<T>, service?: Service<T>, deps?: any[]
   const modelRef = useRef(model);
   modelRef.current = model;
 
-  const localService = useCallback<LocalService<T>>((data) => {
+  const localService = useCallback<LocalService<T>>((data?) => {
     const r = serviceRef.current?.(modelRef.current(), data);
     if (isAsync(r)) {
       return modelRef.current.race(() => r as Promise<T>);
     }
+    // r 为非异步数据，不会引起 loading
+    // modelRef.current 为 clonedModel
     return Promise.resolve(modelRef.current(r as T)) as Promise<T>;
   }, []);
 
