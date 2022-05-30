@@ -7,6 +7,9 @@ import {ServiceControl} from "../../index";
 const model = gluer(0);
 
 describe('useModel test', () => {
+  beforeEach(() => {
+    model.reset();
+  });
   test('useModel basic', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [age, clonedModel, { loading }] = useModel(model);
@@ -64,7 +67,6 @@ describe('useModel test', () => {
   });
 
   test('useModel service deps', async () => {
-    model.reset();
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
       const service = (s: number) => {
@@ -123,7 +125,6 @@ describe('useModel test', () => {
   });
 
   test('useModel onChange',async () => {
-    model.reset();
     const onChange_mock = jest.fn((nextState: any, prevState: any) => {
       return {nextState, prevState}
     });
@@ -213,8 +214,6 @@ describe('useModel test', () => {
   });
 
   test('useModel loading', async () => {
-    model.reset();
-
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
 
@@ -270,8 +269,6 @@ describe('useModel test', () => {
   });
 
   test('useModel localService', async () => {
-    model.reset();
-
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
 

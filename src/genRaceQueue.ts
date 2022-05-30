@@ -2,7 +2,7 @@ import { promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedF
 import {RacePromise, RaceQueueObj} from '../index';
 
 export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel | typeof promiseDeprecatedFromLocalService;
-
+export const errorFlags = [promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService];
 
 export const promiseDeprecatedError = 'the promise is deprecated by race condition';
 

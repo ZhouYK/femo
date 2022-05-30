@@ -9,7 +9,7 @@ import {HandleFunc, GluerReturn, Callback, RacePromise} from '../index';
 import {isArray, isAsync, isTagged, tagPromise} from './tools';
 import subscribe from './subscribe';
 import { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
-import genRaceQueue, {ErrorFlag, promiseDeprecatedError} from './genRaceQueue';
+import genRaceQueue, { ErrorFlag, errorFlags, promiseDeprecatedError } from './genRaceQueue';
 import runtimeVar from './runtimeVar';
 
 export const defaultReducer = (data: any, _state: any) => data;
@@ -19,9 +19,11 @@ const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()
 const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?: ErrorFlag) => {
   const errorFlag = deprecatedFlag || promiseDeprecated;
 
-  if (errorFlag in promise) {
-    callback();
-    throw promiseDeprecatedError;
+  for (let i = 0; i < errorFlags.length; i += 1) {
+    if (errorFlags[i] in promise) {
+      callback();
+      throw promiseDeprecatedError;
+    }
   }
 
   promise[errorFlag] = true;

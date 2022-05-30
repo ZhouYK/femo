@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LocalService, LocalServiceHasStatus, ServiceStatus } from '../../index';
 import { promiseDeprecated, promiseDeprecatedFromClonedModel, pureServiceKey } from '../constants';
 import { promiseDeprecatedError } from '../genRaceQueue';
@@ -12,6 +12,7 @@ const defaultOptions: IndividualServiceOptions = {
 };
 
 const useLocalService = <S>(service: LocalService<S>, options?: IndividualServiceOptions): [LocalService<S>, Omit<ServiceStatus<S>, 'service'>] => {
+  const unmountedFlagRef = useRef(false);
   const serviceRef = useRef<LocalServiceHasStatus<S>>(service);
   serviceRef.current = service;
   const optionsRef = useRef({
@@ -40,15 +41,17 @@ const useLocalService = <S>(service: LocalService<S>, options?: IndividualServic
       successful: false,
     }));
     p.then(() => {
+      if (unmountedFlagRef.current) return;
       updateStatus((prevState) => ({
         ...prevState,
         loading: false,
         successful: true,
       }))
     }).catch((err) => {
+      if (unmountedFlagRef.current) return;
       // 如果不是异步竞争引起的异常，则需要设置loading状态
       // 详细信息请看 useCloneModel
-      if (err !== promiseDeprecatedError && (err === promiseDeprecatedError && (promiseDeprecated in p || promiseDeprecatedFromClonedModel in p))) {
+      if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && (promiseDeprecated in p || promiseDeprecatedFromClonedModel in p))) {
         updateStatus((prevState) => {
           return {
             ...prevState,
@@ -60,6 +63,12 @@ const useLocalService = <S>(service: LocalService<S>, options?: IndividualServic
     });
     return p;
 
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      unmountedFlagRef.current = true;
+    }
   }, []);
 
   return [newService, status];
