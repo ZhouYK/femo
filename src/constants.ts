@@ -6,6 +6,8 @@ export const promiseDeprecatedFromClonedModel = 'promiseDeprecatedFromClonedMode
 export const promiseTouchedByModel = Symbol('promiseTouchedByModel');
 export const gluerUniqueFlagKey = Symbol('gluerUniqueFlagKey');
 export const gluerUniqueFlagValue = Symbol('gluerUniqueFlagValue');
+export const pureServiceKey = Symbol('pureService');
+export const promiseDeprecatedFromLocalService = 'promiseDeprecatedFromLocalService';
 
 export const defaultServiceOptions: ServiceOptions = {
 };

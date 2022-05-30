@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Callback, GluerReturn, ServiceStatus, ServiceControl, ServiceOptions } from '../../../index';
 import {defaultReducer} from '../../gluer';
 import {isAsync, isModel} from '../../tools';
-import {promiseDeprecatedError} from '../../genRaceQueue';
+import { ErrorFlag, promiseDeprecatedError } from '../../genRaceQueue';
 import runtimeVar from '../../runtimeVar';
-import {promiseDeprecated, promiseDeprecatedFromClonedModel} from '../../constants';
+import {
+  promiseDeprecated,
+  promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService,
+} from '../../constants';
 
 /**
  * 需要区分promise竞争是由谁引起的，由origin model还是cloned model
@@ -13,8 +16,8 @@ import {promiseDeprecated, promiseDeprecatedFromClonedModel} from '../../constan
  * cloned model引发的，意味着 cloned model自己取代了自己，则loading状态可以保持延续，不用设置
   */
 
-const runtimeVarAssignment = <P>(callback: () => Promise<P>) => {
-  runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecatedFromClonedModel;
+export const runtimePromiseDeprecatedVarAssignment = <P>(callback: () => Promise<P>, flag: ErrorFlag) => {
+  runtimeVar.runtimePromiseDeprecatedFlag = flag;
   const result = callback();
   runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecated;
   return result;
@@ -98,8 +101,8 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
       }).catch((err) => {
         if (unmountedFlagRef.current) return;
         // 如果不是异步竞争引起的异常或者不是clonedModel引起的异步竞争，则需要设置loading状态
-        // 详细信息请看上面的 runtimeVarAssignment 注释
-        if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && promiseDeprecated in p)) {
+        // 详细信息请看上面的 runtimePromiseDeprecatedVarAssignment 注释
+        if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && (promiseDeprecated in p) || (promiseDeprecatedFromLocalService in p))) {
           updateStatus((prevState) => {
             return {
               ...prevState,
@@ -132,8 +135,16 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     fn.race = (...args: any[]) => {
       // @ts-ignore
       const r = model.preTreat(...args);
-      return runtimeVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback)));
+      return runtimePromiseDeprecatedVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback)), promiseDeprecatedFromClonedModel);
     };
+
+    // 用于外部包装，便于赋值 runtimePromiseDeprecatedVarAssignment
+    // 目前在 useService 中有使用
+    fn.__race__ = (...args: any[]) => {
+      // @ts-ignore
+      const r = model.preTreat(...args);
+      return statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback));
+    }
     return fn;
   };
 

@@ -40,7 +40,7 @@ const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: a
   }, []);
 
   const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
-  const [localService] = useService(clonedModel, service, deps, finalOptions);
+  const [localService] = useService(model, clonedModel, service, deps, finalOptions);
   const [cachedState] = useState(() => {
     return {
       data: model(),

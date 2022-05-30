@@ -62,6 +62,7 @@
     "no-param-reassign": "off",
     "class-methods-use-this": "off",
     "no-use-before-define": "off",
+    "no-underscore-dangle": "off",
 	"import/extensions": [
 	  "error",
 	  "ignorePackages",

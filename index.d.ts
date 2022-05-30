@@ -1,7 +1,12 @@
 // gluer
 import {FC} from 'react';
 import {DerivedSpace} from './src/hooks/rareHooks/useBatchDerivedStateToModel';
-import {promiseDeprecated, promiseDeprecatedFromClonedModel} from './src/constants';
+import {
+  promiseDeprecated,
+  promiseDeprecatedFromClonedModel,
+  promiseDeprecatedFromLocalService,
+  pureServiceKey
+} from './src/constants';
 import {ErrorFlag} from './src/genRaceQueue';
 
 
@@ -45,6 +50,8 @@ export interface ServiceStatus<S> {
   service:  LocalService<S>;
 }
 
+export type LocalServiceHasStatus<T> = LocalService<T> & { [pureServiceKey]?: LocalService<T> };
+
 export interface ServiceControl<D = any> extends Omit<ServiceStatus<D>, 'service'>{
   data?: D;
   key?: string; // 用来表明control的用途，消费方可根据此标识来决定是否消费数据及状态
@@ -77,6 +84,7 @@ export type ModelMethod<S> = {
   onChange: (callback: (state: S) => void) => () => void;
   silent: GluerReturnFn<S>;
   race: RaceFn<S>;
+  __race__?: RaceFn<S>;
   preTreat: GluerReturnFn<S>;
 };
 
@@ -86,7 +94,7 @@ export interface InjectProps {
   suspenseKeys: string[];
 }
 
-export type RacePromise = Promise<any> & {[promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; };
+export type RacePromise = Promise<any> & {[promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; [promiseDeprecatedFromLocalService]?: boolean };
 
 export interface RaceQueueObj {
   push: <T = any>(p: RacePromise, customerErrorFlag?: ErrorFlag) => void;
