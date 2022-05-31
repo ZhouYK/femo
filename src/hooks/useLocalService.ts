@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LocalService, LocalServiceHasStatus, ServiceStatus } from '../../index';
-import { promiseDeprecated, promiseDeprecatedFromClonedModel, pureServiceKey } from '../constants';
+import { promiseDeprecated, promiseDeprecatedFromClonedModel, pureServiceKey, resolveCatchError } from '../constants';
 import { promiseDeprecatedError } from '../genRaceQueue';
 
 interface IndividualServiceOptions {
@@ -40,15 +40,10 @@ const useLocalService = <S>(service: LocalService<S>, options?: IndividualServic
       loading: true,
       successful: false,
     }));
-    p.then(() => {
-      if (unmountedFlagRef.current) return;
-      updateStatus((prevState) => ({
-        ...prevState,
-        loading: false,
-        successful: true,
-      }))
-    }).catch((err) => {
-      if (unmountedFlagRef.current) return;
+    // catch 和 then 的先后顺序会影响执行顺序
+    // 最优先处理错误
+    p.catch((err) => {
+      if (unmountedFlagRef.current) return resolveCatchError;
       // 如果不是异步竞争引起的异常，则需要设置loading状态
       // 详细信息请看 useCloneModel
       if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && (promiseDeprecated in p || promiseDeprecatedFromClonedModel in p))) {
@@ -60,6 +55,14 @@ const useLocalService = <S>(service: LocalService<S>, options?: IndividualServic
           }
         });
       }
+      return resolveCatchError;
+    }).then((info) => {
+      if (unmountedFlagRef.current || info === resolveCatchError) return;
+      updateStatus((prevState) => ({
+        ...prevState,
+        loading: false,
+        successful: true,
+      }))
     });
     return p;
 

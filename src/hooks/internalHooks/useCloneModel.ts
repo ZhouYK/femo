@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Callback, GluerReturn, ServiceStatus, ServiceControl, ServiceOptions } from '../../../index';
-import {defaultReducer} from '../../gluer';
-import {isAsync, isModel} from '../../tools';
-import { ErrorFlag, promiseDeprecatedError } from '../../genRaceQueue';
-import runtimeVar from '../../runtimeVar';
+import { Callback, GluerReturn, ServiceControl, ServiceOptions, ServiceStatus } from '../../../index';
 import {
   promiseDeprecated,
-  promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService,
+  promiseDeprecatedFromClonedModel,
+  promiseDeprecatedFromLocalService,
+  resolveCatchError,
 } from '../../constants';
+import { ErrorFlag, promiseDeprecatedError } from '../../genRaceQueue';
+import { defaultReducer } from '../../gluer';
+import runtimeVar from '../../runtimeVar';
+import { isAsync, isModel } from '../../tools';
 
 /**
  * 需要区分promise竞争是由谁引起的，由origin model还是cloned model
@@ -89,17 +91,10 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
           successful: false,
         }
       });
-      p.then(() => {
-        if (unmountedFlagRef.current) return;
-        updateStatus((prevState) => {
-          return {
-            ...prevState,
-            successful: true,
-            loading: false,
-          }
-        });
-      }).catch((err) => {
-        if (unmountedFlagRef.current) return;
+      // catch 和 then 的先后顺序会影响执行顺序
+      // 最优先处理错误
+      p.catch((err) => {
+        if (unmountedFlagRef.current) return resolveCatchError;
         // 如果不是异步竞争引起的异常或者不是clonedModel引起的异步竞争，则需要设置loading状态
         // 详细信息请看上面的 runtimePromiseDeprecatedVarAssignment 注释
         if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && (promiseDeprecated in p) || (promiseDeprecatedFromLocalService in p))) {
@@ -111,7 +106,17 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
             }
           });
         }
-      });
+        return resolveCatchError;
+      }).then((info) => {
+        if (unmountedFlagRef.current || info === resolveCatchError) return;
+        updateStatus((prevState) => {
+          return {
+            ...prevState,
+            successful: true,
+            loading: false,
+          }
+        });
+      })
       return p;
     };
 

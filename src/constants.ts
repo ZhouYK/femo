@@ -8,6 +8,7 @@ export const gluerUniqueFlagKey = Symbol('gluerUniqueFlagKey');
 export const gluerUniqueFlagValue = Symbol('gluerUniqueFlagValue');
 export const pureServiceKey = Symbol('pureService');
 export const promiseDeprecatedFromLocalService = 'promiseDeprecatedFromLocalService';
+export const resolveCatchError = 'resolvePromiseCatchError';
 
 export const defaultServiceOptions: ServiceOptions = {
 };
