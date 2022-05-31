@@ -18,7 +18,7 @@ import {defaultServiceOptions} from '../constants';
  * control: GluerReturn<ServiceControl>;
  * } 每次函数运行都是取的最新的options的值
  */
-const useModel = <T = any>(model: GluerReturn<T>, service?: Service<T> ,deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T>] => {
+const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, D> ,deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T, D>] => {
   const finalOptions = {
     ...defaultServiceOptions,
     ...options,

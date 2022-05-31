@@ -40,14 +40,14 @@ export type Service<T, D = any> = (state: T, data?: D) => Promise<T> | T;
 // Service 与 LocalService 返回保持一致
 // LocalService 内部默认会调用 Service
 // LocalService 是给外部使用的，所以返回是一个确定的 Promise<S>
-export type LocalService<S> = {
-  <D>(data?: D): Promise<S>;
+export type LocalService<S, D = any> = {
+  (data?: D): Promise<S>;
 }
 
-export interface ServiceStatus<S> {
+export interface ServiceStatus<S, D = any> {
   loading: boolean;
   successful: boolean; // 用于判断promise是否fullfilled了，true代表fullfilled，false则可能是reject、可能还未开始。
-  service:  LocalService<S>;
+  service:  LocalService<S, D>;
 }
 
 export type LocalServiceHasStatus<T> = LocalService<T> & { [pureServiceKey]?: LocalService<T> };
@@ -113,8 +113,8 @@ export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialSta
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
 export function genRaceQueue(): RaceQueueObj;
 
-export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T>];
-export function useIndividualModel<S = any>(initState: S | (() => S), service?: Service<S>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S>];
+export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T, D>];
+export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S>];
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S>];
 

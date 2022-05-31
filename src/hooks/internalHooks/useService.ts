@@ -21,7 +21,7 @@ const depsDifferent = (source: any[] = [], target: any[] = []) => {
   return false;
 }
 
-const useService = <T>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, service?: Service<T>, deps?: any[], options?: ServiceOptions): [LocalService<T>] => {
+const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions): [LocalService<T, D>] => {
   const { suspenseKey, suspense, control } = options || {};
   const susKey = suspenseKey || suspense?.key;
   const depsRef = useRef<any[] | undefined>(deps);
@@ -32,7 +32,7 @@ const useService = <T>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, servi
   const modelRef = useRef(model);
   modelRef.current = model;
 
-  const localServicePure = useCallback((data) => {
+  const localServicePure = useCallback<LocalServiceHasStatus<T>>((data) => {
     const r = serviceRef.current?.(modelRef.current(), data);
     if (isAsync(r)) {
       return runtimePromiseDeprecatedVarAssignment(() => modelRef.current.race(() => r as Promise<T>), promiseDeprecatedFromLocalService)

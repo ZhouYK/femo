@@ -13,7 +13,7 @@ describe('useLocalService:useModel:test', () => {
   test('useModel:useLocalService:basic', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
 
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
@@ -73,7 +73,7 @@ describe('useLocalService:useModel:test', () => {
   test('useModel:useLocalService:bubble:true', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
@@ -135,7 +135,7 @@ describe('useLocalService:useModel:test', () => {
   test('useModel:useLocalService:race', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
@@ -234,7 +234,7 @@ describe('useLocalService:useModel:test', () => {
   test('useModel:useLocalService:race:bubble', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
@@ -314,7 +314,7 @@ describe('useLocalService:useIndividualModel:test', () => {
   test('useIndividualModel:useLocalService:basic', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
 
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
@@ -374,7 +374,7 @@ describe('useLocalService:useIndividualModel:test', () => {
   test('useIndividualModel:useLocalService:bubble:true', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
@@ -436,7 +436,7 @@ describe('useLocalService:useIndividualModel:test', () => {
   test('useIndividualModel:useLocalService:race', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
@@ -535,7 +535,7 @@ describe('useLocalService:useIndividualModel:test', () => {
   test('useIndividualModel:useLocalService:race:bubble', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const getAge = (s: number, data: number) => {
+      const getAge = (s: number, data?: number) => {
         if (typeof data !== 'undefined') {
           return Promise.resolve(s + data);
         }
