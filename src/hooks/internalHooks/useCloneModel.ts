@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Callback, GluerReturn, ServiceControl, ServiceOptions, ServiceStatus } from '../../../index';
+import { Callback, GluerReturn, RacePromise, ServiceControl, ServiceOptions, ServiceStatus } from '../../../index';
 import {
   promiseDeprecated,
-  promiseDeprecatedFromClonedModel,
-  promiseDeprecatedFromLocalService,
+  promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService,
   resolveCatchError,
 } from '../../constants';
 import { ErrorFlag, promiseDeprecatedError } from '../../genRaceQueue';
@@ -23,6 +22,16 @@ export const runtimePromiseDeprecatedVarAssignment = <P>(callback: () => Promise
   const result = callback();
   runtimeVar.runtimePromiseDeprecatedFlag = promiseDeprecated;
   return result;
+}
+
+export const isDeprecatedBySelf = (err: any, p: RacePromise, flags: ErrorFlag[]) => {
+  const isDeprecatedError = err === promiseDeprecatedError;
+  let deprecatedBySelf = false;
+  const l = flags.length;
+  for (let i = 0; i < l; i += 1) {
+    deprecatedBySelf ||= (flags[i] in p);
+  }
+  return isDeprecatedError && deprecatedBySelf;
 }
 /**
  *
@@ -95,9 +104,10 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
       // 最优先处理错误
       p.catch((err) => {
         if (unmountedFlagRef.current) return resolveCatchError;
-        // 如果不是异步竞争引起的异常或者不是clonedModel引起的异步竞争，则需要设置loading状态
+        // 如果不是异步竞争引起的异常或者不是clonedModel(包含了local service)引起的异步竞争，则需要设置loading状态
+        // 这里关键是要确定 loading 和 promise 的对应关系，如果 promise 对应的是这里的 loading，则不用设置状态，因为已经上面👆🏻promise外设置了。
         // 详细信息请看上面的 runtimePromiseDeprecatedVarAssignment 注释
-        if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && (promiseDeprecated in p) || (promiseDeprecatedFromLocalService in p))) {
+        if (err !== promiseDeprecatedError || !isDeprecatedBySelf(err, p, [promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService])) {
           updateStatus((prevState) => {
             return {
               ...prevState,

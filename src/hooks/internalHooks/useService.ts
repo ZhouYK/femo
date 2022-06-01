@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { GluerReturn, LocalService, LocalServiceHasStatus, RaceFn, Service, ServiceOptions } from '../../../index';
-import { promiseDeprecatedFromLocalService, pureServiceKey } from '../../constants';
-import {isAsync, isModel} from '../../tools';
+import {
+  promiseDeprecatedFromLocalService,
+  promiseDeprecatedFromLocalServicePure,
+  pureServiceKey
+} from '../../constants';
+import { isAsync, isModel } from '../../tools';
 import { runtimePromiseDeprecatedVarAssignment } from './useCloneModel';
 
 type CustomerPromise<T = any> = { success?: boolean; data?: T }  & Promise<T>;
@@ -35,7 +39,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
   const localServicePure = useCallback<LocalServiceHasStatus<T>>((data) => {
     const r = serviceRef.current?.(modelRef.current(), data);
     if (isAsync(r)) {
-      return runtimePromiseDeprecatedVarAssignment(() => modelRef.current.race(() => r as Promise<T>), promiseDeprecatedFromLocalService)
+      return runtimePromiseDeprecatedVarAssignment(() => modelRef.current.race(() => r as Promise<T>), promiseDeprecatedFromLocalServicePure)
     }
     return Promise.resolve(modelRef.current(r as T)) as Promise<T>;
   }, []);
@@ -123,7 +127,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
     } else if (typeof service === 'function') {
         const result = service(clonedModel());
         if (isAsync(result)) {
-          const p = clonedModel.race(() => result as Promise<T>)
+          const p = clonedModel.race(() => result as Promise<T>);
           if (susPersist && susKey) {
             const tmpP: CustomerPromise = p.then((data) => {
               tmpP.success = true;

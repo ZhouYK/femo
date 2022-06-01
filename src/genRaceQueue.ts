@@ -1,8 +1,8 @@
-import { promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService } from './constants';
+import { promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure } from './constants';
 import {RacePromise, RaceQueueObj} from '../index';
 
-export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel | typeof promiseDeprecatedFromLocalService;
-export const errorFlags = [promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService];
+export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel | typeof promiseDeprecatedFromLocalService | typeof promiseDeprecatedFromLocalServicePure;
+export const errorFlags = [promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure];
 
 export const promiseDeprecatedError = 'the promise is deprecated by race condition';
 

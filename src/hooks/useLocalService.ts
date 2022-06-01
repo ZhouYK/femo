@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LocalService, LocalServiceHasStatus, ServiceStatus } from '../../index';
-import { promiseDeprecated, promiseDeprecatedFromClonedModel, pureServiceKey, resolveCatchError } from '../constants';
+import {
+  promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure,
+  pureServiceKey,
+  resolveCatchError
+} from '../constants';
 import { promiseDeprecatedError } from '../genRaceQueue';
+import { isDeprecatedBySelf } from './internalHooks/useCloneModel';
 
 interface IndividualServiceOptions {
   bubble?: boolean;
@@ -46,7 +51,7 @@ const useLocalService = <S>(service: LocalService<S>, options?: IndividualServic
       if (unmountedFlagRef.current) return resolveCatchError;
       // 如果不是异步竞争引起的异常，则需要设置loading状态
       // 详细信息请看 useCloneModel
-      if (err !== promiseDeprecatedError || (err === promiseDeprecatedError && (promiseDeprecated in p || promiseDeprecatedFromClonedModel in p))) {
+      if (err !== promiseDeprecatedError || !isDeprecatedBySelf(err, p, [promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure])) {
         updateStatus((prevState) => {
           return {
             ...prevState,

@@ -4,7 +4,7 @@ import {DerivedSpace} from './src/hooks/rareHooks/useBatchDerivedStateToModel';
 import {
   promiseDeprecated,
   promiseDeprecatedFromClonedModel,
-  promiseDeprecatedFromLocalService,
+  promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure,
   pureServiceKey
 } from './src/constants';
 import {ErrorFlag} from './src/genRaceQueue';
@@ -94,7 +94,7 @@ export interface InjectProps {
   suspenseKeys: string[];
 }
 
-export type RacePromise = Promise<any> & {[promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; [promiseDeprecatedFromLocalService]?: boolean };
+export type RacePromise = Promise<any> & {[promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; [promiseDeprecatedFromLocalService]?: boolean; [promiseDeprecatedFromLocalServicePure]?: boolean };
 
 export interface RaceQueueObj {
   push: <T = any>(p: RacePromise, customerErrorFlag?: ErrorFlag) => void;

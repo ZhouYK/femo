@@ -305,6 +305,27 @@ describe('useLocalService:useModel:test', () => {
     expect(result.current.localSuccessful).toBe(true);
 
     act(() => {
+      result.current.localService(1);
+    });
+    expect(result.current.age).toBe(8);
+    expect(result.current.loading).toBe(true);
+    expect(result.current.localLoading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.localSuccessful).toBe(false);
+    act(() => {
+      result.current.localService(3);
+    });
+    expect(result.current.age).toBe(8);
+    expect(result.current.loading).toBe(true);
+    expect(result.current.localLoading).toBe(true);
+    await waitForNextUpdate();
+    expect(result.current.age).toBe(11);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.localLoading).toBe(false);
+    expect(result.current.successful).toBe(true);
+    expect(result.current.localSuccessful).toBe(true);
+
+    act(() => {
       unmount();
     });
 
