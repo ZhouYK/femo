@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LocalService, LocalServiceHasStatus, ServiceStatus } from '../../index';
+import { IndividualServiceOptions, LocalService, LocalServiceHasStatus, ServiceStatus } from '../../index';
 import {
   promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure,
   pureServiceKey,
@@ -7,10 +7,6 @@ import {
 } from '../constants';
 import { promiseDeprecatedError } from '../genRaceQueue';
 import { isDeprecatedBySelf } from './internalHooks/useCloneModel';
-
-interface IndividualServiceOptions {
-  bubble?: boolean;
-}
 
 const defaultOptions: IndividualServiceOptions = {
   bubble: false,
