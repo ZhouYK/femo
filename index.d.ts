@@ -122,7 +122,7 @@ export function useIndividualModel<S = any, D = any>(initState: S | (() => S), s
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
 
-export function useLocalService<S>(service: LocalService<S>, options?: IndividualServiceOptions): [LocalService<S>, Omit<ServiceStatus<S>, 'service'>]
+export function useLocalService<S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S>, Omit<ServiceStatus<S, D>, 'service'>]
 
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
 export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
