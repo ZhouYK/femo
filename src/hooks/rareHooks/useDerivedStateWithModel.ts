@@ -1,9 +1,12 @@
-import {useCallback, useEffect, useState} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useModel from '../useModel';
 import {GluerReturn} from '../../../index';
 import {isArray, isModel} from '../../tools';
 
 const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
+  const modelRef = useRef(model);
+  modelRef.current = model;
+
   const updateState = useCallback((s: S, silent = true) => {
     let result: any = s;
     if (typeof s === 'function') {
@@ -11,14 +14,14 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
     }
 
     if (silent) {
-      model.silent(result);
+      modelRef.current.silent(result);
     } else {
-      model(result);
+      modelRef.current(result);
     }
   }, []);
 
   const callWhenChange = useCallback((silent = true) => {
-    updateState(callback(model()), silent);
+    updateState(callback(modelRef.current()), silent);
   }, [callback]);
 
   const [map] = useState(() => new Map());
