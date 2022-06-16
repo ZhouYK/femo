@@ -2,6 +2,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import { GluerReturn, Service, ServiceOptions, ServiceStatus } from '../../index';
 import subscribe from '../subscribe';
 import useCloneModel from './internalHooks/useCloneModel';
+import useControl from './internalHooks/useControl';
 import useService from './internalHooks/useService';
 import {defaultServiceOptions} from '../constants';
 
@@ -41,6 +42,7 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
 
   const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
   const [localService] = useService(model, clonedModel, service, deps, finalOptions);
+  const [control] = useControl(model, status);
   const [cachedState] = useState(() => {
     return {
       data: model(),
@@ -64,6 +66,7 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
   return [model(), clonedModel, {
     ...status,
     service: localService,
+    control,
   }];
 };
 

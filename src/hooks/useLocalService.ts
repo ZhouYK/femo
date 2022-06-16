@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { IndividualServiceOptions, LocalService, LocalServiceHasStatus, ServiceStatus } from '../../index';
+import {
+  IndividualServiceOptions,
+  LoadingStatus,
+  LocalService,
+  LocalServiceHasStatus,
+} from '../../index';
 import {
   promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure,
   pureServiceKey,
@@ -12,7 +17,7 @@ const defaultOptions: IndividualServiceOptions = {
   bubble: false,
 };
 
-const useLocalService = <S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S, D>, Omit<ServiceStatus<S>, 'service'>] => {
+const useLocalService = <S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S, D>, LoadingStatus] => {
   const unmountedFlagRef = useRef(false);
   const serviceRef = useRef<LocalServiceHasStatus<S>>(service);
   serviceRef.current = service;
@@ -25,7 +30,7 @@ const useLocalService = <S, D>(service: LocalService<S, D>, options?: Individual
     ...options,
   };
 
-  const [status, updateStatus] = useState<Omit<ServiceStatus<S>, 'service'>>(() => {
+  const [status, updateStatus] = useState<LoadingStatus>(() => {
     return {
       loading: false,
       successful: false,

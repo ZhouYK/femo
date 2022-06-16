@@ -37,6 +37,7 @@ export type GluerReturnFn<S> = {
 
 export type Service<T, D = any> = (state: T, data?: D) => Promise<T> | T;
 
+export type Control<S = any> = GluerReturn<ServiceControl<S>>
 // Service 与 LocalService 返回保持一致
 // LocalService 内部默认会调用 Service
 // LocalService 是给外部使用的，所以返回是一个确定的 Promise<S>
@@ -44,18 +45,23 @@ export type LocalService<S, D = any> = {
   (data?: D): Promise<S>;
 }
 
-export interface ServiceStatus<S, D = any> {
+export interface LoadingStatus {
   loading: boolean;
   successful: boolean; // 用于判断promise是否fullfilled了，true代表fullfilled，false则可能是reject、可能还未开始。
+}
+
+export interface ServiceControl<D = any> extends LoadingStatus {
+  data?: D;
+  key?: string; // 用来表明control的用途，消费方可根据此标识来决定是否消费数据及状态
+}
+
+export interface ServiceStatus<S, D = any> extends LoadingStatus {
   service:  LocalService<S, D>;
+  control: Control<S>; // 返回的 model 用于同步状态
 }
 
 export type LocalServiceHasStatus<T> = LocalService<T> & { [pureServiceKey]?: LocalService<T> };
 
-export interface ServiceControl<D = any> extends Omit<ServiceStatus<D>, 'service'>{
-  data?: D;
-  key?: string; // 用来表明control的用途，消费方可根据此标识来决定是否消费数据及状态
-}
 
 export interface SuspenseOptions {
   key: string;
@@ -69,7 +75,7 @@ export interface ServiceOptions<S = any> {
   suspenseKey?: string; // 非空字符串
   suspense?: SuspenseOptions;
   onChange?: (nextState: S, prevState: S) => void; // 节点数据变更时向外通知，一般对组件外使用（组件内的有useDerivedxxx系列）
-  control?: GluerReturn<ServiceControl>; // 外部传入的 model 用于同步状态
+  control?: Control<S>; // 外部传入的 model 用于同步状态
 }
 
 export type RaceFn<S> = {
@@ -119,13 +125,13 @@ export function genRaceQueue(): RaceQueueObj;
 
 export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T, D>];
 export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
-export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
-export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
+export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
+export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
 
-export function useLocalService<S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S, D>, Omit<ServiceStatus<S, D>, 'service'>]
+export function useLocalService<S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S, D>, LoadingStatus]
 
-export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
-export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, Omit<ServiceStatus<S>, 'service'>];
+export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
+export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
 
 
 
