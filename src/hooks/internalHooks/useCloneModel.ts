@@ -5,7 +5,7 @@ import {
   LoadingStatus,
   RacePromise,
   ServiceControl,
-  ServiceOptions,
+  ServiceOptions, ServiceStatus,
 } from '../../../index';
 import {
   promiseDeprecated,
@@ -16,6 +16,7 @@ import { ErrorFlag, promiseDeprecatedError } from '../../genRaceQueue';
 import { defaultReducer } from '../../gluer';
 import runtimeVar from '../../runtimeVar';
 import { isAsync, isModel } from '../../tools';
+import useControl from './useControl';
 
 /**
  * 需要区分promise竞争是由谁引起的，由origin model还是cloned model
@@ -46,13 +47,14 @@ export const isDeprecatedBySelf = (err: any, p: RacePromise, flags: ErrorFlag[])
  * @param mutedCallback 用于减少一次组件rerender，因为异步获取状态变更时会去更新loading，所以当loading变更时静默掉订阅的回调。clonedModel中所有异步更新都应该加上这个
  * @param options
  */
-const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback, options?: ServiceOptions<T>): [GluerReturn<T>, LoadingStatus] => {
+const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback, options?: ServiceOptions<T>): [GluerReturn<T>, Omit<ServiceStatus<T>, 'service'>] => {
   const { control } = options || {};
   const unmountedFlagRef = useRef(false);
   const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
   const cacheControlOnChangeUnsub = useRef<() => void>();
   const cacheModelRef = useRef<GluerReturn<T>>(model);
   const underControl = useRef(false);
+
 
   const [status, updateStatus] = useState<LoadingStatus>(() => {
     if (isModel(control)) {
@@ -72,6 +74,23 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     }
   });
 
+  const outputControl = useControl(model(), status);
+
+  const syncUpdateStatus = (s: LoadingStatus) => {
+    updateStatus((prevState) => {
+      return {
+        ...prevState,
+        ...s,
+      }
+    });
+    outputControl((_d, state) => {
+      return {
+        ...state,
+        ...s,
+      }
+    });
+  }
+
   if (cacheControlRef.current !== control && isModel(control) && underControl.current) {
     cacheControlRef.current = control;
     if (cacheControlOnChangeUnsub.current) {
@@ -81,7 +100,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
       if (state.successful) {
         model.silent(state.data);
       }
-      updateStatus({
+      syncUpdateStatus({
         loading: state.loading,
         successful: state.successful,
       });
@@ -100,13 +119,11 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
         cacheControlOnChangeUnsub.current = undefined;
       }
 
-      updateStatus((prevState) => {
-        return {
-          ...prevState,
-          loading: true,
-          successful: false,
-        }
-      });
+      syncUpdateStatus({
+        loading: true,
+        successful: false,
+      })
+
       // catch 和 then 的先后顺序会影响执行顺序
       // 最优先处理错误
       p.catch((err) => {
@@ -115,23 +132,17 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
         // 这里关键是要确定 loading 和 promise 的对应关系，如果 promise 对应的是这里的 loading，则不用设置状态，因为已经上面👆🏻promise外设置了。
         // 详细信息请看上面的 runtimePromiseDeprecatedVarAssignment 注释
         if (err !== promiseDeprecatedError || !isDeprecatedBySelf(err, p, [promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService])) {
-          updateStatus((prevState) => {
-            return {
-              ...prevState,
-              loading: false,
-              successful: false,
-            }
+          syncUpdateStatus({
+            loading: false,
+            successful: false,
           });
         }
         return resolveCatchError;
       }).then((info) => {
         if (unmountedFlagRef.current || info === resolveCatchError) return;
-        updateStatus((prevState) => {
-          return {
-            ...prevState,
-            successful: true,
-            loading: false,
-          }
+        syncUpdateStatus({
+          successful: true,
+          loading: false,
         });
       })
       return p;
@@ -189,7 +200,21 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     }
   }, []);
 
-  return [cacheClonedModelRef.current, status];
+  useEffect(() => {
+    return model.onChange((state) => {
+      outputControl((_d, s) => {
+        return {
+          ...s,
+          data: state,
+        }
+      })
+    });
+  }, [model]);
+
+  return [cacheClonedModelRef.current, {
+    ...status,
+    control: outputControl,
+  }];
 }
 
 export default useCloneModel;

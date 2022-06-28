@@ -51,7 +51,7 @@ export interface LoadingStatus {
 }
 
 export interface ServiceControl<D = any> extends LoadingStatus {
-  data?: D;
+  data: D;
   key?: string; // 用来表明control的用途，消费方可根据此标识来决定是否消费数据及状态
 }
 

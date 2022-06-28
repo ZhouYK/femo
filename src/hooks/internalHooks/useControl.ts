@@ -1,32 +1,16 @@
-import { useRef, useState } from 'react';
-import { GluerReturn, LoadingStatus, ServiceControl } from '../../../index';
+import { useRef } from 'react';
+import { LoadingStatus } from '../../../index';
 import gluer from '../../gluer';
 
-const useControl = <S = any>(model: GluerReturn<S> , status: LoadingStatus) => {
-  const modelRef = useRef(model());
-  const statusRef = useRef(status);
-
-
-  const [control] = useState<GluerReturn<ServiceControl<S>>>(() => {
-    return gluer(() => {
-      return {
-        ...(statusRef.current),
-        data: modelRef.current,
-      }
+const useControl = <S>(state: S , status: LoadingStatus) => {
+  const controlRef = useRef(
+    gluer({
+      ...(status),
+      data: state,
     })
-  });
+  );
 
-  if (!Object.is(modelRef.current, model()) || !Object.is(statusRef.current, status)) {
-    const data = model();
-    control({
-      ...status,
-      data,
-    });
-    modelRef.current = data;
-    statusRef.current = status;
-  }
-
-  return [control];
+  return controlRef.current;
 }
 
 export default useControl;
