@@ -1,10 +1,10 @@
 import { useRef } from 'react';
-import { LoadingStatus } from '../../../index';
+import { LoadingStatus, ServiceControl } from '../../../index';
 import gluer from '../../gluer';
 
 const useControl = <S>(state: S , status: LoadingStatus) => {
   const controlRef = useRef(
-    gluer({
+    gluer<ServiceControl<S>>({
       ...(status),
       data: state,
     })
