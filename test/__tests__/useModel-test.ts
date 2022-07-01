@@ -272,7 +272,7 @@ describe('useModel test', () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
 
-      const serviceFn = (_s: number, data: number) => {
+      const serviceFn = (_s: number, data?: number) => {
         if (count < 6) {
           if (typeof data === 'number') {
             return Promise.resolve(data + count)
