@@ -223,7 +223,13 @@ function gluer(...args: any[]) {
 
   fn.silent = basicLogic(true);
 
-  fn.race = (...as: any[]) => rq.push(fn(...as), runtimeVar.runtimePromiseDeprecatedFlag);
+  fn.race = (...as: any[]) => {
+    let tmp = fn(...as);
+    if (!isAsync(tmp)) {
+      tmp = Promise.resolve(tmp);
+    }
+    return rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag)
+  };
 
   fn.preTreat = (...as: any) => preTreat(...as);
 

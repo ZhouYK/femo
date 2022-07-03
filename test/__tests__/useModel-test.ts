@@ -75,20 +75,23 @@ describe('useModel test', () => {
         }
         return s;
       };
-      const [age, clonedModel, { loading }] = useModel(model, service, [count]);
+      const [age, clonedModel, { loading, successful }] = useModel(model, service, [count]);
       return {
         age,
         clonedModel,
         loading,
         updateCount,
+        successful,
       }
     });
     // 第一次渲染的时候就会发起异步请求
     expect(result.current.age).toBe(0);
     expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
     await waitForNextUpdate();
     expect(result.current.age).toBe(1);
     expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
 
     act(() => {
       // count的更新会引起service更新，在useIndividualModel中会用最新的service执行一次
@@ -97,17 +100,34 @@ describe('useModel test', () => {
 
     expect(result.current.age).toBe(1);
     expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
     await waitForNextUpdate();
     expect(result.current.age).toBe(6);
     expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
 
     act(() => {
       // count的更新会引起service更新，在useIndividualModel中会用最新的service执行一次
-      // 但是service中做了条件判断，当count >= 6时直接返回当前的state。所以并不会执行异步，也不会引起状态更新
+      // 但是service中做了条件判断，当count >= 6时直接返回当前的state。
       result.current.updateCount(6);
     });
-    expect(result.current.age).toBe(6);
     expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(6);
+
+    act(() => {
+      result.current.updateCount(1);
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(6);
+
+    act(() => {
+      result.current.updateCount(7);
+    });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(6);
 
     act(() => {
       // 卸载时，会解绑model和state
@@ -224,11 +244,12 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, clonedModel, { loading }] = useModel(model,  service,[count]);
+      const [age, clonedModel, { loading, successful }] = useModel(model,  service,[count]);
       return {
         age,
         clonedModel,
         loading,
+        successful,
         updateCount,
       }
     });
@@ -249,7 +270,6 @@ describe('useModel test', () => {
     expect(result.current.age).toBe(3);
 
 
-
     act(() => {
       result.current.clonedModel.race(() => Promise.resolve(4));
       model.race(() => Promise.resolve(5));
@@ -262,6 +282,27 @@ describe('useModel test', () => {
 
     expect(result.current.age).toBe(5);
     expect(result.current.loading).toBe(false);
+
+    act(() => {
+      result.current.clonedModel.race(Promise.resolve(4));
+      model.race(2);
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(2);
+    await waitForNextUpdate();
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(2);
+
+    act(() => {
+      result.current.clonedModel.race(Promise.resolve(10));
+      result.current.clonedModel.race(0);
+    });
+    expect(result.current.age).toBe(0);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
 
     act(() => {
       unmount();
@@ -282,12 +323,13 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, clonedModel, { loading, service }] = useModel(model,  serviceFn,[count]);
+      const [age, clonedModel, { loading, service, successful }] = useModel(model,  serviceFn,[count]);
       return {
         age,
         clonedModel,
         loading,
         service,
+        successful,
         updateCount,
       }
     });
@@ -331,11 +373,18 @@ describe('useModel test', () => {
     expect(result.current.age).toBe(3);
 
     act(() => {
+      result.current.service(3);
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(3);
+
+    act(() => {
       result.current.updateCount(6);
     });
     expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
     expect(result.current.age).toBe(6);
-
     act(() => {
       result.current.service(2);
     });

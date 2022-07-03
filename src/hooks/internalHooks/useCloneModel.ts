@@ -78,14 +78,15 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
 
   const syncUpdateStatus = (s: LoadingStatus) => {
     updateStatus((prevState) => {
+      if (prevState.loading === s.loading && prevState.successful === s.successful) return prevState;
+      outputControl((_d, state) => {
+        return {
+          ...state,
+          ...s,
+        }
+      });
       return {
         ...prevState,
-        ...s,
-      }
-    });
-    outputControl((_d, state) => {
-      return {
-        ...state,
         ...s,
       }
     });
@@ -109,7 +110,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
 
   const genClonedModel = () => {
 
-    const statusHandleFn = <P>(p: Promise<P>) => {
+    const statusHandleFn = <P>(p: Promise<P>, async: boolean) => {
       // 一旦调用statusHandleFn，表示已经不受外部控制状态了
       underControl.current = false;
       cacheControlRef.current = undefined;
@@ -118,7 +119,14 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
         cacheControlOnChangeUnsub.current();
         cacheControlOnChangeUnsub.current = undefined;
       }
-
+      // 如果传入的不是 异步数据，则直接返回
+      if (!async) {
+        syncUpdateStatus({
+          loading: false, // loading 和 successful 更多的是表示 异步的状态
+          successful: false, // 如果是同步数据，则将 successful 置为 false；successful 更多的应该表示异步更新才有有意义
+        });
+        return p;
+      }
       syncUpdateStatus({
         loading: true,
         successful: false,
@@ -159,7 +167,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
         // 目前最多三个参数
         // 如果第三个参数手动传了，以手动为准
         // 没传，以传入的modelDeps为准
-        return statusHandleFn(model(res, defaultReducer, args[2] || mutedCallback) as Promise<T>);
+        return statusHandleFn(model(res, defaultReducer, args[2] || mutedCallback) as Promise<T>, true);
       }
       return model(res);
     };
@@ -168,7 +176,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     fn.race = (...args: any[]) => {
       // @ts-ignore
       const r = model.preTreat(...args);
-      return runtimePromiseDeprecatedVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback)), promiseDeprecatedFromClonedModel);
+      return runtimePromiseDeprecatedVarAssignment(() => statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback), isAsync(r)), promiseDeprecatedFromClonedModel);
     };
 
     // 用于外部包装，便于赋值 runtimePromiseDeprecatedVarAssignment
@@ -176,7 +184,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     fn.__race__ = (...args: any[]) => {
       // @ts-ignore
       const r = model.preTreat(...args);
-      return statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback));
+      return statusHandleFn(model.race(r, defaultReducer, args[2] || mutedCallback), isAsync(r));
     }
     return fn;
   };

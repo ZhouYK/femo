@@ -38,20 +38,14 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
 
   const localServicePure = useCallback<LocalServiceHasStatus<T>>((data) => {
     const r = serviceRef.current?.(modelRef.current(), data);
-    if (isAsync(r)) {
-      return runtimePromiseDeprecatedVarAssignment(() => modelRef.current.race(() => r as Promise<T>), promiseDeprecatedFromLocalServicePure)
-    }
-    return Promise.resolve(modelRef.current(r as T)) as Promise<T>;
+    return runtimePromiseDeprecatedVarAssignment(() => modelRef.current.race(r), promiseDeprecatedFromLocalServicePure)
   }, []);
 
 
   const localServiceHasStatus = useCallback<LocalServiceHasStatus<T>>((data) => {
     const r = serviceRef.current?.(clonedModelRef.current(), data);
-    if (isAsync(r)) {
-      return runtimePromiseDeprecatedVarAssignment(() => (clonedModelRef.current.__race__ as RaceFn<T>)(() => r as Promise<T>), promiseDeprecatedFromLocalService);
-    }
     // r 为非异步数据，不会引起 loading
-    return Promise.resolve(clonedModelRef.current(r as T)) as Promise<T>;
+    return runtimePromiseDeprecatedVarAssignment(() => (clonedModelRef.current.__race__ as RaceFn<T>)(r), promiseDeprecatedFromLocalService);
   }, []);
 
   // 赋值
@@ -106,7 +100,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
         throw p
       }
       // 这里更新了loading，会跳过当次渲染
-      clonedModel.race(() => result as Promise<T>);
+      clonedModel.race(result);
     } else if (depsIsDifferent) {
       // 首次渲染出现了suspense状态下依赖变更的情况，这时会跳过上面的throw逻辑，重新执行一遍首次的请求逻辑
       // 当发现这次请求不是异步更新时，为了避免首次数据出现重置的情况（重置是发生suspense组件的特性），需要将上一次的promise throw出去以保证首次渲染时有数据
@@ -116,7 +110,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
         throw promise;
       }
     } else {
-      clonedModel(result);
+      clonedModel.race(result);
     }
   }
 
@@ -127,7 +121,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
     } else if (typeof service === 'function') {
         const result = service(clonedModel());
         if (isAsync(result)) {
-          const p = clonedModel.race(() => result as Promise<T>);
+          const p = clonedModel.race(result);
           if (susPersist && susKey) {
             const tmpP: CustomerPromise = p.then((data) => {
               tmpP.success = true;
@@ -143,9 +137,10 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
         } else if (depsIsDifferent) {
           // 如果当次是非异步更新且上一次是suspense状态，不管上一个promise有没有更新成功，都将其竞争掉
           cache.delete(susKey as string);
-          clonedModel.race(() => Promise.resolve(result));
+          clonedModel.race(result);
         } else {
-          clonedModel(result);
+          // 现在 race 可作用于非异步数据
+          clonedModel.race(result);
         }
       }
 

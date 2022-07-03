@@ -82,21 +82,24 @@ describe('useIndividualModel test', () => {
         }
         return s;
       };
-      const [state, model, clonedModel, { loading }] = useIndividualModel(count, service, [count]);
+      const [state, model, clonedModel, { loading, successful }] = useIndividualModel(count, service, [count]);
       return {
         state,
         model,
         clonedModel,
         loading,
         updateCount,
+        successful,
       }
     });
     // 第一次渲染的时候就会发起异步请求
     expect(result.current.state).toBe(0);
     expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
     await waitForNextUpdate();
     expect(result.current.state).toBe(1);
     expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
 
     act(() => {
       // count的更新会引起service更新，在useIndividualModel中会用最新的service执行一次
@@ -105,18 +108,35 @@ describe('useIndividualModel test', () => {
 
     expect(result.current.state).toBe(1);
     expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
     await waitForNextUpdate();
     expect(result.current.state).toBe(6);
     expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
 
     act(() => {
       // count的更新会引起service更新，在useIndividualModel中会用最新的service执行一次
-      // 但是service中做了条件判断，当count >= 6时直接返回当前的state。所以并不会执行异步，也不会引起状态更新
+      // 但是service中做了条件判断，当count >= 6时直接返回当前的state。所以并不会执行异步，但会把 loading、successful 重置为 false
       result.current.updateCount(6);
     });
     expect(result.current.state).toBe(6);
     expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
 
+    act(() => {
+      // 执行 异步更新
+      result.current.updateCount(1);
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    act(() => {
+      // 执行 同步更新
+      // 该同步更新会让 上面那个 异步更新 无效
+      result.current.updateCount(6);
+    });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.state).toBe(6);
     act(() => {
       // 卸载时，会解绑model和state
       unmount();

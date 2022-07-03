@@ -79,9 +79,10 @@ export interface ServiceOptions<S = any> {
 }
 
 export type RaceFn<S> = {
-  <D = undefined>(customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>): Promise<S>;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, Promise<S>>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
+  <D = undefined>(customHandler: HandleFunc<S, D, S>): Promise<S>;
+  <D>(data: D): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
 }
 
 export type ModelMethod<S> = {
