@@ -41,24 +41,31 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
 
   const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
   const [localService] = useService(model, clonedModel, service, deps, finalOptions);
-  const [cachedState] = useState(() => {
-    return {
-      data: model(),
-    }
-  });
+  const sta = model();
+  const cachedOnChangeState = useRef(sta);
+  const cachedOnUpdateState = useRef(sta);
 
   const onChangeCallback = useCallback((state: T) => {
     if (optionsRef.current.onChange) {
-      const { data } = cachedState;
-      cachedState.data = state;
-      optionsRef.current.onChange(state, data);
+      const { current } = cachedOnChangeState;
+      cachedOnChangeState.current = state;
+      optionsRef.current.onChange(state, current);
+    }
+  }, []);
+
+  const onUpdateCallback = useCallback((state: T) => {
+    if (optionsRef.current.onUpdate) {
+      const { current } = cachedOnUpdateState;
+      cachedOnUpdateState.current = state;
+      optionsRef.current.onUpdate(state, current);
     }
   }, []);
 
   useEffect(() => {
     const offChange = model.onChange(onChangeCallback);
+    const offUpdate = model.onUpdate(onUpdateCallback);
     const unsub = subscribe([model], subscribeCallback, false, true);
-    return () => { unsub(); offChange(); }
+    return () => { unsub(); offChange(); offUpdate(); }
   }, [model]);
 
   return [model(), clonedModel, {

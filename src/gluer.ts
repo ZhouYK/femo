@@ -71,6 +71,7 @@ function gluer(...args: any[]) {
   let gluerState = initState;
 
   const rq = genRaceQueue();
+  const onUpdateCallbackArr: ((state: typeof gluerState) => void)[] = [];
 
   let fn: any;
 
@@ -105,6 +106,11 @@ function gluer(...args: any[]) {
           })
         }
       }
+    }
+    if (!silent) {
+      onUpdateCallbackArr.forEach((callback) => {
+        callback(gluerState);
+      });
     }
   };
 
@@ -219,6 +225,22 @@ function gluer(...args: any[]) {
     }
 
     return subscribe([fn], callback, false);
+  }
+
+  fn.onUpdate = (callback: (state: typeof gluerState) => void) => {
+    if (typeof callback !== 'function') {
+      throw new Error('callback should be function');
+    }
+    const cb = (state: typeof gluerState) => {
+      return callback(state);
+    };
+    onUpdateCallbackArr.push(cb);
+    return () => {
+      const index = onUpdateCallbackArr.indexOf(cb);
+      if (index !== -1) {
+        onUpdateCallbackArr.splice(index, 1);
+      }
+    }
   }
 
   fn.silent = basicLogic(true);

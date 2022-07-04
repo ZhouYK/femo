@@ -533,4 +533,117 @@ describe('useModel test', () => {
       unmount2();
     })
   });
+
+  test('useModel onUpdate', async () => {
+
+    const updateCallback_mock = jest.fn((state, prevState) => {
+      return Object.is(state, prevState);
+    });
+
+    const changeCallback_mock = jest.fn((state, prevState) => {
+      return Object.is(state, prevState);
+    });
+
+    const { result, unmount, waitForNextUpdate } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+
+      const service = (s: number) => {
+        if (count < 6) {
+          return Promise.resolve(count + 1);
+        }
+        if (count === 7) return s;
+        return count;
+      };
+
+      const [age, clonedModel, { loading, successful }] = useModel(model,  service,[count], {
+        onUpdate: updateCallback_mock,
+        onChange: changeCallback_mock,
+      });
+      return {
+        age,
+        clonedModel,
+        loading,
+        successful,
+        updateCount,
+      }
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(0);
+    expect(updateCallback_mock.mock.calls.length).toBe(0);
+    expect(changeCallback_mock.mock.calls.length).toBe(0);
+    await waitForNextUpdate();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
+    expect(result.current.age).toBe(1);
+    expect(updateCallback_mock.mock.calls.length).toBe(1);
+    expect(changeCallback_mock.mock.calls.length).toBe(1);
+
+    expect(updateCallback_mock.mock.calls[0][0]).toBe(1);
+    expect(updateCallback_mock.mock.calls[0][1]).toBe(0);
+
+    expect(changeCallback_mock.mock.calls[0][0]).toBe(1);
+    expect(changeCallback_mock.mock.calls[0][1]).toBe(0);
+
+    act(() => {
+      result.current.updateCount(1);
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(1);
+    expect(updateCallback_mock.mock.calls.length).toBe(1);
+    expect(changeCallback_mock.mock.calls.length).toBe(1);
+    await waitForNextUpdate();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
+    expect(result.current.age).toBe(2);
+    expect(updateCallback_mock.mock.calls.length).toBe(2);
+    expect(changeCallback_mock.mock.calls.length).toBe(2);
+    expect(updateCallback_mock.mock.calls[1][0]).toBe(2);
+    expect(updateCallback_mock.mock.calls[1][1]).toBe(1);
+    expect(changeCallback_mock.mock.calls[1][0]).toBe(2);
+    expect(changeCallback_mock.mock.calls[1][1]).toBe(1);
+
+    act(() => {
+      result.current.updateCount(6);
+    });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(6);
+    expect(updateCallback_mock.mock.calls.length).toBe(3);
+    expect(changeCallback_mock.mock.calls.length).toBe(3);
+    expect(updateCallback_mock.mock.calls[2][0]).toBe(6);
+    expect(updateCallback_mock.mock.calls[2][1]).toBe(2);
+    expect(changeCallback_mock.mock.calls[2][0]).toBe(6);
+    expect(changeCallback_mock.mock.calls[2][1]).toBe(2);
+
+    act(() => {
+      result.current.updateCount(7);
+    });
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(6);
+    expect(updateCallback_mock.mock.calls.length).toBe(4);
+    expect(changeCallback_mock.mock.calls.length).toBe(3);
+    expect(updateCallback_mock.mock.calls[3][0]).toBe(6);
+    expect(updateCallback_mock.mock.calls[3][1]).toBe(6);
+
+
+    act(() => {
+      unmount();
+    });
+
+    act(() => {
+      model(8);
+    });
+    expect(model()).toBe(8);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(6);
+    expect(updateCallback_mock.mock.calls.length).toBe(4);
+    expect(changeCallback_mock.mock.calls.length).toBe(3);
+    expect(updateCallback_mock.mock.calls[3][0]).toBe(6);
+    expect(updateCallback_mock.mock.calls[3][1]).toBe(6);
+
+  })
 });

@@ -74,8 +74,9 @@ export interface ServiceOptions<S = any> {
    * */
   suspenseKey?: string; // 非空字符串
   suspense?: SuspenseOptions;
-  onChange?: (nextState: S, prevState: S) => void; // 节点数据变更时向外通知，一般对组件外使用（组件内的有useDerivedxxx系列）
   control?: Control<S>; // 外部传入的 model 用于同步状态
+  onChange?: (nextState: S, prevState: S) => void; // 节点数据变更时向外通知，一般对组件外使用（组件内的有useDerivedxxx系列）
+  onUpdate?: (nextState: S, prevState: S) => void; // 节点数据更新（state 不一定变了）时向外通知，一般对组件外使用
 }
 
 export type RaceFn<S> = {
@@ -89,6 +90,7 @@ export type ModelMethod<S> = {
   reset: () => void;
   watch: <T extends GluerReturn<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
   onChange: (callback: (state: S) => void) => () => void;
+  onUpdate: (callback: (state: S) => void) => () => void;
   silent: GluerReturnFn<S>;
   race: RaceFn<S>;
   __race__?: RaceFn<S>;
