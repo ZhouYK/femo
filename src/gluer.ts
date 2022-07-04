@@ -1,25 +1,27 @@
+import { Callback, GluerReturn, HandleFunc, RacePromise } from '../index';
 import {
-  // development,
-  promiseDeprecated,
   gluerUniqueFlagKey,
   gluerUniqueFlagValue,
+  promiseDeprecated,
+  underOnChangeContext,
+  underOnUpdateContext,
 } from './constants';
-
-import {HandleFunc, GluerReturn, Callback, RacePromise} from '../index';
-import {isArray, isAsync, isTagged, tagPromise} from './tools';
-import subscribe from './subscribe';
-import { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
 import genRaceQueue, { ErrorFlag, errorFlags, promiseDeprecatedError } from './genRaceQueue';
 import runtimeVar from './runtimeVar';
+import subscribe from './subscribe';
+import { isArray, isAsync, isTagged, tagPromise } from './tools';
+import { callbackToModelsMap, modelToCallbacksMap } from './unsubscribe';
 
 export const defaultReducer = (data: any, _state: any) => data;
 const warning = '你只传入了一个函数参数给gluer，这会被认为是reducer函数而不是初始值。如果你想存储一个函数类型的初始值，请传入两个参数：reducer和初始值。' +
   'reducer可以是最简单：(data, state) => data。这个的意思是：传入的数据会直接用来更新state。';
 const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
+
+const errorFlagsLength = errorFlags.length;
 const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?: ErrorFlag) => {
   const errorFlag = deprecatedFlag || promiseDeprecated;
 
-  for (let i = 0; i < errorFlags.length; i += 1) {
+  for (let i = 0; i < errorFlagsLength; i += 1) {
     if (errorFlags[i] in promise) {
       callback();
       throw promiseDeprecatedError;
@@ -27,6 +29,33 @@ const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?:
   }
 
   promise[errorFlag] = true;
+}
+
+// 使 race promise 失效
+const makeRacePromiseDeprecated = (promise: RacePromise) => {
+  for (let i = 0; i < errorFlagsLength; i += 1) {
+    if (errorFlags[i] in promise) {
+      continue;
+    }
+    promise[promiseDeprecated] = true;
+  }
+}
+// 从统计中删除 race promise
+const deleteRacePromise = (promise: RacePromise, onUpdateRacePromises: Set<RacePromise>, onChangeRacePromises: Set<RacePromise>) => {
+  if (onUpdateRacePromises.has(promise)) {
+    onUpdateRacePromises.delete(promise);
+  }
+  if (onChangeRacePromises.has(promise)) {
+    onChangeRacePromises.delete(promise);
+  }
+}
+
+const isUnderOnChangeContext = () => {
+  return runtimeVar.runtimeRacePromiseContext === underOnChangeContext;
+};
+
+const isUnderOnUpdateContext = () => {
+  return runtimeVar.runtimeRacePromiseContext === underOnUpdateContext;
 }
 
 interface Reducer {
@@ -72,6 +101,8 @@ function gluer(...args: any[]) {
 
   const rq = genRaceQueue();
   const onUpdateCallbackArr: ((state: typeof gluerState) => void)[] = [];
+  const underOnUpdateContextRacePromises: Set<RacePromise> = new Set();
+  const underOnChangeContextRacePromises: Set<RacePromise> = new Set();
 
   let fn: any;
 
@@ -85,6 +116,11 @@ function gluer(...args: any[]) {
           cbs.forEach((callback) => {
             if (callback !== mutedCallback) {
               if (callbackToModelsMap.has(callback)) {
+                // 拷贝上次的结果
+                let tmpRacePromises: RacePromise[] | null = Array.from(underOnChangeContextRacePromises);
+                // 将源数组清空，以便统计当次的 race promise
+                underOnChangeContextRacePromises.clear();
+                runtimeVar.runtimeRacePromiseContext = underOnChangeContext;
                 const mods = callbackToModelsMap.get(callback) as Set<GluerReturn<any>>;
                 // mods里面不管有没有当前model都去执行callback
                 // 这里可能出现callback对应的mods中没有当前model，什么情况下会出现这种情况？
@@ -101,6 +137,11 @@ function gluer(...args: any[]) {
                   return [...pre, cur()];
                 }, [] as any);
                 callback(...values);
+                runtimeVar.runtimeRacePromiseContext = '';
+                tmpRacePromises.forEach((p) => {
+                  makeRacePromiseDeprecated(p);
+                });
+                tmpRacePromises = null;
               }
             }
           })
@@ -108,9 +149,19 @@ function gluer(...args: any[]) {
       }
     }
     if (!silent) {
+      // 拷贝上次的结果
+      let tmpRacePromises: RacePromise[] | null = Array.from(underOnUpdateContextRacePromises);
+      // 将源数组清空，以便统计当次的 race promise
+      underOnUpdateContextRacePromises.clear();
+      runtimeVar.runtimeRacePromiseContext = underOnUpdateContext;
       onUpdateCallbackArr.forEach((callback) => {
         callback(gluerState);
       });
+      runtimeVar.runtimeRacePromiseContext = '';
+      tmpRacePromises.forEach((p) => {
+        makeRacePromiseDeprecated(p);
+      });
+      tmpRacePromises = null;
     }
   };
 
@@ -171,9 +222,13 @@ function gluer(...args: any[]) {
       };
       const errorFlag = runtimeVar.runtimePromiseDeprecatedFlag;
       const promise: any = (tempResult as Promise<any>).catch(e => {
+        // 有可能 promise 没有在 onChange 和 onUpdate 的回调中被失效，而是自己正常完结的
+        deleteRacePromise(promise, underOnUpdateContextRacePromises, underOnChangeContextRacePromises);
         raceHandle(promise, depsClearCallback, errorFlag);
         return Promise.reject(e);
       }).then((data) => {
+        // 有可能 promise 没有在 onChange 和 onUpdate 的回调中被失效，而是自己正常完结的
+        deleteRacePromise(promise, underOnUpdateContextRacePromises, underOnChangeContextRacePromises);
         raceHandle(promise, depsClearCallback, errorFlag);
         if (!silent) {
           // 异步回调中延续依赖
@@ -249,7 +304,11 @@ function gluer(...args: any[]) {
     let tmp = fn(...as);
     if (!isAsync(tmp)) {
       tmp = Promise.resolve(tmp);
-    }
+    } else if (isUnderOnChangeContext()) {
+        underOnChangeContextRacePromises.add(tmp);
+      } else if (isUnderOnUpdateContext()){
+        underOnUpdateContextRacePromises.add(tmp);
+      }
     return rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag)
   };
 

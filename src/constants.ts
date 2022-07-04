@@ -11,5 +11,8 @@ export const promiseDeprecatedFromLocalService = 'promiseDeprecatedFromLocalServ
 export const promiseDeprecatedFromLocalServicePure = 'promiseDeprecatedFromLocalServicePure';
 export const resolveCatchError = 'resolvePromiseCatchError';
 
+export const underOnChangeContext = 'underOnChangeContext';
+export const underOnUpdateContext = 'underOnUpdateContext';
+
 export const defaultServiceOptions: ServiceOptions = {
 };
