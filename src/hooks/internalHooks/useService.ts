@@ -5,10 +5,11 @@ import {
   promiseDeprecatedFromLocalServicePure,
   pureServiceKey
 } from '../../constants';
+import runtimeVar from '../../runtimeVar';
 import { isAsync, isModel } from '../../tools';
 import { runtimePromiseDeprecatedVarAssignment } from './useCloneModel';
 
-type CustomerPromise<T = any> = { success?: boolean; data?: T }  & Promise<T>;
+type CustomerPromise<T = any> = { success?: boolean; data?: T; isFirst?: boolean }  & Promise<T>;
 
 
 const cache: Map<string, CustomerPromise> = new Map();
@@ -77,6 +78,10 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
           firstRenderFlagRef.current = false;
         }
       } else {
+        // 首次 suspense 时，全局变量需要手动重置。因为 useModel 中的 serviceId 没定，就定位不了 race promise
+        if (promise.isFirst) {
+          runtimeVar.runtimeUpdateOrigin = null;
+        }
         throw promise;
       }
     }
@@ -88,7 +93,9 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
     const result = service(clonedModel());
     if (isAsync(result)) {
       if (susKey) {
-        const p: CustomerPromise = clonedModel.race(() => result as Promise<T>).then((data) => {
+        // 首次 suspense 时，全局变量需要手动重置。因为 useModel 中的 serviceId 没定，就定位不了 race promise
+        runtimeVar.runtimeUpdateOrigin = null;
+        const p: CustomerPromise = clonedModel.race(result).then((data) => {
           p.success = true;
           p.data = data;
         }).catch((err) => {
@@ -97,6 +104,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
         });
         cache.set(susKey, p);
         cacheDeps.set(susKey, deps);
+        p.isFirst = true;
         throw p
       }
       // 这里更新了loading，会跳过当次渲染

@@ -1,10 +1,12 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import { GluerReturn, Service, ServiceOptions, ServiceStatus } from '../../index';
+import { GluerReturn, Service, ServiceOptions, ServiceStatus, UnsubCallback } from '../../index';
+import runtimeVar from '../runtimeVar';
 import subscribe from '../subscribe';
 import useCloneModel from './internalHooks/useCloneModel';
 import useService from './internalHooks/useService';
 import {defaultServiceOptions} from '../constants';
 
+let serviceId = 0;
 
 /**
  * 将外部model注入到组件内部的自定义钩子函数，model生命周期不跟随组件，是共享数据
@@ -27,6 +29,12 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
   const optionsRef = useRef(finalOptions);
   optionsRef.current = finalOptions;
 
+  const [sid] = useState(() => {
+    const id = serviceId;
+    serviceId += 1;
+    return id;
+  })
+
   const [, updateState] = useState(0);
   const subscribeCallback = useCallback((_modelData: T) => {
     // 这里的回调并不会每次变更都执行，因为做了优化
@@ -40,9 +48,10 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
   }, []);
 
   const modelRef = useRef<typeof model>();
-  const offChangeRef = useRef<() => void>();
-  const offUpdateRef = useRef<() => void>();
-  const unsubRef = useRef<() => void>();
+  const offChangeRef = useRef<UnsubCallback>();
+  const offUpdateRef = useRef<UnsubCallback>();
+  const unsubRef = useRef<UnsubCallback>();
+  const callbackIdsRef = useRef<number[]>([]);
 
   const sta = model();
   const cachedOnChangeState = useRef(sta);
@@ -70,15 +79,30 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
     offChangeRef.current?.();
     offUpdateRef.current?.();
     unsubRef.current?.();
+    // 每次解绑，都清空
+    callbackIdsRef.current.splice(0);
+    // 只针对 useModel 的 onChange 和 onUpdate
+    runtimeVar.runtimeBindType = 1;
     offChangeRef.current = model.onChange(onChangeCallback);
     offUpdateRef.current = model.onUpdate(onUpdateCallback);
+    // 每次绑定，都填满
+    callbackIdsRef.current.push(offChangeRef.current?.__id as number, offUpdateRef.current?.__id as number);
+    runtimeVar.runtimeBindType = 0;
+    // subscribe 不包含进来
     unsubRef.current = subscribe([model], subscribeCallback, false, true);
     modelRef.current = model;
+
   }
 
   const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
-  const [localService] = useService(model, clonedModel, service, deps, finalOptions);
 
+  runtimeVar.runtimeUpdateOrigin = {
+    updateType: 1,
+    callbackIds: [...callbackIdsRef.current],
+    useModelId: sid,
+  };
+  const [localService] = useService(model, clonedModel, service, deps, finalOptions);
+  runtimeVar.runtimeUpdateOrigin = null;
 
   useEffect(() => {
     return () => { unsubRef.current?.(); offChangeRef.current?.(); offUpdateRef.current?.(); }

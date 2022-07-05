@@ -1,7 +1,12 @@
-import {Callback, GluerReturn} from '../index';
+import { Callback, GluerReturn, UnsubCallback } from '../index';
 import {gluerUniqueFlagKey, gluerUniqueFlagValue} from './constants';
-import unsubscribe, { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
+import runtimeVar from './runtimeVar';
+import unsubscribe, { modelToCallbacksMap, callbackToModelsMap, idToCallbackMap } from './unsubscribe';
 import {isArray} from './tools';
+
+export const callbackCount = {
+  num: 0,
+};
 
 /**
  *
@@ -10,7 +15,7 @@ import {isArray} from './tools';
  * @param callWhenSub 是否在注册监听时执行一次监听回调
  * @param noCallbackWrapper false：进行包装；true：不进行包装
  */
-const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, noCallbackWrapper?: boolean) => {
+const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, noCallbackWrapper?: boolean): UnsubCallback => {
   if (!isArray(deps)) {
     throw new Error(`Error: the first param must be array！${ deps }`);
   }
@@ -45,6 +50,9 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, n
   const setDeps = copyDeps.length !== 0;
   // 如果传入依赖为空数组，则不建立依赖。只会执行在初始化的时候执行一次回调。
   if (setDeps) {
+    callback.__id = callbackCount.num;
+    callbackCount.num += 1;
+    callback.__type = runtimeVar.runtimeBindType;
     // 依赖与函数的映射
     const l = copyDeps.length;
     for (let i = 0; i < l; i += 1) {
@@ -60,6 +68,7 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, n
     // 所以如果有两次或两次以上同一callback的设置，对应的model会以最后一次设置的model数组为准
     // 但是由于 subscribe 内部对每一个传入的callback进行了一次包装，所以这里的callback永远不会重复。
     callbackToModelsMap.set(callback, new Set<GluerReturn<any>>(copyDeps));
+    idToCallbackMap.set(callback.__id, callback);
   }
 
   // 映射建立完毕之后，初始化时，执行一次回调，注入初始值
@@ -68,12 +77,17 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, n
     callback(...initialDepsValue);
   }
 
-  return () => {
+  const unsubCallback: UnsubCallback = () => {
     // 不等于0才去解除依赖
     if (setDeps) {
       unsubscribe(copyDeps, callback);
+      idToCallbackMap.delete(callback.__id as number);
     }
-  }
+  };
+
+  unsubCallback.__id = callback.__id;
+
+  return unsubCallback;
 };
 
 export default subscribe;

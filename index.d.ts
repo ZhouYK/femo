@@ -86,11 +86,29 @@ export type RaceFn<S> = {
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
 }
 
+export type BindType = 0 | 1; // 0 代表 model 直接绑定的；1 代表通过 useModel 绑定的
+
+export interface Callback {
+  (...args: any[]): void;
+  __id?: number;
+  __type?: BindType;
+}
+export interface UnsubCallback {
+  (): void;
+  __id?: number;
+}
+
+export interface OnCallback<S> {
+  (state: S): void;
+  __id?: number;
+  __type?: BindType;
+}
+
 export type ModelMethod<S> = {
   reset: () => void;
   watch: <T extends GluerReturn<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
-  onChange: (callback: (state: S) => void) => () => void;
-  onUpdate: (callback: (state: S) => void) => () => void;
+  onChange: (callback: OnCallback<S>) => UnsubCallback;
+  onUpdate: (callback: OnCallback<S>) => UnsubCallback;
   silent: GluerReturnFn<S>;
   race: RaceFn<S>;
   __race__?: RaceFn<S>;
@@ -106,8 +124,12 @@ export interface InjectProps {
 export interface IndividualServiceOptions {
   bubble?: boolean;
 }
-
-export type RacePromise = Promise<any> & {[promiseDeprecated]?: boolean; [promiseDeprecatedFromClonedModel]?: boolean; [promiseDeprecatedFromLocalService]?: boolean; [promiseDeprecatedFromLocalServicePure]?: boolean };
+export type RacePromise = Promise<any> & {
+  [promiseDeprecated]?: boolean;
+  [promiseDeprecatedFromClonedModel]?: boolean;
+  [promiseDeprecatedFromLocalService]?: boolean;
+  [promiseDeprecatedFromLocalServicePure]?: boolean;
+};
 
 export interface RaceQueueObj {
   push: <T = any>(p: RacePromise, customerErrorFlag?: ErrorFlag) => void;
@@ -116,14 +138,13 @@ export interface RaceQueueObj {
   __UNSAFE__getQueue: () => (Promise<any>[]) | null
 }
 
-export type Callback = (...args: any[]) => void;
 export const promiseDeprecatedError: string;
 
 export function gluer<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
 export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
 export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
 
-export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): () => void;
+export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): UnsubCallback;
 export function genRaceQueue(): RaceQueueObj;
 
 export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T, D>];

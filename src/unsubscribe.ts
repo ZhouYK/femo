@@ -3,7 +3,7 @@ import { isArray } from './tools';
 
 export const modelToCallbacksMap = new Map<GluerReturn<any>, Set<Callback>>();
 export const callbackToModelsMap = new Map<Callback, Set<GluerReturn<any>>>();
-
+export const idToCallbackMap = new Map<number, Callback>();
 
 const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Callback[]) => {
   if (!targetDeps && !callback) {
