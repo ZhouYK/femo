@@ -1,7 +1,7 @@
 import { Callback, GluerReturn, UnsubCallback } from '../index';
 import {gluerUniqueFlagKey, gluerUniqueFlagValue} from './constants';
 import runtimeVar from './runtimeVar';
-import unsubscribe, { modelToCallbacksMap, callbackToModelsMap, idToCallbackMap } from './unsubscribe';
+import unsubscribe, { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
 import {isArray} from './tools';
 
 export const callbackCount = {
@@ -68,7 +68,6 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, n
     // 所以如果有两次或两次以上同一callback的设置，对应的model会以最后一次设置的model数组为准
     // 但是由于 subscribe 内部对每一个传入的callback进行了一次包装，所以这里的callback永远不会重复。
     callbackToModelsMap.set(callback, new Set<GluerReturn<any>>(copyDeps));
-    idToCallbackMap.set(callback.__id, callback);
   }
 
   // 映射建立完毕之后，初始化时，执行一次回调，注入初始值
@@ -81,7 +80,6 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, n
     // 不等于0才去解除依赖
     if (setDeps) {
       unsubscribe(copyDeps, callback);
-      idToCallbackMap.delete(callback.__id as number);
     }
   };
 

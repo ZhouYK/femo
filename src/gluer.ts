@@ -6,7 +6,7 @@ import {
   underOnUpdateContext,
 } from './constants';
 import genRaceQueue, { ErrorFlag, errorFlags, promiseDeprecatedError } from './genRaceQueue';
-import runtimeVar from './runtimeVar';
+import runtimeVar, { RuntimeUpdateOrigin } from './runtimeVar';
 import subscribe, { callbackCount } from './subscribe';
 import { isArray, isAsync, isTagged, tagPromise } from './tools';
 import { callbackToModelsMap, modelToCallbacksMap } from './unsubscribe';
@@ -55,12 +55,12 @@ const isUnderModelChangeContext = () => {
 const isUnderOnUpdateContext = () => {
   return runtimeVar.runtimeRacePromiseContext === underOnUpdateContext;
 }
-
-const isUpdateFromUseModel = (updateType: number | undefined) => {
-  // 1 就代表更新来自 useModel
-  // 其他来自 model
-  return updateType === 1;
-}
+//
+// const isUpdateFromUseModel = (updateType: number | undefined) => {
+//   // 1 就代表更新来自 useModel
+//   // 其他来自 model
+//   return updateType === 1;
+// }
 //
 // const isBoundByModel = (bindType: BindType | undefined) => {
 //   return bindType === 0;
@@ -120,24 +120,24 @@ function gluer(...args: any[]) {
 
   // mutedCallback：不执的回调
   const updateFn = (data: any, silent: boolean, mutedCallback: Callback) => {
-    // 需要根据更新类型来判断，是否执行相应的 callback
-    let updateType: any;
-    let callbackIds: any;
-    let useModelId;
-    if (runtimeVar.runtimeUpdateOrigin) {
-      updateType = runtimeVar.runtimeUpdateOrigin.updateType;
-      callbackIds = runtimeVar.runtimeUpdateOrigin.callbackIds;
-      useModelId = runtimeVar.runtimeUpdateOrigin.useModelId;
-      // 在当前 model 的回调里将 callbackIds 置为空数组。这样就能保证，只有第一层 model 才能拿得到 callbackIds
-      // 再往后的嵌套更新的 model 拿不到 callbackIds，因为这 callbackIds 本来就不是后面嵌套的 model 绑定的
-      // 后面嵌套的 model 如果走了 useModel 的更新，则能拿到自己的; 如果没有走，则 callbackIds 会一直为空
-      runtimeVar.runtimeUpdateOrigin = {
-        updateType,
-        callbackIds: [],
-        useModelId,
-      };
-    }
     if (!silent) {
+      // 需要根据更新类型来判断，是否执行相应的 callback
+      let updateType: any;
+      let callbackIds: any;
+      let useModelId;
+      if (runtimeVar.runtimeUpdateOrigin) {
+        updateType = runtimeVar.runtimeUpdateOrigin.updateType;
+        callbackIds = runtimeVar.runtimeUpdateOrigin.callbackIds;
+        useModelId = runtimeVar.runtimeUpdateOrigin.useModelId;
+        // 在当前 model 的回调里将 callbackIds 置为空数组。这样就能保证，只有第一层 model 才能拿得到 callbackIds
+        // 再往后的嵌套更新的 model 拿不到 callbackIds，因为这 callbackIds 本来就不是后面嵌套的 model 绑定的
+        // 后面嵌套的 model 如果走了 useModel 的更新，则能拿到自己的; 如果没有走，则 callbackIds 会一直为空
+        runtimeVar.runtimeUpdateOrigin = {
+          updateType,
+          callbackIds: [],
+          useModelId,
+        };
+      }
       let tmpRacePromises: RacePromise[] | null;
       const backEnd = () => {
         runtimeVar.runtimeRacePromiseContext = '';
@@ -147,6 +147,14 @@ function gluer(...args: any[]) {
           makeRacePromiseDeprecated(p);
         });
         tmpRacePromises = null;
+      }
+
+      const isInvalidCallback = (caba: Callback) => {
+
+        const isBoundByUM = isBoundByUseModel(caba.__type);
+        // 不管变更来自哪里，useModel 或者 model 本身，不是被 useModel 绑定的 callback 都会执行
+        // 那么不能执行的只看被 useModel 绑定的
+        return isBoundByUM && (!callbackIds?.length || callbackIds.indexOf(caba.__id as number) === -1);
       }
 
       if (!(Object.is(data, gluerState))) {
@@ -163,20 +171,7 @@ function gluer(...args: any[]) {
             if (callback !== mutedCallback) {
               if (callbackToModelsMap.has(callback)) {
 
-                // 更新来自 useModel service
-                if (isUpdateFromUseModel(updateType)) {
-                  // callbackIds 为空说明是嵌套在回调里的 model 直接更新引起的
-                  // 不调用 通过 useModel 绑定的回调
-                  // callbackIds 不为空，则不再其内的 callback 都不执行
-                  if (
-                    isBoundByUseModel(callback.__type)
-                    && (!callbackIds?.length || callbackIds.indexOf(callback.__id as number) === -1)
-                  ) {
-                    return;
-                  }
-                  // 更新来自 model
-                  // 如果回调是通过 useModel 绑定的（onChange、onUpdate），则不执行回调
-                } else if (isBoundByUseModel(callback.__type)) return;
+                if (isInvalidCallback(callback)) return;
 
                 const mods = callbackToModelsMap.get(callback) as Set<GluerReturn<any>>;
                 // mods里面不管有没有当前model都去执行callback
@@ -197,20 +192,21 @@ function gluer(...args: any[]) {
               }
             }
           });
-
           backEnd();
         }
-      } else {
-        // 拷贝上次的结果
-        tmpRacePromises = Array.from(underOnUpdateContextRacePromises);
-        // 将源数组清空，以便统计当次的 race promise
-        underOnUpdateContextRacePromises.clear();
-        runtimeVar.runtimeRacePromiseContext = underOnUpdateContext;
-        onUpdateCallbackArr.forEach((callback) => {
-          callback(gluerState);
-        });
-        backEnd();
       }
+      // 拷贝上次的结果
+      tmpRacePromises = Array.from(underOnUpdateContextRacePromises);
+      // 将源数组清空，以便统计当次的 race promise
+      underOnUpdateContextRacePromises.clear();
+      runtimeVar.runtimeRacePromiseContext = underOnUpdateContext;
+      onUpdateCallbackArr.forEach((callback) => {
+        if (isInvalidCallback(callback)) {
+          return;
+        }
+        callback(gluerState);
+      });
+      backEnd();
     }
   };
 
@@ -256,8 +252,10 @@ function gluer(...args: any[]) {
     // 如果是异步更新
     if (isAsync(tempResult)) {
       let forAsyncRuntimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
+      let forAsyncRuntimeUpdateOrigin: RuntimeUpdateOrigin;
       if (!silent) {
         forAsyncRuntimeDepsModelCollectedMap = new Map(runtimeVar.runtimeDepsModelCollectedMap)
+        forAsyncRuntimeUpdateOrigin = { ...runtimeVar.runtimeUpdateOrigin as RuntimeUpdateOrigin };
       }
       if (process.env.NODE_ENV === 'development' && isTagged(tempResult)) {
         console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
@@ -282,11 +280,13 @@ function gluer(...args: any[]) {
         if (!silent) {
           // 异步回调中延续依赖
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
+          runtimeVar.runtimeUpdateOrigin = forAsyncRuntimeUpdateOrigin;
         }
         updateFn(data, silent, mutedCallback);
         if (!silent) {
           // 每次异步回调都相当于是一个开始，所以需要在异步回调执行完成时将依赖清空
           runtimeVar.runtimeDepsModelCollectedMap.clear();
+          runtimeVar.runtimeUpdateOrigin = null;
         }
         return data;
       });
@@ -362,8 +362,6 @@ function gluer(...args: any[]) {
       } else if (isUnderOnUpdateContext()){
         underOnUpdateContextRacePromises.add(tmp);
       }
-    const { useModelId, callbackIds, updateType } = runtimeVar.runtimeUpdateOrigin || {};
-    tmp.__type = updateType;
     return rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag)
   };
 
