@@ -52,7 +52,8 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   const unmountedFlagRef = useRef(false);
   const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
   const cacheControlOnChangeUnsub = useRef<() => void>();
-  const cacheModelRef = useRef<GluerReturn<T>>(model);
+  const cacheOutputControlChangeUnsub = useRef<() => void>();
+  const cacheModelRef = useRef<GluerReturn<T>>();
   const underControl = useRef(false);
 
 
@@ -197,19 +198,8 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   const cacheClonedModelRef = useRef<GluerReturn<T>>(clonedModel);
 
   if (!Object.is(model, cacheModelRef.current)) {
-    cacheModelRef.current = model;
-    cacheClonedModelRef.current = genClonedModel();
-  }
-
-  useEffect(() => () => {
-    unmountedFlagRef.current = true;
-    if (cacheControlOnChangeUnsub.current) {
-      cacheControlOnChangeUnsub.current();
-    }
-  }, []);
-
-  useEffect(() => {
-    return model.onChange((state) => {
+    cacheOutputControlChangeUnsub.current?.();
+    cacheOutputControlChangeUnsub.current = model.onChange((state) => {
       outputControl((_d, s) => {
         return {
           ...s,
@@ -217,7 +207,15 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
         }
       })
     });
-  }, [model]);
+    cacheModelRef.current = model;
+    cacheClonedModelRef.current = genClonedModel();
+  }
+
+  useEffect(() => () => {
+    unmountedFlagRef.current = true;
+    cacheControlOnChangeUnsub.current?.()
+    cacheOutputControlChangeUnsub.current?.()
+  }, []);
 
   return [cacheClonedModelRef.current, {
     ...status,

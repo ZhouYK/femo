@@ -20,13 +20,13 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
     }
   }, []);
 
-  const callWhenChange = useCallback((silent = true) => {
+  const callWhenChange = (silent = true) => {
     updateState(callback(modelRef.current()), silent);
-  }, [callback]);
+  };
 
   const [map] = useState(() => new Map());
 
-  const analyzeDeps = useCallback((ds: any[]) => {
+  const analyzeDeps = (ds: any[]) => {
     if (!isArray(ds)) return;
     for (let i = 0; i < ds.length; i += 1) {
       const d = ds[i];
@@ -41,7 +41,7 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
         }))
       }
     }
-  }, [callWhenChange]);
+  };
 
 
   const [cachedDeps] = useState<{

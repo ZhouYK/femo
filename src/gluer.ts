@@ -27,7 +27,6 @@ const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?:
       throw promiseDeprecatedError;
     }
   }
-
   promise[errorFlag] = true;
 }
 
@@ -35,7 +34,7 @@ const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?:
 const makeRacePromiseDeprecated = (promise: RacePromise) => {
   for (let i = 0; i < errorFlagsLength; i += 1) {
     if (errorFlags[i] in promise) {
-      continue;
+      break;
     }
     promise[promiseDeprecated] = true;
   }
@@ -138,6 +137,8 @@ function gluer(...args: any[]) {
                 }, [] as any);
                 callback(...values);
                 runtimeVar.runtimeRacePromiseContext = '';
+                // 这里放到最后来做 race promise 的失效是因为，在回调 callback 中可能存在 race promise 被业务逻辑置为失效的情况。
+                // 而这种情况是最优先的，因为涉及到 loading 的连续性
                 tmpRacePromises.forEach((p) => {
                   makeRacePromiseDeprecated(p);
                 });
@@ -158,6 +159,8 @@ function gluer(...args: any[]) {
         callback(gluerState);
       });
       runtimeVar.runtimeRacePromiseContext = '';
+      // 这里放到最后来做 race promise 的失效是因为，在回调 callback 中可能存在 race promise 被业务逻辑置为失效的情况。
+      // 而这种情况是最优先的，因为涉及到 loading 的连续性
       tmpRacePromises.forEach((p) => {
         makeRacePromiseDeprecated(p);
       });

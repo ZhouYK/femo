@@ -39,8 +39,11 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
     updateState((count) => count + 1);
   }, []);
 
-  const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
-  const [localService] = useService(model, clonedModel, service, deps, finalOptions);
+  const modelRef = useRef<typeof model>();
+  const offChangeRef = useRef<() => void>();
+  const offUpdateRef = useRef<() => void>();
+  const unsubRef = useRef<() => void>();
+
   const sta = model();
   const cachedOnChangeState = useRef(sta);
   const cachedOnUpdateState = useRef(sta);
@@ -61,12 +64,25 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
     }
   }, []);
 
+  // model 引用变了，先解绑，再绑定
+  // 需要在 useService 和 useCloneModel 之前用，因为可能会设置 model 的值
+  if (!Object.is(modelRef.current, model)) {
+    offChangeRef.current?.();
+    offUpdateRef.current?.();
+    unsubRef.current?.();
+    offChangeRef.current = model.onChange(onChangeCallback);
+    offUpdateRef.current = model.onUpdate(onUpdateCallback);
+    unsubRef.current = subscribe([model], subscribeCallback, false, true);
+    modelRef.current = model;
+  }
+
+  const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
+  const [localService] = useService(model, clonedModel, service, deps, finalOptions);
+
+
   useEffect(() => {
-    const offChange = model.onChange(onChangeCallback);
-    const offUpdate = model.onUpdate(onUpdateCallback);
-    const unsub = subscribe([model], subscribeCallback, false, true);
-    return () => { unsub(); offChange(); offUpdate(); }
-  }, [model]);
+    return () => { unsubRef.current?.(); offChangeRef.current?.(); offUpdateRef.current?.(); }
+  }, []);
 
   return [model(), clonedModel, {
     ...status,

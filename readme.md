@@ -516,6 +516,13 @@ export interface SuspenseOptions {
 
 当数据发生变更时向外发布信息。
 
+#### onUpdate
+
+形如 (nextState, prevState) => void
+
+不管数据有没有变更（nextState 和 prevState 可能一样），只要执行了更新动作都会触发。
+
+
 #### control
 
 > GluerReturn<{ loading: boolean; successful: boolean; key?: string; data?: any; }>
