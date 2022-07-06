@@ -1,8 +1,11 @@
-import {Callback, GluerReturn} from '../index';
+import { Callback, GluerReturn, RacePromise } from '../index';
 import { isArray } from './tools';
 
 export const modelToCallbacksMap = new Map<GluerReturn<any>, Set<Callback>>();
 export const callbackToModelsMap = new Map<Callback, Set<GluerReturn<any>>>();
+// Set 前者表示 在 model change 回调中获取到的 race promises
+// Set 后者表示 在 model update 回调中获取到的 race promises
+export const modelToRacePromisesMap = new Map<GluerReturn<any>, Set<RacePromise>>();
 
 const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Callback[]) => {
   if (!targetDeps && !callback) {
@@ -39,6 +42,10 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Call
         }
         if (cbs.size === 0) {
           modelToCallbacksMap.delete(model);
+          // 如果 model 对应的回调被清空了，则删除所有在回调中产生的 race promise
+          const v = modelToRacePromisesMap.get(model);
+          v?.clear();
+          modelToRacePromisesMap.delete(model);
         }
       }
     }

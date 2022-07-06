@@ -88,10 +88,13 @@ export type RaceFn<S> = {
 
 export type BindType = 0 | 1; // 0 代表 model 直接绑定的；1 代表通过 useModel 绑定的
 
+export type ListenType = 0 | 1; // 0 代表 数据有变更才执行（除了 onUpdate 之外所有的监听）；1 代表只要进行了更新动作就会执行(具体就是 onUpdate)
+
 export interface Callback {
   (...args: any[]): void;
   __id?: number;
-  __type?: BindType;
+  __bind_type?: BindType;
+  __listen_type?: ListenType;
 }
 export interface UnsubCallback {
   (): void;
@@ -100,8 +103,9 @@ export interface UnsubCallback {
 
 export interface OnCallback<S> {
   (state: S): void;
-  __id?: number;
-  __type?: BindType;
+  // __id?: number;
+  // __bind_type?: BindType;
+  // __listen_type?: ListenType;
 }
 
 export type ModelMethod<S> = {

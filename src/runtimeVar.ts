@@ -1,8 +1,8 @@
-import { BindType, GluerReturn } from '../index';
-import { promiseDeprecated, underModelChangeContext, underOnUpdateContext } from './constants';
+import { BindType, GluerReturn, ListenType, RacePromise } from '../index';
+import { promiseDeprecated, underModelCallbackContext } from './constants';
 import {ErrorFlag} from './genRaceQueue';
 
-export type RacePromiseContext = typeof underModelChangeContext | typeof underOnUpdateContext | string;
+export type RacePromiseContext = typeof underModelCallbackContext | string;
 
 export interface RuntimeUpdateOrigin {
   updateType: 1; // 1 代表通过 useModel 更新（目前只有 useModel 才允许 service 更新）; 其他代表直接通过 model 更新；
@@ -16,12 +16,16 @@ const runtimeVar: {
   runtimeRacePromiseContext: RacePromiseContext;
   runtimeUpdateOrigin: RuntimeUpdateOrigin | null;
   runtimeBindType: BindType;
+  runtimeListenType: ListenType;
+  runtimeRacePromisesCollectedSet: Set<RacePromise> | null;
 } = {
   runtimePromiseDeprecatedFlag: promiseDeprecated,
   runtimeDepsModelCollectedMap: new Map(),
   runtimeRacePromiseContext: '',
   runtimeUpdateOrigin: null,
   runtimeBindType: 0,
+  runtimeListenType: 0,
+  runtimeRacePromisesCollectedSet: null
 }
 
 export default runtimeVar;

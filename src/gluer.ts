@@ -1,15 +1,10 @@
-import { BindType, Callback, GluerReturn, HandleFunc, OnCallback, RacePromise, UnsubCallback } from '../index';
-import {
-  gluerUniqueFlagKey,
-  gluerUniqueFlagValue,
-  promiseDeprecated, underModelChangeContext,
-  underOnUpdateContext,
-} from './constants';
+import { BindType, Callback, GluerReturn, HandleFunc, RacePromise } from '../index';
+import { gluerUniqueFlagKey, gluerUniqueFlagValue, promiseDeprecated, underModelCallbackContext, } from './constants';
 import genRaceQueue, { ErrorFlag, errorFlags, promiseDeprecatedError } from './genRaceQueue';
 import runtimeVar, { RuntimeUpdateOrigin } from './runtimeVar';
-import subscribe, { callbackCount } from './subscribe';
+import subscribe from './subscribe';
 import { isArray, isAsync, isTagged, tagPromise } from './tools';
-import { callbackToModelsMap, modelToCallbacksMap } from './unsubscribe';
+import { callbackToModelsMap, modelToCallbacksMap, modelToRacePromisesMap } from './unsubscribe';
 
 export const defaultReducer = (data: any, _state: any) => data;
 const warning = '你只传入了一个函数参数给gluer，这会被认为是reducer函数而不是初始值。如果你想存储一个函数类型的初始值，请传入两个参数：reducer和初始值。' +
@@ -39,22 +34,18 @@ const makeRacePromiseDeprecated = (promise: RacePromise) => {
   }
 }
 // 从统计中删除 race promise
-const deleteRacePromise = (promise: RacePromise, onUpdateRacePromises: Set<RacePromise>, onChangeRacePromises: Set<RacePromise>) => {
-  if (onUpdateRacePromises.has(promise)) {
-    onUpdateRacePromises.delete(promise);
-  }
-  if (onChangeRacePromises.has(promise)) {
-    onChangeRacePromises.delete(promise);
-  }
+const deleteRacePromise = (promise: RacePromise) => {
+  modelToRacePromisesMap.forEach((value) => {
+    if (value.has(promise)) {
+      value.delete(promise);
+    }
+  })
 }
 
-const isUnderModelChangeContext = () => {
-  return runtimeVar.runtimeRacePromiseContext === underModelChangeContext;
+const isUnderModelCallbackContext = () => {
+  return runtimeVar.runtimeRacePromiseContext === underModelCallbackContext;
 };
 
-const isUnderOnUpdateContext = () => {
-  return runtimeVar.runtimeRacePromiseContext === underOnUpdateContext;
-}
 //
 // const isUpdateFromUseModel = (updateType: number | undefined) => {
 //   // 1 就代表更新来自 useModel
@@ -68,6 +59,10 @@ const isUnderOnUpdateContext = () => {
 
 const isBoundByUseModel = (bindType: BindType | undefined) => {
   return bindType === 1;
+}
+
+const isOnUpdateListenTypeCallback = (callback: Callback) => {
+  return callback.__listen_type === 1;
 }
 
 interface Reducer {
@@ -112,15 +107,13 @@ function gluer(...args: any[]) {
   let gluerState = initState;
 
   const rq = genRaceQueue();
-  const onUpdateCallbackArr: Map<number, OnCallback<typeof gluerState>> = new Map();
-  const underOnUpdateContextRacePromises: Set<RacePromise> = new Set();
-  const underModelChangeContextRacePromises: Set<RacePromise> = new Set();
 
   let fn: any;
 
   // mutedCallback：不执的回调
   const updateFn = (data: any, silent: boolean, mutedCallback: Callback) => {
     if (!silent) {
+      runtimeVar.runtimeRacePromiseContext = underModelCallbackContext;
       // 需要根据更新类型来判断，是否执行相应的 callback
       let updateType: any;
       let callbackIds: any;
@@ -138,75 +131,65 @@ function gluer(...args: any[]) {
           useModelId,
         };
       }
-      let tmpRacePromises: RacePromise[] | null;
-      const backEnd = () => {
-        runtimeVar.runtimeRacePromiseContext = '';
-        // 这里放到最后来做 race promise 的失效是因为，在回调 callback 中可能存在 race promise 被业务逻辑置为失效的情况。
-        // 而这种情况是最优先的，因为涉及到 loading 的连续性
-        tmpRacePromises?.forEach((p) => {
-          makeRacePromiseDeprecated(p);
-        });
-        tmpRacePromises = null;
-      }
 
       const isInvalidCallback = (caba: Callback) => {
 
-        const isBoundByUM = isBoundByUseModel(caba.__type);
+        const isBoundByUM = isBoundByUseModel(caba.__bind_type);
         // 不管变更来自哪里，useModel 或者 model 本身，不是被 useModel 绑定的 callback 都会执行
         // 那么不能执行的只看被 useModel 绑定的
         return isBoundByUM && (!callbackIds?.length || callbackIds.indexOf(caba.__id as number) === -1);
       }
 
+      const onUpdateListenTypeCallback: Callback[] = [];
+      const cbs = modelToCallbacksMap.get(fn) as Set<Callback>;
       if (!(Object.is(data, gluerState))) {
         gluerState = data;
-        const cbs = modelToCallbacksMap.get(fn) as Set<Callback>;
-        if (cbs) {
-          // 拷贝上次的结果
-          tmpRacePromises = Array.from(underModelChangeContextRacePromises);
-          // 将源数组清空，以便统计当次的 race promise
-          underModelChangeContextRacePromises.clear();
-
-          runtimeVar.runtimeRacePromiseContext = underModelChangeContext;
-          cbs.forEach((callback) => {
-            if (callback !== mutedCallback) {
-              if (callbackToModelsMap.has(callback)) {
-
-                if (isInvalidCallback(callback)) return;
-
-                const mods = callbackToModelsMap.get(callback) as Set<GluerReturn<any>>;
-                // mods里面不管有没有当前model都去执行callback
-                // 这里可能出现callback对应的mods中没有当前model，什么情况下会出现这种情况？
-                // 当同一个callback被绑定到不同的模型依赖数组上时，callback对应的模型依赖数组总以最后一个绑定的模型依赖数组为准。
-                /**
-                 * const callback = (dataArr, state) => {};
-                 * model_a.watch([model_b, model_c], callback);
-                 * model_d.watch([model_e, model_f], callback);
-                 * 当model_e变化时，callback会执行，注入callback的dataArr会是[model_e, model_f];
-                 * 当model_b变化时，callback也会执行，但此时注入callback的dataArr会是[model_e, model_f]。
-                 */
-
-                const values = Array.from(mods).reduce((pre, cur) => {
-                  return [...pre, cur()];
-                }, [] as any);
-                callback(...values);
+        cbs?.forEach((callback) => {
+          if (callback !== mutedCallback) {
+            if (callbackToModelsMap.has(callback)) {
+              if (isOnUpdateListenTypeCallback(callback)) {
+                onUpdateListenTypeCallback.push(callback);
+                return;
               }
+              if (isInvalidCallback(callback)) return;
+
+              const mods = callbackToModelsMap.get(callback) as Set<GluerReturn<any>>;
+              // mods里面不管有没有当前model都去执行callback
+              // 这里可能出现callback对应的mods中没有当前model，什么情况下会出现这种情况？
+              // 当同一个callback被绑定到不同的模型依赖数组上时，callback对应的模型依赖数组总以最后一个绑定的模型依赖数组为准。
+              /**
+               * const callback = (dataArr, state) => {};
+               * model_a.watch([model_b, model_c], callback);
+               * model_d.watch([model_e, model_f], callback);
+               * 当model_e变化时，callback会执行，注入callback的dataArr会是[model_e, model_f];
+               * 当model_b变化时，callback也会执行，但此时注入callback的dataArr会是[model_e, model_f]。
+               */
+
+              const values = Array.from(mods).reduce((pre, cur) => {
+                return [...pre, cur()];
+              }, [] as any);
+              callback(...values);
             }
-          });
-          backEnd();
-        }
+          }
+        });
       }
-      // 拷贝上次的结果
-      tmpRacePromises = Array.from(underOnUpdateContextRacePromises);
-      // 将源数组清空，以便统计当次的 race promise
-      underOnUpdateContextRacePromises.clear();
-      runtimeVar.runtimeRacePromiseContext = underOnUpdateContext;
-      onUpdateCallbackArr.forEach((callback) => {
-        if (isInvalidCallback(callback)) {
-          return;
-        }
-        callback(gluerState);
-      });
-      backEnd();
+      // 如果有值，则表示上面已经处理过了，直接执行就好
+      if (onUpdateListenTypeCallback.length) {
+        onUpdateListenTypeCallback.forEach((callback) => {
+          callback(gluerState);
+        })
+      } else {
+        // 如果没有，则要自己筛选
+        cbs?.forEach((callback) => {
+          if (callback !== mutedCallback) {
+            if (isOnUpdateListenTypeCallback(callback)) {
+              if (isInvalidCallback(callback)) return;
+              callback(gluerState);
+            }
+          }
+        })
+      }
+      runtimeVar.runtimeRacePromiseContext = '';
     }
   };
 
@@ -252,10 +235,12 @@ function gluer(...args: any[]) {
     // 如果是异步更新
     if (isAsync(tempResult)) {
       let forAsyncRuntimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
-      let forAsyncRuntimeUpdateOrigin: RuntimeUpdateOrigin;
+      let forAsyncRuntimeUpdateOrigin: RuntimeUpdateOrigin | null;
+      let forAsyncRuntimeRacePromisesCollectedSet: Set<RacePromise> | null;
       if (!silent) {
         forAsyncRuntimeDepsModelCollectedMap = new Map(runtimeVar.runtimeDepsModelCollectedMap)
-        forAsyncRuntimeUpdateOrigin = { ...runtimeVar.runtimeUpdateOrigin as RuntimeUpdateOrigin };
+        forAsyncRuntimeUpdateOrigin = runtimeVar.runtimeUpdateOrigin ? { ...runtimeVar.runtimeUpdateOrigin as RuntimeUpdateOrigin } : null;
+        forAsyncRuntimeRacePromisesCollectedSet = runtimeVar.runtimeRacePromisesCollectedSet ?? null;
       }
       if (process.env.NODE_ENV === 'development' && isTagged(tempResult)) {
         console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
@@ -270,23 +255,25 @@ function gluer(...args: any[]) {
       const errorFlag = runtimeVar.runtimePromiseDeprecatedFlag;
       const promise: any = (tempResult as Promise<any>).catch(e => {
         // 有可能 promise 没有在 onChange 和 onUpdate 的回调中被失效，而是自己正常完结的
-        deleteRacePromise(promise, underOnUpdateContextRacePromises, underModelChangeContextRacePromises);
+        deleteRacePromise(promise);
         raceHandle(promise, depsClearCallback, errorFlag);
         return Promise.reject(e);
       }).then((data) => {
         // 有可能 promise 没有在 onChange 和 onUpdate 的回调中被失效，而是自己正常完结的
-        deleteRacePromise(promise, underOnUpdateContextRacePromises, underModelChangeContextRacePromises);
+        deleteRacePromise(promise);
         raceHandle(promise, depsClearCallback, errorFlag);
         if (!silent) {
           // 异步回调中延续依赖
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
           runtimeVar.runtimeUpdateOrigin = forAsyncRuntimeUpdateOrigin;
+          runtimeVar.runtimeRacePromisesCollectedSet = forAsyncRuntimeRacePromisesCollectedSet;
         }
         updateFn(data, silent, mutedCallback);
         if (!silent) {
           // 每次异步回调都相当于是一个开始，所以需要在异步回调执行完成时将依赖清空
           runtimeVar.runtimeDepsModelCollectedMap.clear();
           runtimeVar.runtimeUpdateOrigin = null;
+          runtimeVar.runtimeRacePromisesCollectedSet = null;
         }
         return data;
       });
@@ -335,20 +322,10 @@ function gluer(...args: any[]) {
     if (typeof callback !== 'function') {
       throw new Error('callback should be function');
     }
-    const cb: OnCallback<typeof gluerState> = (state: typeof gluerState) => {
-      return callback(state);
-    };
-    cb.__id = callbackCount.num;
-    callbackCount.num += 1;
-    cb.__type = runtimeVar.runtimeBindType;
-    onUpdateCallbackArr.set(cb.__id, cb);
-    const unsubUpdateCallback: UnsubCallback = () => {
-      onUpdateCallbackArr.delete(cb.__id as number);
-    };
-
-    unsubUpdateCallback.__id = cb.__id;
-
-    return unsubUpdateCallback;
+    runtimeVar.runtimeListenType = 1;
+    const unsub = subscribe([fn], callback, false);
+    runtimeVar.runtimeListenType = 0;
+    return unsub;
   }
 
   fn.silent = basicLogic(true);
@@ -357,12 +334,30 @@ function gluer(...args: any[]) {
     let tmp: RacePromise = fn(...as);
     if (!isAsync(tmp)) {
       tmp = Promise.resolve(tmp);
-    } else if (isUnderModelChangeContext()) {
-        underModelChangeContextRacePromises.add(tmp);
-      } else if (isUnderOnUpdateContext()){
-        underOnUpdateContextRacePromises.add(tmp);
-      }
-    return rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag)
+    }
+
+    if (!modelToRacePromisesMap.has(fn)) {
+      // 需要在 fn 被解绑监听时删除掉，所有绑定都没有了才删
+      modelToRacePromisesMap.set(fn, new Set());
+    }
+    const underModelCallbackContextRacePromises = modelToRacePromisesMap.get(fn) as Set<RacePromise>;
+
+    if (!isUnderModelCallbackContext()) {
+      // 不是在回调环境的，则将之前收集到的所有 race promise 置为失效
+      // 每次异步调用 race ，都视为一次新开始（同循环依赖判断）
+      // TODO 将来可能需要对异步里调用 race 的情况也做上下文判断(比如：是在 model change 对 race 做的异步调用，那么该异步调用也继承是在 model change 调用的这一标识，而现在是重新开始)
+      underModelCallbackContextRacePromises.forEach((p) => {
+        makeRacePromiseDeprecated(p);
+      });
+      underModelCallbackContextRacePromises.clear();
+      runtimeVar.runtimeRacePromisesCollectedSet = underModelCallbackContextRacePromises;
+      rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag);
+      runtimeVar.runtimeRacePromisesCollectedSet = null;
+    } else {
+      runtimeVar.runtimeRacePromisesCollectedSet?.add(tmp);
+      rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag);
+    }
+    return tmp;
   };
 
   fn.preTreat = (...as: any) => preTreat(...as);

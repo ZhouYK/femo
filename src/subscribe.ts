@@ -52,7 +52,7 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, n
   if (setDeps) {
     callback.__id = callbackCount.num;
     callbackCount.num += 1;
-    callback.__type = runtimeVar.runtimeBindType;
+    callback.__bind_type = runtimeVar.runtimeBindType;
     // 依赖与函数的映射
     const l = copyDeps.length;
     for (let i = 0; i < l; i += 1) {
