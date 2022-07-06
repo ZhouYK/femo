@@ -117,18 +117,15 @@ function gluer(...args: any[]) {
       // 需要根据更新类型来判断，是否执行相应的 callback
       let updateType: any;
       let callbackIds: any;
-      let useModelId;
       if (runtimeVar.runtimeUpdateOrigin) {
         updateType = runtimeVar.runtimeUpdateOrigin.updateType;
         callbackIds = runtimeVar.runtimeUpdateOrigin.callbackIds;
-        useModelId = runtimeVar.runtimeUpdateOrigin.useModelId;
         // 在当前 model 的回调里将 callbackIds 置为空数组。这样就能保证，只有第一层 model 才能拿得到 callbackIds
         // 再往后的嵌套更新的 model 拿不到 callbackIds，因为这 callbackIds 本来就不是后面嵌套的 model 绑定的
         // 后面嵌套的 model 如果走了 useModel 的更新，则能拿到自己的; 如果没有走，则 callbackIds 会一直为空
         runtimeVar.runtimeUpdateOrigin = {
           updateType,
           callbackIds: [],
-          useModelId,
         };
       }
 

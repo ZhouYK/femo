@@ -6,8 +6,6 @@ import useCloneModel from './internalHooks/useCloneModel';
 import useService from './internalHooks/useService';
 import {defaultServiceOptions} from '../constants';
 
-let serviceId = 0;
-
 /**
  * 将外部model注入到组件内部的自定义钩子函数，model生命周期不跟随组件，是共享数据
  * 区别于useIndividualModel
@@ -28,12 +26,6 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
 
   const optionsRef = useRef(finalOptions);
   optionsRef.current = finalOptions;
-
-  const [sid] = useState(() => {
-    const id = serviceId;
-    serviceId += 1;
-    return id;
-  })
 
   const [, updateState] = useState(0);
   const subscribeCallback = useCallback((_modelData: T) => {
@@ -99,7 +91,6 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
   runtimeVar.runtimeUpdateOrigin = {
     updateType: 1,
     callbackIds: [...callbackIdsRef.current],
-    useModelId: sid,
   };
   const [localService] = useService(model, clonedModel, service, deps, finalOptions);
   runtimeVar.runtimeUpdateOrigin = null;
