@@ -16,7 +16,6 @@ import { ErrorFlag, promiseDeprecatedError } from '../../genRaceQueue';
 import { defaultReducer } from '../../gluer';
 import runtimeVar from '../../runtimeVar';
 import { isAsync, isModel } from '../../tools';
-import useControl from './useControl';
 
 /**
  * 需要区分promise竞争是由谁引起的，由origin model还是cloned model
@@ -52,7 +51,6 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   const unmountedFlagRef = useRef(false);
   const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
   const cacheControlOnChangeUnsub = useRef<() => void>();
-  const cacheOutputControlChangeUnsub = useRef<() => void>();
   const cacheModelRef = useRef<GluerReturn<T>>();
   const underControl = useRef(false);
 
@@ -75,17 +73,10 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     }
   });
 
-  const outputControl = useControl(model(), status);
-
   const syncUpdateStatus = (s: LoadingStatus) => {
     updateStatus((prevState) => {
+      // 如果相等，则不更新
       if (prevState.loading === s.loading && prevState.successful === s.successful) return prevState;
-      outputControl((_d, state) => {
-        return {
-          ...state,
-          ...s,
-        }
-      });
       return {
         ...prevState,
         ...s,
@@ -198,15 +189,6 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   const cacheClonedModelRef = useRef<GluerReturn<T>>(clonedModel);
 
   if (!Object.is(model, cacheModelRef.current)) {
-    cacheOutputControlChangeUnsub.current?.();
-    cacheOutputControlChangeUnsub.current = model.onChange((state) => {
-      outputControl((_d, s) => {
-        return {
-          ...s,
-          data: state,
-        }
-      })
-    });
     cacheModelRef.current = model;
     cacheClonedModelRef.current = genClonedModel();
   }
@@ -214,12 +196,10 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   useEffect(() => () => {
     unmountedFlagRef.current = true;
     cacheControlOnChangeUnsub.current?.()
-    cacheOutputControlChangeUnsub.current?.()
   }, []);
 
   return [cacheClonedModelRef.current, {
     ...status,
-    control: outputControl,
   }];
 }
 

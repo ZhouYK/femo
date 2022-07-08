@@ -1,8 +1,9 @@
 import useModel from '../../src/hooks/useModel';
+import useIndividualModel from '../../src/hooks/useIndividualModel';
 import { act, renderHook } from "@testing-library/react-hooks";
 import gluer from "../../src/gluer";
 import {useState} from "react";
-import {ServiceControl} from "../../index";
+import { ServiceControl } from "../../index";
 
 const model = gluer(0);
 
@@ -200,7 +201,8 @@ describe('useModel test', () => {
 
     expect(result.current.age).toBe(4);
     expect(result.current.loading).toBe(false);
-    expect(onChange_mock.mock.calls.length).toBe(4);
+    // 直接通过 model 变更不会引起 onChange_mock 执行
+    expect(onChange_mock.mock.calls.length).toBe(3);
 
     act(() => {
       model(5);
@@ -208,7 +210,7 @@ describe('useModel test', () => {
 
     expect(result.current.age).toBe(5);
     expect(result.current.loading).toBe(false);
-    expect(onChange_mock.mock.calls.length).toBe(5);
+    expect(onChange_mock.mock.calls.length).toBe(3);
 
     act(() => {
       model(5);
@@ -216,7 +218,7 @@ describe('useModel test', () => {
 
     expect(result.current.age).toBe(5);
     expect(result.current.loading).toBe(false);
-    expect(onChange_mock.mock.calls.length).toBe(5);
+    expect(onChange_mock.mock.calls.length).toBe(3);
 
     act(() => {
       unmount();
@@ -229,8 +231,7 @@ describe('useModel test', () => {
     expect(model()).toBe(6);
     expect(result.current.age).toBe(5);
     expect(result.current.loading).toBe(false);
-    expect(onChange_mock.mock.calls.length).toBe(5);
-
+    expect(onChange_mock.mock.calls.length).toBe(3);
   });
 
   test('useModel loading', async () => {
@@ -645,5 +646,674 @@ describe('useModel test', () => {
     expect(updateCallback_mock.mock.calls[3][0]).toBe(6);
     expect(updateCallback_mock.mock.calls[3][1]).toBe(6);
 
+  });
+
+  test('useModel onUpdate race condition test', async () => {
+
+    const onUpdateMock_1 = jest.fn((state, prevState) => {
+      return Object.is(state, prevState);
+    })
+
+    const { result: result_1, unmount: unmount_1, waitForNextUpdate: waitForNextUpdate_1 } = renderHook(() => {
+      const [state, model, modelWithStatus, { loading, successful }] = useIndividualModel<number>(0, (s) => {
+        return s;
+      }, [], {
+        onUpdate: onUpdateMock_1,
+      });
+
+      return {
+        state,
+        model,
+        modelWithStatus,
+        loading,
+        successful,
+      }
+    });
+
+    const onUpdateMock = jest.fn((state, prevState) => {
+      if (state !== prevState) {
+        if (state <= 7) {
+          result_1.current.modelWithStatus.race(new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(state);
+            }, 1000);
+          }))
+        } else if (state > 10) {
+          result_1.current.modelWithStatus.race(state);
+        }
+      }
+      return Object.is(state, prevState);
+    });
+
+    const { result: result_3, unmount: unmount_3, waitForNextUpdate: waitForNextUpdate_3 } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+
+      const service = (_s: number) => {
+        if (count <= 6) {
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      };
+
+      const [age, clonedModel, { loading, successful }] = useModel(model, service, [count], {
+        onUpdate: onUpdateMock,
+        // onChange: onChangeMock,
+      });
+
+      return {
+        age,
+        clonedModel,
+        loading,
+        successful,
+        updateCount,
+      }
+    });
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(0);
+
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    expect(onUpdateMock.mock.calls.length).toBe(0);
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(0);
+
+    await waitForNextUpdate_3();
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(1);
+
+    expect(onUpdateMock.mock.calls.length).toBe(1);
+    expect(onUpdateMock.mock.calls[0][0]).toBe(1);
+    expect(onUpdateMock.mock.calls[0][1]).toBe(0);
+
+    // onUpdateMock 回调触发 result_1.current.modelWithStatus.race
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(0);
+
+    await waitForNextUpdate_1({
+      timeout: 2000
+    });
+
+    // onUpdateMock 回调触发 result_1.current.modelWithStatus.race
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(1);
+
+    // 只有 result_1 的 deps 和 service 进行的更新才会触发 onUpdateMock_1
+    // 上面是通过 result_1.current.modelWithStatus.race 触发的，所以回调不会执行
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    expect(onUpdateMock.mock.calls.length).toBe(1);
+    expect(onUpdateMock.mock.calls[0][0]).toBe(1);
+    expect(onUpdateMock.mock.calls[0][1]).toBe(0);
+
+
+    act(() => {
+      result_3.current.updateCount(1);
+    });
+
+    expect(result_3.current.age).toBe(1);
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(onUpdateMock.mock.calls.length).toBe(1);
+    expect(onUpdateMock.mock.calls[0][0]).toBe(1);
+    expect(onUpdateMock.mock.calls[0][1]).toBe(0);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.age).toBe(2);
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(onUpdateMock.mock.calls.length).toBe(2);
+    expect(onUpdateMock.mock.calls[1][0]).toBe(2);
+    expect(onUpdateMock.mock.calls[1][1]).toBe(1);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(1);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(2);
+    expect(onUpdateMock.mock.calls.length).toBe(2);
+    expect(onUpdateMock.mock.calls[1][0]).toBe(2);
+    expect(onUpdateMock.mock.calls[1][1]).toBe(1);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    act(() => {
+      result_3.current.updateCount(2);
+    });
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(2);
+    expect(onUpdateMock.mock.calls.length).toBe(2);
+    expect(onUpdateMock.mock.calls[1][0]).toBe(2);
+    expect(onUpdateMock.mock.calls[1][1]).toBe(1);
+
+    act(() => {
+      result_3.current.updateCount(3);
+    });
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(2);
+    expect(onUpdateMock.mock.calls.length).toBe(2);
+    expect(onUpdateMock.mock.calls[1][0]).toBe(2);
+    expect(onUpdateMock.mock.calls[1][1]).toBe(1);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(4);
+    expect(onUpdateMock.mock.calls.length).toBe(3);
+    expect(onUpdateMock.mock.calls[2][0]).toBe(4);
+    expect(onUpdateMock.mock.calls[2][1]).toBe(2);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(2);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+    expect(onUpdateMock.mock.calls.length).toBe(3);
+    expect(onUpdateMock.mock.calls[2][0]).toBe(4);
+    expect(onUpdateMock.mock.calls[2][1]).toBe(2);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(4);
+
+    act(() => {
+      result_3.current.updateCount(4);
+    });
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(4);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(5);
+    expect(onUpdateMock.mock.calls.length).toBe(4);
+    expect(onUpdateMock.mock.calls[3][0]).toBe(5);
+    expect(onUpdateMock.mock.calls[3][1]).toBe(4);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(4);
+
+    // 在 onUpdate 中的 race promise 还没返回的时候，又在源数据上发起了一次异步更新
+    // 测试在新的一次更新中，onUpdate 触发的 race promise 能否取消掉上一次的 race promise
+    act(() => {
+      result_3.current.updateCount(5);
+    });
+
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(5);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(4);
+    expect(onUpdateMock.mock.calls.length).toBe(4);
+    expect(onUpdateMock.mock.calls[3][0]).toBe(5);
+    expect(onUpdateMock.mock.calls[3][1]).toBe(4);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(6);
+    expect(onUpdateMock.mock.calls.length).toBe(5);
+    expect(onUpdateMock.mock.calls[4][0]).toBe(6);
+    expect(onUpdateMock.mock.calls[4][1]).toBe(5);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(4);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(6);
+
+
+    act(() => {
+      result_3.current.updateCount(6);
+    });
+
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(6);
+    expect(onUpdateMock.mock.calls.length).toBe(5);
+    expect(onUpdateMock.mock.calls[4][0]).toBe(6);
+    expect(onUpdateMock.mock.calls[4][1]).toBe(5);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(7);
+
+    expect(onUpdateMock.mock.calls.length).toBe(6);
+    expect(onUpdateMock.mock.calls[5][0]).toBe(7);
+    expect(onUpdateMock.mock.calls[5][1]).toBe(6);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(6);
+
+    act(() => {
+      // 7 的话 result_3 的 state 不会改变（还是 7），是一个同步数据
+      // 并且 onUpdateMock 中也不会执行更新 result_1 的更新
+      // 这时预期也应该取消掉上面 result_1 的异步更新
+      result_3.current.updateCount(7);
+    });
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(7);
+
+    expect(onUpdateMock.mock.calls.length).toBe(7);
+    expect(onUpdateMock.mock.calls[6][0]).toBe(7);
+    expect(onUpdateMock.mock.calls[6][1]).toBe(7);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(6);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(6);
+
+    expect(onUpdateMock_1.mock.calls.length).toBe(1);
+    expect(onUpdateMock_1.mock.calls[0][0]).toBe(0);
+    expect(onUpdateMock_1.mock.calls[0][1]).toBe(0);
+
+    act(() => {
+      unmount_1();
+      unmount_3();
+    });
+
   })
+
+  test('useModel onChange race condition test', async () => {
+
+    const onChangeMock_1 = jest.fn((state, prevState) => {
+      return Object.is(state, prevState);
+    })
+
+    const { result: result_1, unmount: unmount_1, waitForNextUpdate: waitForNextUpdate_1 } = renderHook(() => {
+      const [state, model, modelWithStatus, { loading, successful }] = useIndividualModel<number>(0, (s) => {
+        return s;
+      }, [], {
+        onChange: onChangeMock_1,
+      });
+
+      return {
+        state,
+        model,
+        modelWithStatus,
+        loading,
+        successful,
+      }
+    });
+
+    const onChangeMock_3 = jest.fn((state, prevState) => {
+      if (state !== prevState) {
+        if (state <= 7) {
+          result_1.current.modelWithStatus.race(new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(state);
+            }, 1000);
+          }))
+        } else if (state > 10) {
+          result_1.current.modelWithStatus.race(state);
+        }
+      }
+      return Object.is(state, prevState);
+    });
+
+    const { result: result_3, unmount: unmount_3, waitForNextUpdate: waitForNextUpdate_3 } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+
+      const service = (_s: number) => {
+        if (count <= 6) {
+          return Promise.resolve(count + 1);
+        }
+        return count;
+      };
+
+      const [age, clonedModel, { loading, successful }] = useModel(model, service, [count], {
+        onChange: onChangeMock_3,
+      });
+
+      return {
+        age,
+        clonedModel,
+        loading,
+        successful,
+        updateCount,
+      }
+    });
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(0);
+
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+    expect(onChangeMock_3.mock.calls.length).toBe(0);
+
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(0);
+
+    await waitForNextUpdate_3();
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(1);
+
+    expect(onChangeMock_3.mock.calls.length).toBe(1);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(0);
+
+    await waitForNextUpdate_1({
+      timeout: 2000
+    });
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(1);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    expect(onChangeMock_3.mock.calls.length).toBe(1);
+    expect(onChangeMock_3.mock.calls[0][0]).toBe(1);
+    expect(onChangeMock_3.mock.calls[0][1]).toBe(0);
+
+    act(() => {
+      result_3.current.updateCount(1);
+    });
+
+    expect(result_3.current.age).toBe(1);
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(onChangeMock_3.mock.calls.length).toBe(1);
+    expect(onChangeMock_3.mock.calls[0][0]).toBe(1);
+    expect(onChangeMock_3.mock.calls[0][1]).toBe(0);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.age).toBe(2);
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(onChangeMock_3.mock.calls.length).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][0]).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][1]).toBe(1);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(1);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+
+    expect(onChangeMock_3.mock.calls.length).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][0]).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][1]).toBe(1);
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(2);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    act(() => {
+      result_3.current.updateCount(2);
+    });
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(2);
+    expect(onChangeMock_3.mock.calls.length).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][0]).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][1]).toBe(1);
+
+    act(() => {
+      result_3.current.updateCount(3);
+    });
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(2);
+    expect(onChangeMock_3.mock.calls.length).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][0]).toBe(2);
+    expect(onChangeMock_3.mock.calls[1][1]).toBe(1);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(4);
+    expect(onChangeMock_3.mock.calls.length).toBe(3);
+    expect(onChangeMock_3.mock.calls[2][0]).toBe(4);
+    expect(onChangeMock_3.mock.calls[2][1]).toBe(2);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(2);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+    expect(onChangeMock_3.mock.calls.length).toBe(3);
+    expect(onChangeMock_3.mock.calls[2][0]).toBe(4);
+    expect(onChangeMock_3.mock.calls[2][1]).toBe(2);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(4);
+
+    act(() => {
+      result_3.current.updateCount(4);
+    });
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(4);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(5);
+    expect(onChangeMock_3.mock.calls.length).toBe(4);
+    expect(onChangeMock_3.mock.calls[3][0]).toBe(5);
+    expect(onChangeMock_3.mock.calls[3][1]).toBe(4);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(4);
+
+    // 在 onUpdate 中的 race promise 还没返回的时候，又在源数据上发起了一次异步更新
+    // 测试在新的一次更新中，onUpdate 触发的 race promise 能否取消掉上一次的 race promise
+    act(() => {
+      result_3.current.updateCount(5);
+    });
+
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(5);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(4);
+    expect(onChangeMock_3.mock.calls.length).toBe(4);
+    expect(onChangeMock_3.mock.calls[3][0]).toBe(5);
+    expect(onChangeMock_3.mock.calls[3][1]).toBe(4);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(6);
+    expect(onChangeMock_3.mock.calls.length).toBe(5);
+    expect(onChangeMock_3.mock.calls[4][0]).toBe(6);
+    expect(onChangeMock_3.mock.calls[4][1]).toBe(5);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(4);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(true);
+    expect(result_1.current.state).toBe(6);
+
+    act(() => {
+      result_3.current.updateCount(6);
+    });
+
+    expect(result_3.current.loading).toBe(true);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(6);
+    expect(onChangeMock_3.mock.calls.length).toBe(5);
+    expect(onChangeMock_3.mock.calls[4][0]).toBe(6);
+    expect(onChangeMock_3.mock.calls[4][1]).toBe(5);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+    await waitForNextUpdate_3();
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(true);
+    expect(result_3.current.age).toBe(7);
+
+    expect(onChangeMock_3.mock.calls.length).toBe(6);
+    expect(onChangeMock_3.mock.calls[5][0]).toBe(7);
+    expect(onChangeMock_3.mock.calls[5][1]).toBe(6);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(6);
+
+    act(() => {
+      // 7 的话 result_3 的 state 不会改变（还是 7），是一个同步数据
+      // 并且 onUpdateMock 中也不会执行更新 result_1 的更新
+      // 这时预期也应该取消掉上面 result_1 的异步更新
+      result_3.current.updateCount(7);
+    });
+
+    expect(result_3.current.loading).toBe(false);
+    expect(result_3.current.successful).toBe(false);
+    expect(result_3.current.age).toBe(7);
+
+    expect(onChangeMock_3.mock.calls.length).toBe(6);
+    expect(onChangeMock_3.mock.calls[5][0]).toBe(7);
+    expect(onChangeMock_3.mock.calls[5][1]).toBe(6);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+    expect(result_1.current.loading).toBe(true);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(6);
+
+    await waitForNextUpdate_1({
+      timeout: 2000,
+    });
+
+
+    expect(result_1.current.loading).toBe(false);
+    expect(result_1.current.successful).toBe(false);
+    expect(result_1.current.state).toBe(6);
+
+    expect(onChangeMock_1.mock.calls.length).toBe(0);
+
+
+    act(() => {
+      unmount_1();
+      unmount_3();
+    })
+  });
 });

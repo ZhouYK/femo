@@ -19,6 +19,7 @@
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "verbose": true,
+    "testTimeout": 10000,
     "transform": {
       "^.+\\.(ts|js)x?$": "ts-jest"
     },

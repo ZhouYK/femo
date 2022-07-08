@@ -1,4 +1,9 @@
-import { promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure } from './constants';
+import {
+  promiseDeprecated,
+  promiseDeprecatedFromClonedModel,
+  promiseDeprecatedFromLocalService,
+  promiseDeprecatedFromLocalServicePure
+} from './constants';
 import {RacePromise, RaceQueueObj} from '../index';
 
 export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel | typeof promiseDeprecatedFromLocalService | typeof promiseDeprecatedFromLocalServicePure;
@@ -16,8 +21,12 @@ const genRaceQueue = (deprecatedError?: ErrorFlag): RaceQueueObj => {
         throw new Error('The race queue item should be Promise');
       }
       const flag = customerErrorFlag || errorFlag;
-      if (raceQueue && raceQueue[0]) {
-        raceQueue[0][flag] = true;
+      const t = raceQueue?.[0];
+      if (t) {
+        // @ts-ignore
+        if (!errorFlags.some((ef) => t[ef])) {
+          t[flag] = true;
+        }
       }
       raceQueue?.splice(0);
       raceQueue?.push(p);

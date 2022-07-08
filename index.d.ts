@@ -57,7 +57,6 @@ export interface ServiceControl<D = any> extends LoadingStatus {
 
 export interface ServiceStatus<S, D = any> extends LoadingStatus {
   service:  LocalService<S, D>;
-  control: Control<S>; // 返回的 model 用于同步状态
 }
 
 export type LocalServiceHasStatus<T> = LocalService<T> & { [pureServiceKey]?: LocalService<T> };
