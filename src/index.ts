@@ -13,4 +13,5 @@ export { default as useDerivedStateWithModel } from './hooks/rareHooks/useDerive
 export { default as useSubscribe } from './hooks/rareHooks/useSubscribe';
 export { default as useException } from './hooks/rareHooks/useException';
 export { default as useLocalService } from './hooks/useLocalService';
+export { default as useLight } from './hooks/useLight';
 export { default as Inject } from './hoc/Inject';

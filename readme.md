@@ -299,6 +299,7 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 - <a href="#useDerivedState">useDerivedState</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
+- <a href="#useLight">useLight</a>
 
 react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
 
@@ -483,6 +484,11 @@ useBatchDerivedModel(initState, {
     source: source_1,
     callback: (nextSource, prevSource, state, )
 })
+
+### <span id="useLight">useLight</span>
+> 首次挂载并不会执行 callback，首次之后如果 deps 变了就会执行
+
+useLight(callback, deps);
 
 
 
