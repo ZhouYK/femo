@@ -349,7 +349,8 @@ function gluer(...args: any[]) {
       underModelCallbackContextRacePromises.forEach((p) => {
         // 现在的 race promise 没有区分是由 useModel 引起的，还是由 model.race 引起的
         // 一旦 调用 model.race 会将所有的 race promise（不管是 useModel，还是 model.race 引起的）置为无效
-        // TODO 这里可能在后面需要区分，由 useModel 产生的 race promise 只能由 useModel 取消
+        // TODO 这里可能在后面需要区分，由 useModel 产生的 race promise 只能由 useModel 取消，由 model.race 产生的 race promise 只能由 model.race 取消
+        // TODO 这里可能还要再区分，由 onChange 产生的 race promise 和 由 onUpdate 产生的 race promise (这点存疑，需要再考虑)
         makeRacePromiseDeprecated(p);
       });
       underModelCallbackContextRacePromises.clear();

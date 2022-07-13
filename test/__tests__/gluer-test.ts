@@ -358,3 +358,371 @@ describe('onChange & unbind onChange test', () => {
 
 });
 
+describe('model onChange/onUpdate race condition test', () => {
+  const model_1 = gluer(0);
+  const model_2 = gluer(0);
+  const model_3 = gluer(0);
+
+  beforeEach(() => {
+    model_1.reset();
+    model_2.reset();
+    model_3.reset();
+  })
+
+  test('model onChange race condition', async () => {
+    let p1, p2;
+
+    const callback_1 = jest.fn(() => {});
+    const unsub_1 = model_1.onChange(() => {
+      callback_1();
+    });
+
+    const callback_2 = jest.fn(() => {});
+    const unsub_2 = model_2.onChange((s) => {
+      callback_2();
+      p1 = model_1.race(new Promise((resolve) => {
+        setTimeout(() => resolve(s), 1000);
+      }));
+      p1.catch((e) => {
+        console.log('p1', e);
+      })
+    });
+
+
+    const callback_3 = jest.fn(() => {});
+    const unsub_3 = model_3.onChange((s) => {
+      callback_3();
+      p2 = model_2.race(new Promise((resolve) => {
+        setTimeout(() => resolve(s), 1000);
+      }));
+      p2.catch((e) => {
+        console.log('p2', e);
+      });
+    });
+
+    expect(callback_1.mock.calls.length).toBe(0);
+    expect(callback_2.mock.calls.length).toBe(0);
+    expect(callback_3.mock.calls.length).toBe(0);
+    await model_3.race((_d, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      });
+    });
+    expect(callback_3.mock.calls.length).toBe(1);
+    expect(callback_2.mock.calls.length).toBe(0);
+    expect(callback_1.mock.calls.length).toBe(0);
+    expect(model_3()).toBe(1);
+    expect(model_2()).toBe(0);
+    expect(model_1()).toBe(0);
+    await p2;
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_3.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(0);
+    expect(model_2()).toBe(1);
+    expect(model_1()).toBe(0);
+    await p1;
+    expect(model_1()).toBe(1);
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_3.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(1);
+
+    await model_3.race((_d, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      })
+    });
+    expect(callback_3.mock.calls.length).toBe(2);
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(1);
+    expect(model_3()).toBe(2);
+    expect(model_2()).toBe(1);
+    expect(model_1()).toBe(1);
+    await model_3.race((_d, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      })
+    });
+    expect(callback_3.mock.calls.length).toBe(3);
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(1);
+    expect(model_3()).toBe(3);
+    expect(model_2()).toBe(1);
+    expect(model_1()).toBe(1);
+
+    await p2;
+    expect(callback_2.mock.calls.length).toBe(2);
+    expect(callback_1.mock.calls.length).toBe(1);
+    expect(callback_3.mock.calls.length).toBe(3);
+    expect(model_2()).toBe(3);
+    expect(model_1()).toBe(1);
+
+    await p1;
+    expect(callback_1.mock.calls.length).toBe(2);
+    expect(callback_2.mock.calls.length).toBe(2);
+    expect(callback_3.mock.calls.length).toBe(3);
+    expect(model_1()).toBe(3);
+
+    await model_3.race((_d, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      });
+    });
+
+    expect(callback_3.mock.calls.length).toBe(4);
+    expect(callback_2.mock.calls.length).toBe(2);
+    expect(callback_1.mock.calls.length).toBe(2);
+    expect(model_3()).toBe(4);
+    expect(model_2()).toBe(3);
+    expect(model_1()).toBe(3);
+    await p2;
+    expect(callback_2.mock.calls.length).toBe(3);
+    expect(callback_1.mock.calls.length).toBe(2);
+    expect(callback_3.mock.calls.length).toBe(4);
+    expect(model_2()).toBe(4);
+    expect(model_1()).toBe(3);
+
+    await model_3.race((_d, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      })
+    });
+
+    expect(callback_3.mock.calls.length).toBe(5);
+    expect(callback_2.mock.calls.length).toBe(3);
+    expect(callback_1.mock.calls.length).toBe(2);
+
+    expect(model_3()).toBe(5);
+    expect(model_2()).toBe(4);
+    expect(model_1()).toBe(3);
+    await p2;
+    expect(callback_2.mock.calls.length).toBe(4);
+    expect(callback_1.mock.calls.length).toBe(2);
+    expect(callback_3.mock.calls.length).toBe(5);
+    expect(model_2()).toBe(5);
+    expect(model_1()).toBe(3);
+
+    await p1;
+    expect(callback_1.mock.calls.length).toBe(3);
+    expect(callback_2.mock.calls.length).toBe(4);
+    expect(callback_3.mock.calls.length).toBe(5);
+    expect(model_1()).toBe(5);
+
+    unsub_1();
+    unsub_2();
+    unsub_3();
+  });
+
+  test('model onUpdate race condition', async () => {
+    // @ts-ignore
+    let p1, p2;
+
+    const callback_1 = jest.fn(() => {});
+    const unsub_1 = model_1.onUpdate(() => {
+      callback_1();
+    });
+
+    const callback_2 = jest.fn(() => {});
+    const unsub_2 = model_2.onUpdate((s) => {
+      callback_2();
+      p1 = model_1.race(new Promise((resolve) => {
+        setTimeout(() => resolve(s), 1000);
+      }));
+      p1.catch((e) => {
+        console.log('p1', e);
+      })
+    });
+
+    const callback_3 = jest.fn(() => {});
+    const unsub_3 = model_3.onUpdate((s) => {
+      callback_3();
+      p2 = model_2.race(new Promise((resolve) => {
+        setTimeout(() => resolve(s), 1000);
+      }));
+      p2.catch((e) => {
+        console.log('p2', e);
+      });
+    });
+
+    expect(callback_3.mock.calls.length).toBe(0);
+    expect(callback_2.mock.calls.length).toBe(0);
+    expect(callback_1.mock.calls.length).toBe(0);
+
+    await model_3.race((_d, s) => {
+      return new Promise((resolve) => {
+        resolve(s);
+      });
+    });
+
+    expect(callback_3.mock.calls.length).toBe(1);
+    expect(callback_2.mock.calls.length).toBe(0);
+    expect(callback_1.mock.calls.length).toBe(0);
+    expect(model_3()).toBe(0);
+    expect(model_2()).toBe(0);
+    expect(model_1()).toBe(0);
+
+    await p2;
+    expect(model_3()).toBe(0);
+    expect(model_2()).toBe(0);
+    expect(model_1()).toBe(0);
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(0);
+    expect(callback_3.mock.calls.length).toBe(1);
+
+    await p1;
+    expect(model_3()).toBe(0);
+    expect(model_2()).toBe(0);
+    expect(model_1()).toBe(0);
+    expect(callback_1.mock.calls.length).toBe(1);
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_3.mock.calls.length).toBe(1);
+
+    await model_3.race((_, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      })
+    });
+
+    expect(model_3()).toBe(1);
+    expect(model_2()).toBe(0);
+    expect(model_1()).toBe(0);
+    expect(callback_3.mock.calls.length).toBe(2);
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(1);
+
+    await model_3.race((_, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      });
+    });
+    expect(model_3()).toBe(2);
+    expect(model_2()).toBe(0);
+    expect(model_1()).toBe(0);
+
+    expect(callback_3.mock.calls.length).toBe(3);
+    expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(1);
+
+    // 始终拿到的最新的 p2，而不是被 deprecated 的 reject 状态的 promise
+    await p2;
+    expect(model_2()).toBe(2);
+    expect(model_3()).toBe(2);
+    expect(model_1()).toBe(0);
+
+    expect(callback_2.mock.calls.length).toBe(2);
+    expect(callback_3.mock.calls.length).toBe(3);
+    expect(callback_1.mock.calls.length).toBe(1);
+
+    // 始终拿到的最新的 p1，而不是被 deprecated 的 reject 状态的 promise
+    await p1;
+    expect(model_1()).toBe(2);
+    expect(model_2()).toBe(2);
+    expect(model_3()).toBe(2);
+
+    expect(callback_1.mock.calls.length).toBe(2);
+    expect(callback_2.mock.calls.length).toBe(2);
+    expect(callback_3.mock.calls.length).toBe(3);
+
+    await model_3.race((_, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      })
+    });
+
+    expect(model_3()).toBe(3);
+    expect(model_2()).toBe(2);
+    expect(model_1()).toBe(2);
+    expect(callback_3.mock.calls.length).toBe(4);
+    expect(callback_2.mock.calls.length).toBe(2);
+    expect(callback_1.mock.calls.length).toBe(2);
+
+    // 始终拿到的最新的 p2，而不是被 deprecated 的 reject 状态的 promise
+    await p2;
+    expect(model_2()).toBe(3);
+    expect(model_3()).toBe(3);
+    expect(model_1()).toBe(2);
+    expect(callback_3.mock.calls.length).toBe(4);
+    expect(callback_2.mock.calls.length).toBe(3);
+    expect(callback_1.mock.calls.length).toBe(2);
+
+    await model_3.race((_, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      })
+    });
+
+    expect(model_3()).toBe(4);
+    expect(model_2()).toBe(3);
+    expect(model_1()).toBe(2);
+
+    expect(callback_3.mock.calls.length).toBe(5);
+    expect(callback_2.mock.calls.length).toBe(3);
+    expect(callback_1.mock.calls.length).toBe(2);
+
+    // 始终拿到的最新的 p2，而不是被 deprecated 的 reject 状态的 promise
+    await p2;
+    expect(model_2()).toBe(4);
+    expect(model_3()).toBe(4);
+    expect(model_1()).toBe(2);
+    expect(callback_2.mock.calls.length).toBe(4);
+    expect(callback_3.mock.calls.length).toBe(5);
+    expect(callback_1.mock.calls.length).toBe(2);
+
+    // 始终拿到的最新的 p1，而不是被 deprecated 的 reject 状态的 promise
+    await p1;
+    expect(model_1()).toBe(4);
+    expect(model_2()).toBe(4);
+    expect(model_3()).toBe(4);
+    expect(callback_1.mock.calls.length).toBe(3);
+    expect(callback_2.mock.calls.length).toBe(4);
+    expect(callback_3.mock.calls.length).toBe(5);
+
+    await model_3.race((_, s) => {
+      return new Promise((resolve) => {
+        resolve(s + 1);
+      })
+    });
+    expect(model_3()).toBe(5);
+    expect(model_2()).toBe(4);
+    expect(model_1()).toBe(4);
+    expect(callback_3.mock.calls.length).toBe(6);
+    expect(callback_2.mock.calls.length).toBe(4);
+    expect(callback_1.mock.calls.length).toBe(3);
+
+    // 由 model_3 的 onUpdate 引起的对 model_2 的更新会被竞争掉
+    // 如果没被竞争掉，model_2 最终的值会是 5
+    model_2.race(4);
+    expect(model_2()).toBe(4);
+    expect(model_1()).toBe(4);
+    expect(model_3()).toBe(5);
+    expect(callback_2.mock.calls.length).toBe(5);
+    expect(callback_1.mock.calls.length).toBe(3);
+    expect(callback_3.mock.calls.length).toBe(6);
+    // p2 被竞争掉了，并没有赋值新的 promise，所以这里和上面的 p2 情况不一样，这里还是拿到的不是最新的，而是被竞争掉的 promise
+    // 所以它是 reject 状态
+    // @ts-ignore
+    await p2.catch((e) => console.log('p2', e));
+    expect(model_2()).toBe(4);
+    expect(model_1()).toBe(4);
+    expect(model_3()).toBe(5);
+    expect(callback_2.mock.calls.length).toBe(5);
+    expect(callback_1.mock.calls.length).toBe(3);
+    expect(callback_3.mock.calls.length).toBe(6);
+
+    await p1;
+    expect(model_1()).toBe(4);
+    expect(model_2()).toBe(4);
+    expect(model_3()).toBe(5);
+    expect(callback_1.mock.calls.length).toBe(4);
+    expect(callback_2.mock.calls.length).toBe(5);
+    expect(callback_3.mock.calls.length).toBe(6);
+
+
+    unsub_3();
+    unsub_2();
+    unsub_1();
+
+  })
+
+
+})
+
