@@ -3,7 +3,7 @@ import useIndividualModel from '../../src/hooks/useIndividualModel';
 import { act, renderHook } from "@testing-library/react-hooks";
 import gluer from "../../src/gluer";
 import {useState} from "react";
-import { ServiceControl } from "../../index";
+import { RacePromise, ServiceControl } from "../../index";
 
 const model = gluer(0);
 
@@ -1316,4 +1316,190 @@ describe('useModel test', () => {
       unmount_3();
     })
   });
+
+  test('useModel race canceled by self', async () => {
+
+    const model_2 = gluer(0);
+    let p1: RacePromise | undefined;
+    const onUpdate_1 = jest.fn(() => {
+      p1 = model_2.race((_, s) => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(s + 1)
+          }, 1000);
+        })
+      })
+    })
+
+    const model_1 = gluer(0);
+    const unmount_1 = model_1.onUpdate(onUpdate_1);
+
+
+    let p0: RacePromise | undefined;
+    const onUpdate_0 = jest.fn(() => {
+      p0 = model_1.race((_, s) => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(s + 1);
+          }, 1000);
+        })
+      });
+    });
+    const { result, unmount, waitForNextUpdate } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+      const [age, clonedModel, { loading, successful }] = useModel(model, () => {
+        return Promise.resolve(count + 1);
+      }, [count], {
+        onUpdate: onUpdate_0,
+      });
+
+      return {
+        age,
+        clonedModel,
+        updateCount,
+        loading,
+        successful,
+      }
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(0);
+    expect(model_1()).toBe(0);
+    expect(onUpdate_0.mock.calls.length).toBe(0);
+    expect(onUpdate_1.mock.calls.length).toBe(0);
+
+    await waitForNextUpdate();
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
+    expect(result.current.age).toBe(1);
+    expect(model_1()).toBe(0);
+    expect(onUpdate_0.mock.calls.length).toBe(1);
+
+    // 看是否能取消掉 onUpdate_1 中生成的 race promise
+    // 预期是无法取消的
+    model.race((_, s) => {
+      return s;
+    });
+    // 直接调用 model.race 无法触发通过 useModel 注册的 onUpdate
+    expect(onUpdate_0.mock.calls.length).toBe(1)
+
+    if (p0) {
+      console.log('p0: 进来啦');
+      await p0;
+      p0 = undefined;
+      expect(model_1()).toBe(1);
+      expect(onUpdate_1.mock.calls.length).toBe(1);
+      expect(model_2()).toBe(0);
+      if (p1) {
+        console.log('p1: 进来啦');
+        await p1;
+        p1 = undefined;
+        expect(model_2()).toBe(1);
+      }
+    }
+
+    act(() => {
+      result.current.updateCount(1);
+    });
+    expect(result.current.age).toBe(1);
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+
+    await waitForNextUpdate();
+
+    expect(result.current.age).toBe(2);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
+    expect(onUpdate_0.mock.calls.length).toBe(2);
+
+    if (p0) {
+      console.log('p0: 进来啦 X2');
+      await p0;
+      p0 = undefined;
+      expect(model_1()).toBe(2);
+      expect(onUpdate_1.mock.calls.length).toBe(2);
+      // 此刻 model_2.race 已经调用，这时调用 model.race 看是否能取消 model_2.race 产生的 race promise
+      // 预期是无法取消的
+      await model.race((_, s) => {
+        return Promise.resolve(s);
+      });
+      // 直接调用 model.race 无法触发通过 useModel 注册的 onUpdate
+      expect(onUpdate_0.mock.calls.length).toBe(2);
+
+      if (p1) {
+        console.log('p1: 进来啦 X2');
+        await p1;
+        p1 = undefined;
+        expect(model_2()).toBe(2);
+      }
+    }
+
+    act(() => {
+      result.current.updateCount(2);
+    });
+
+    expect(result.current.age).toBe(2);
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+
+    await waitForNextUpdate();
+
+    expect(result.current.age).toBe(3);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
+    expect(onUpdate_0.mock.calls.length).toBe(3);
+
+    if (p0) {
+      console.log('p0: 进来啦 X3');
+      await p0;
+      p0 = undefined;
+      expect(model_1()).toBe(3);
+      expect(onUpdate_1.mock.calls.length).toBe(3);
+    }
+
+    // 此时在 onUpdate_1 中 model_2.race 已经调用，此时如果再次调用 result.current.updateCount
+    // 看是否能取消掉 p1
+    // 预期是能取消掉
+    act(() => {
+      result.current.updateCount(3);
+    });
+    expect(result.current.loading).toBe(true);
+    expect(result.current.successful).toBe(false);
+    expect(result.current.age).toBe(3);
+    await waitForNextUpdate();
+    expect(result.current.loading).toBe(false);
+    expect(result.current.successful).toBe(true);
+    expect(result.current.age).toBe(4);
+    expect(onUpdate_0.mock.calls.length).toBe(4);
+
+    if (p1) {
+      console.log('p1: 进来啦 X3');
+      await p1.catch((e) => console.log('p1: ', e));
+      p1 = undefined;
+      expect(model_2()).toBe(2);
+    }
+
+    if (p0) {
+      console.log('p0: 进来啦 X4');
+      await p0;
+      p0 = undefined;
+      expect(model_1()).toBe(4);
+      expect(onUpdate_1.mock.calls.length).toBe(4);
+    }
+
+    if (p1) {
+      console.log('p1: 进来啦 X4');
+      await p1;
+      p1 = undefined;
+      expect(model_2()).toBe(3);
+    }
+
+
+    act(() => {
+      unmount();
+    });
+
+    unmount_1();
+  })
 });

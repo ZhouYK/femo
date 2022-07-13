@@ -14,6 +14,8 @@ const runtimeVar: {
   runtimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
   runtimeRacePromiseContext: RacePromiseContext;
   runtimeUpdateOrigin: RuntimeUpdateOrigin | null;
+  runtimeUpdateOriginId: number | null;
+  runtimeBeginOriginId: number | null;
   runtimeBindType: BindType;
   runtimeListenType: ListenType;
   runtimeRacePromisesCollectedSet: Set<RacePromise> | null;
@@ -22,6 +24,8 @@ const runtimeVar: {
   runtimeDepsModelCollectedMap: new Map(),
   runtimeRacePromiseContext: '',
   runtimeUpdateOrigin: null,
+  runtimeUpdateOriginId: null,
+  runtimeBeginOriginId: null,
   runtimeBindType: 0,
   runtimeListenType: 0,
   runtimeRacePromisesCollectedSet: null

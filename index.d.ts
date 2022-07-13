@@ -132,6 +132,7 @@ export type RacePromise = Promise<any> & {
   [promiseDeprecatedFromClonedModel]?: boolean;
   [promiseDeprecatedFromLocalService]?: boolean;
   [promiseDeprecatedFromLocalServicePure]?: boolean;
+  originId?: number;
 };
 
 export interface RaceQueueObj {

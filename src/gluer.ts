@@ -25,11 +25,25 @@ const raceHandle = (promise: RacePromise, callback: () => void, deprecatedFlag?:
 }
 
 // 使 race promise 失效
-const makeRacePromiseDeprecated = (promise: RacePromise) => {
+// 如果 promise 有 originId，则代表是从 useModel 产生的，则需要 beginId 和 originId 相同才置为失效
+// 如果 promise 没有 originId，则代表是普通的 model.race 产生的
+// 如果 beginId 存在，则只找有 originId 的 promise 且 beginId === originId 相同的置为失效；
+// 如果 beginId 不存在，则只找没有 originId 的 promise 置为失效
+const makeRacePromiseDeprecated = (promise: RacePromise, beginId: number | null) => {
   for (let i = 0; i < errorFlagsLength; i += 1) {
     if (errorFlags[i] in promise) {
-      break;
+      return;
     }
+  }
+  // 如果 beginId 存在，则只找有 originId 的 promise 且 beginId === originId 相同的置为失效；
+  if (typeof beginId === 'number') {
+    if (beginId === promise.originId) {
+      promise[promiseDeprecated] = true;
+    }
+    return;
+  }
+  // 如果 beginId 不存在，则只找没有 originId 的 promise 置为失效
+  if (typeof promise.originId !== 'number') {
     promise[promiseDeprecated] = true;
   }
 }
@@ -236,10 +250,12 @@ function gluer(...args: any[]) {
       let forAsyncRuntimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
       let forAsyncRuntimeUpdateOrigin: RuntimeUpdateOrigin | null;
       let forAsyncRuntimeRacePromisesCollectedSet: Set<RacePromise> | null;
+      let forAsyncRuntimeBeginOriginId: number | null;
       if (!silent) {
         forAsyncRuntimeDepsModelCollectedMap = new Map(runtimeVar.runtimeDepsModelCollectedMap)
         forAsyncRuntimeUpdateOrigin = runtimeVar.runtimeUpdateOrigin ? { ...runtimeVar.runtimeUpdateOrigin as RuntimeUpdateOrigin } : null;
         forAsyncRuntimeRacePromisesCollectedSet = runtimeVar.runtimeRacePromisesCollectedSet ?? null;
+        forAsyncRuntimeBeginOriginId = runtimeVar.runtimeBeginOriginId;
       }
       if (process.env.NODE_ENV === 'development' && isTagged(tempResult)) {
         console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
@@ -266,6 +282,7 @@ function gluer(...args: any[]) {
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
           runtimeVar.runtimeUpdateOrigin = forAsyncRuntimeUpdateOrigin;
           runtimeVar.runtimeRacePromisesCollectedSet = forAsyncRuntimeRacePromisesCollectedSet;
+          runtimeVar.runtimeBeginOriginId = forAsyncRuntimeBeginOriginId;
         }
         updateFn(data, silent, mutedCallback);
         if (!silent) {
@@ -273,6 +290,7 @@ function gluer(...args: any[]) {
           runtimeVar.runtimeDepsModelCollectedMap.clear();
           runtimeVar.runtimeUpdateOrigin = null;
           runtimeVar.runtimeRacePromisesCollectedSet = null;
+          runtimeVar.runtimeBeginOriginId = null;
         }
         return data;
       });
@@ -330,11 +348,8 @@ function gluer(...args: any[]) {
 
   fn.race = (...as: any[]) => {
     const realValue = fn.preTreat(...as);
-    let tmp;
-
-    if (!isAsync(realValue)) {
-      tmp = Promise.resolve(realValue);
-    }
+    const realValueIsAsync = isAsync(realValue);
+    let tmp: RacePromise = Promise.resolve(realValue);
 
     if (!modelToRacePromisesMap.has(fn)) {
       // 需要在 fn 被解绑监听时删除掉，所有绑定都没有了才删
@@ -342,6 +357,9 @@ function gluer(...args: any[]) {
     }
     const underModelCallbackContextRacePromises = modelToRacePromisesMap.get(fn) as Set<RacePromise>;
     const iumcc = isUnderModelCallbackContext();
+    if (typeof runtimeVar.runtimeBeginOriginId !== 'number') {
+      runtimeVar.runtimeBeginOriginId = runtimeVar.runtimeUpdateOriginId;
+    }
     if (!iumcc) {
       // 不是在回调环境的，则将之前收集到的所有 race promise 置为失效
       // 每次异步调用 race ，都视为一次新开始（同循环依赖判断）
@@ -351,19 +369,23 @@ function gluer(...args: any[]) {
         // 一旦 调用 model.race 会将所有的 race promise（不管是 useModel，还是 model.race 引起的）置为无效
         // TODO 这里可能在后面需要区分，由 useModel 产生的 race promise 只能由 useModel 取消，由 model.race 产生的 race promise 只能由 model.race 取消
         // TODO 这里可能还要再区分，由 onChange 产生的 race promise 和 由 onUpdate 产生的 race promise (这点存疑，需要再考虑)
-        makeRacePromiseDeprecated(p);
+        makeRacePromiseDeprecated(p, runtimeVar.runtimeBeginOriginId);
       });
       underModelCallbackContextRacePromises.clear();
       runtimeVar.runtimeRacePromisesCollectedSet = underModelCallbackContextRacePromises;
     }
-    if (isAsync(realValue)) {
+    if (realValueIsAsync) {
       tmp = fn(realValue);
     } else {
       fn(realValue);
     }
-    if (iumcc && isAsync(realValue)) {
+    if (iumcc && realValueIsAsync) {
+      if (typeof runtimeVar.runtimeBeginOriginId === 'number') {
+        tmp.originId = runtimeVar.runtimeBeginOriginId;
+      }
       runtimeVar.runtimeRacePromisesCollectedSet?.add(tmp);
     }
+    runtimeVar.runtimeBeginOriginId = null;
     return rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag);
   };
 
