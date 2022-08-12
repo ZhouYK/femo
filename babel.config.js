@@ -6,8 +6,6 @@ module.exports = (api) => {
     presets: [
       ['@babel/preset-env', {
         modules: isCj ? 'commonjs' : false,
-        useBuiltIns: 'usage',
-        corejs: '3.9'
       }],
       ['@babel/preset-react', {
         runtime: 'automatic',
