@@ -351,7 +351,7 @@ const getList = useCallback(() => {
   return get('/api/list', query).then((res) => res.data);
 }, [query]);
 
-const [listData, listModelWithStatus, { loading, successful }] = useModel(listModel, [getList], {
+const [listData, listModelWithStatus, { loading, successful, error }] = useModel(listModel, [getList], {
   suspenseKey: 'list',
 });
 
@@ -361,7 +361,7 @@ const getList = () => {
   return get('/api/list', query).then((res) => res.data);
 };
 
-const [listData, listModelWithStatus, { loading, successful }] = useModel(listModel, getList, [query], {
+const [listData, listModelWithStatus, { loading, successful, error }] = useModel(listModel, getList, [query], {
   suspense: {
     key: 'list',
   },
@@ -400,7 +400,7 @@ const getList = useCallback(() => {
   return get('/api/list', query).then((res) => res.data);
 }, [query]);
 
-const [listData, listModel, listModelWithStatus, { loading, successful }] = useIndividualModel({
+const [listData, listModel, listModelWithStatus, { loading, successful, error }] = useIndividualModel({
   page: 1,
   size: 20,
   list: [],
@@ -412,7 +412,7 @@ const [listData, listModel, listModelWithStatus, { loading, successful }] = useI
 const getList = () => {
   return get('/api/list', query).then((res) => res.data);
 };
-const [listData, listModel, listModelWithStatus, { loading, successful }] = useIndividualModel({
+const [listData, listModel, listModelWithStatus, { loading, successful, error }] = useIndividualModel({
   page: 1,
   size: 20,
   list: [],
@@ -444,10 +444,10 @@ useDerivedState(callback, deps) // 此时callback充当initState，并且承担�
 ```javascript
 const { count } = props;
 
-const [value, valueModel, valueModelWithStatus, { loading, successful }] = useDerivedState(count, (s: number) => count, [count]);
+const [value, valueModel, valueModelWithStatus, { loading, successful, error }] = useDerivedState(count, (s: number) => count, [count]);
 
 // 其实可以简写为
-const [value, valueModel, valueModelWithStatus, { loading, successful }] = useDerivedState((s: number) => count, [count]);
+const [value, valueModel, valueModelWithStatus, { loading, successful, error }] = useDerivedState((s: number) => count, [count]);
 
 ```
 
@@ -466,7 +466,7 @@ useDerivedModel(initState, source, callback)
 | callback  | 形如：(nextSource, prevSource, state: S) => S，根据前后两次记录的衍生来源，结合当前state，更新model |
 ```javascript
 
-const [value, valueModel, valueModelWithStatus, {  loading, successful }] = useDerivedModel(props.defaultValue ?? 0, props, (nextSource, prevSource, state) => {
+const [value, valueModel, valueModelWithStatus, {  loading, successful, error }] = useDerivedModel(props.defaultValue ?? 0, props, (nextSource, prevSource, state) => {
   if (nextSource !== prevSource) {
     if ('value' in nextSource) {
       return nextSource.value;
@@ -531,7 +531,7 @@ export interface SuspenseOptions {
 
 #### control
 
-> GluerReturn<{ loading: boolean; successful: boolean; key?: string; data?: any; }>
+> GluerReturn<{ loading: boolean; successful: boolean; error?: any; key?: string; data?: any; }>
 
 
 必须是由gluer定义的model。用来控制 useModel 和 useIndividualModel 返回的status，以及在首次组件渲染禁止调用service。

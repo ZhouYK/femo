@@ -96,6 +96,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
       syncUpdateStatus({
         loading: state.loading,
         successful: state.successful,
+        error: state.error,
       });
     });
   }
@@ -116,12 +117,14 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
         syncUpdateStatus({
           loading: false, // loading 和 successful 更多的是表示 异步的状态
           successful: false, // 如果是同步数据，则将 successful 置为 false；successful 更多的应该表示异步更新才有有意义
+          error: null,
         });
         return p;
       }
       syncUpdateStatus({
         loading: true,
         successful: false,
+        error: null,
       })
 
       // catch 和 then 的先后顺序会影响执行顺序
@@ -135,6 +138,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
           syncUpdateStatus({
             loading: false,
             successful: false,
+            error: err === promiseDeprecatedError ? null : err,
           });
         }
         return resolveCatchError;
@@ -143,6 +147,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
         syncUpdateStatus({
           successful: true,
           loading: false,
+          error: null,
         });
       })
       return p;

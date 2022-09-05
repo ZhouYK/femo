@@ -45,12 +45,13 @@ export type LocalService<S, D = any> = {
   (data?: D): Promise<S>;
 }
 
-export interface LoadingStatus {
+export interface LoadingStatus<T = any> {
   loading: boolean;
   successful: boolean; // 用于判断promise是否fullfilled了，true代表fullfilled，false则可能是reject、可能还未开始。
+  error?: T;
 }
 
-export interface ServiceControl<D = any> extends LoadingStatus {
+export interface ServiceControl<D = any, E = any> extends LoadingStatus<E> {
   data?: D;
   key?: string; // 用来表明control的用途，消费方可根据此标识来决定是否消费数据及状态
 }
