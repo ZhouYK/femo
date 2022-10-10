@@ -300,6 +300,7 @@ someModel.race(async (data, state) => { return await fetchRemote() })
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
 - <a href="#useLight">useLight</a>
+- <a href="#useLocalService">useLocalService</a>
 
 react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
 
@@ -308,26 +309,20 @@ react hook返回的model都是经过包装的，不要对其进行订阅，订�
 
 用react hook的方式订阅并获取数据节点的内容
 
+const [state, stateModelWithStatus, { service, loading, successful, error }] = useModel(model, service, deps, options);
 
-2.0.0版本之前：useModel(model, [deps], [options]);
+| 入参                                 | 含义                                              |
+|:-----------------------------------|:------------------------------------------------|
+| model(必传)                          | gluer定义的模型                                      |
+| service(可选)                        | 形如: (state: S, params?: any) => S \ Promise\<S> |
+| deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据                   |        
+| <a href="#options">options(可选)</a> | 一些配置                                            |
 
-
-|入参    | 含义                                                                         |
-| :----  |:---------------------------------------------------------------------------|
-| model(必传)  | gluer定义的模型                                                                 |
-| deps(可选)   | 依赖的service数组，形如[service]. service是更新model的函数，形如 (state: S) => S / Promise\<S> |
-| <a href="#options">options(可选)</a> | 一些配置                                                                       |
-
-
-2.0.0版本： useModel(model, service, deps, options);
-
-| 入参                                 | 含义                                |
-|:-----------------------------------|:----------------------------------|
-| model(必传)                          | gluer定义的模型                        |
-| service(可选)                        | 形如: (state: S) => S \ Promise\<S> |
-| deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据     |        
-| <a href="#options">options(可选)</a> | 一些配置 |
-
+| 返回                   | 含义                                                                                                                                                                                                                                                                                                                                                                                               |
+|:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| state                | 数据                                                                                                                                                                                                                                                                                                                                                                                               |
+| stateModelWithStatus | 数据模型，和入参的 model 一样。只不过 stateModelWithStatus 绑定了 loading、successful、error 等状态，即 stateModelWithStatus 进行异步更新时会改变这些状态                                                                                                                                                                                                                                                                               |
+| status               | 形如 { service, loading, successful, error }。loading、successful、error 都是异步更新的状态；这里的 service 和 入参 service 在主要功能上是等效的，返回的 service 底层也是调用了入参 service。<br/> 二者的区别在于：<br/> 1. 返回的 service 入参最多只有一个，并且和作为入参的 service 的第二个参数等同（等同的意思是：二者是同一个，并且该参数最终可使用的地方是在作为入参的 service 里面）；<br/> 2. 返回的 service 和 state 以及 loading、successful、error 等状态进行了绑定，返回的 service 进行调用调用会影响到这些状态（其中异步的更新会影响所有状态，同步更新只会影响 state） |
 
 ```typescript
 
@@ -344,43 +339,37 @@ const [query] = useState({
   pageSize: 20,
 });
 
-// 2.0.0版本之前
-// getList用于获取数据，getList的每一次变化都会触发去远端拉取数据
-// suspenseKey 有值了，会开启suspense模式，上层组件中需要有Suspense组件包裹
-const getList = useCallback(() => {
-  return get('/api/list', query).then((res) => res.data);
-}, [query]);
-
-const [listData, listModelWithStatus, { loading, successful, error }] = useModel(listModel, [getList], {
-  suspenseKey: 'list',
-});
-
-// 2.0.0版本
-// 不再依赖getList的变化去触发更新，而是直接依赖变化的条件
-const getList = () => {
-  return get('/api/list', query).then((res) => res.data);
+const getList = (state, params) => {
+  console.log('state', state);
+  console.log('params', params);
+  // 除了query作为入参来源，还可进行手动传入入参 params
+  // 整合 query 和 params 可以根据场景来，这里做了简单的覆盖合并
+  return get('/api/list', {
+    ...query,
+    ...params,
+  }).then((res) => res.data);
 };
 
-const [listData, listModelWithStatus, { loading, successful, error }] = useModel(listModel, getList, [query], {
+// 监听 query 变化更新 listData
+const [listData, listModelWithStatus, { service, loading, successful, error }] = useModel(listModel, getList, [query], {
   suspense: {
     key: 'list',
   },
 });
+
+// 需要手动触发更新 listData
+const onClick = () => {
+  service({
+    pageIndex: 2
+  })
+}
 
 ```
 
 ## <span id="useIndividualModel">useIndividualModel</span>
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
 
-2.0.0版本之前：useIndividualModel(initState, deps, options)
-
-|入参    | 含义                                                                            |
-| :----  |:------------------------------------------------------------------------------|
-| initState(必传)  | 可为函数                                                                          |
-| deps(可选)   | 依赖的service数组，形如[service]. service是更新model的函数，形如 (state: S) => S / Promise\<S> |
-| <a href="#options">options(可选)</a> | 一些配置                                                                          |
-
-2.0.0版本之后：useIndividualModel(initState, service, deps, options)
+ const [state, stateModel, stateModelWithStatus, { service, loading, successful, error }] = useIndividualModel(initState, service, deps, options)
 
 | 入参                                 | 含义                                             |
 |:-----------------------------------|:-----------------------------------------------|
@@ -389,30 +378,33 @@ const [listData, listModelWithStatus, { loading, successful, error }] = useModel
 | deps(可选)                           | 依赖数组，更新会驱动service更新model                       |
 | <a href="#options">options(可选)</a> | 一些配置                                           |
 
+
+| 返回                   | 含义                                                                                                                                                                                                                                                                                                                                                                                               |
+|:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| state                | 数据                                                                                                                                                                                                                                                                                                                                                                                               |
+| stateModel           | 数据模型                                                                                                                                                                                                                                                                                                                                                                                             
+| stateModelWithStatus | 数据模型，和返回的 stateModel 一样，都能改变 state 的值。只不过 stateModelWithStatus 绑定了 loading、successful、error 等状态，即 stateModelWithStatus 进行异步更新时会改变这些状态                                                                                                                                                                                                                                                            |
+| status               | 形如 { service, loading, successful, error }。loading、successful、error 都是异步更新的状态；这里的 service 和 入参 service 在主要功能上是等效的，返回的 service 底层也是调用了入参 service。<br/> 二者的区别在于：<br/> 1. 返回的 service 入参最多只有一个，并且和作为入参的 service 的第二个参数等同（等同的意思是：二者是同一个，并且该参数最终可使用的地方是在作为入参的 service 里面）；<br/> 2. 返回的 service 和 state 以及 loading、successful、error 等状态进行了绑定，返回的 service 进行调用调用会影响到这些状态（其中异步的更新会影响所有状态，同步更新只会影响 state） |
+
 ```typescript
 const [query] = useState({
   pageIndex: 1,
   pageSize: 20,
 });
 
-// 2.0.0版本之前
-const getList = useCallback(() => {
-  return get('/api/list', query).then((res) => res.data);
-}, [query]);
-
-const [listData, listModel, listModelWithStatus, { loading, successful, error }] = useIndividualModel({
-  page: 1,
-  size: 20,
-  list: [],
-}, [getList], {
-  suspenseKey: 'list',
-});
-
-// 2.0.0版本
-const getList = () => {
-  return get('/api/list', query).then((res) => res.data);
+const getList = (state, params) => {
+  console.log('state', state);
+  console.log('params', params);
+  // 除了query作为入参来源，还可进行手动传入入参 params
+  // 整合 query 和 params 可以根据场景来，这里做了简单的覆盖合并
+  return get('/api/list', {
+    ...query,
+    ...params,
+  }).then((res) => res.data);
 };
-const [listData, listModel, listModelWithStatus, { loading, successful, error }] = useIndividualModel({
+
+// 监听 query 变化更新 listData
+const [listData, listModel, listModelWithStatus, { service, loading, successful, error }] = useIndividualModel({
   page: 1,
   size: 20,
   list: [],
@@ -421,6 +413,13 @@ const [listData, listModel, listModelWithStatus, { loading, successful, error }]
     key: 'list',
   }
 });
+
+// 需要手动触发更新 listData
+const onClick = () => {
+  service({
+    pageIndex: 2
+  })
+}
 
 ```
 
@@ -486,11 +485,97 @@ useBatchDerivedModel(initState, {
 })
 
 ### <span id="useLight">useLight</span>
-> 首次挂载并不会执行 callback，首次之后如果 deps 变了就会执行
+> ⚠️ 首次挂载并不会执行 callback，首次之后如果 deps 变了就会执行
 
 useLight(callback, deps);
 
+```typescript
+// 如果传入的是空数组依赖，则 callback 永远不会执行
+useLight(() => {
+  console.log('1');
+}, []);
 
+const [count, updateCount] = useState(0);
+
+// 组件首次挂载时并不会执行 callback
+// 首次挂载后，后续 count 变化会引起 callback 执行
+useLight(() => {
+  console.log(count);
+}, [count]);
+
+
+```
+
+### <span id="useLocalService">useLocalService</span>
+> 对 useModel 和 useIndividualModel 返回的 service 进行本地封装（本地是指以组件为单位）
+
+进行本地封装的目的是：拥有本地的异步状态 loading、successful、error 等，数据和请求还是共享的。因为有时我们需要一个请求在多个地方发送，并且这多个地方数据也是共享同一份，但是这些地方又有自己的loading等状态。
+
+const [localService, { loading, successful, error }] = useLocalService(service, { bubble: false });
+
+| 入参          | 含义                                                                                                                                                                                                  |
+|:------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| service（必选） | 由 useModel 或者 useIndividualModel 返回的 service                                                                                                                                                        |
+| options（可选） | 形如 { bubble: boolean }，目前就一个属性 bubble。bubble 为 false(默认值) 表示只在当前组件产生异步状态的变化（loading、successful、error 等）；bubble 为 true，则表示除了当前组件的异步状态变化之外，传入的 service 所在的 useModel 或者 useIndividualModel 的异步状态也会同步变化 |
+
+| 返回           | 含义                                                      |
+|:-------------|:--------------------------------------------------------|
+| localService | 对入参 service 进行了一层包装。localService 的入参和返回都和传入的 service 一致 |
+| status       | 形如 { loading， successful, error }                       |
+
+```tsx
+const LoadMore = (props) => {
+  const { service } = props;
+  
+  const [localService, { loading }] = useLocalService(service);
+  
+  const onClick = () => {
+    localService();
+  }
+  return (
+    // 这里点击过后，当前组件的 loading 会变化，组件 List 的不会
+    // 列表数据的更新还是在组件 List 中 
+    <Button onClick={onClick} loading={loading}>点击加载更多</Button>
+  )
+}
+
+
+const List = () => {
+  const [query] = useState({
+    pageIndex: 1,
+    pageSize: 20,
+  });
+
+  const getList = (state, params) => {
+    console.log('state', state);
+    console.log('params', params);
+    // 除了query作为入参来源，还可进行手动传入入参 params
+    // 整合 query 和 params 可以根据场景来，这里做了简单的覆盖合并
+    return get('/api/list', {
+      ...query,
+      ...params,
+    }).then((res) => res.data);
+  };
+
+  // 监听 query 变化更新 listData
+  const [listData, listModel, listModelWithStatus, { service, loading, successful, error }] = useIndividualModel({
+    page: 1,
+    size: 20,
+    list: [],
+  }, getList, [query], {
+    suspense: {
+      key: 'list',
+    }
+  });
+  return (
+    <section>
+      <Table dataSource={listData} />
+      <LoadMore service={service} />
+    </section>
+  )
+}
+
+```
 
 ### <span href="#HOC">HOC</a>
 
@@ -498,7 +583,7 @@ useLight(callback, deps);
 
 ### <span id="Inject">Inject</a>
 
-Inject会向组件注入一些属性，目前(v1.10.1)会向组件注入：
+Inject会向组件注入一些属性：
 
 | 属性名 | 含义 |
 | :----  | :----  |

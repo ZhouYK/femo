@@ -14,8 +14,9 @@ const useDerivedState = (...args: any[]) => {
     initState = callback;
   }
   const [ ,model, clonedModel, status] = useIndividualModel(initState);
+  const { service, ...rest } = status;
   const [state] = useDerivedStateWithModel(model, callback, deps, false);
-  return [state, model, clonedModel, status];
+  return [state, model, clonedModel, rest];
 }
 
 export default useDerivedState;

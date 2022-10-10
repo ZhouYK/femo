@@ -36,19 +36,28 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
   const modelRef = useRef(model);
   modelRef.current = model;
 
+  // 只更新 state，不改变 loading、successful、error 等异步状态
   const localServicePure = useCallback<LocalServiceHasStatus<T>>((data) => {
-    const r = serviceRef.current?.(modelRef.current(), data);
+    const state = modelRef.current();
+    // 如果没有传入 service 说明不应该由途径去更新 model，这就应该直接返回。为了和 race 的返回保持一致，所以这里就返回了一个 promise。并且由于没有走
+    // model 的更新，所以不用担心异步竞争的问题
+    if (!serviceRef.current) return Promise.resolve(state);
+    const r = serviceRef.current?.(state, data);
     return runtimePromiseDeprecatedVarAssignment(() => modelRef.current.race(r), promiseDeprecatedFromLocalServicePure)
   }, []);
 
-
+  // 更新 state，且异步更新会改变 loading、successful、error 等异步状态
   const localServiceHasStatus = useCallback<LocalServiceHasStatus<T>>((data) => {
-    const r = serviceRef.current?.(clonedModelRef.current(), data);
+    const state = clonedModelRef.current();
+    // 同上
+    if (!serviceRef.current) return Promise.resolve(state);
+    const r = serviceRef.current?.(state, data);
     // r 为非异步数据，不会引起 loading
     return runtimePromiseDeprecatedVarAssignment(() => (clonedModelRef.current.__race__ as RaceFn<T>)(r), promiseDeprecatedFromLocalService);
   }, []);
 
   // 赋值
+  // 这个会在 useLocalService 里面使用
   if (!localServiceHasStatus[pureServiceKey]) {
     localServiceHasStatus[pureServiceKey] = localServicePure;
   }
