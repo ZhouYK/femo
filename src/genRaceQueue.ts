@@ -35,7 +35,7 @@ const genRaceQueue = (deprecatedError?: ErrorFlag): RaceQueueObj => {
 
     clear: (customerErrorFlag?: ErrorFlag) => {
       const flag = customerErrorFlag || errorFlag;
-      if (raceQueue && raceQueue[0]) {
+      if (raceQueue && !!raceQueue[0]) {
         raceQueue[0][flag] = true;
       }
       raceQueue?.splice(0);
@@ -43,7 +43,7 @@ const genRaceQueue = (deprecatedError?: ErrorFlag): RaceQueueObj => {
 
     destroy: (customerErrorFlag?: ErrorFlag) => {
       const flag = customerErrorFlag || errorFlag;
-      if (raceQueue && raceQueue[0]) {
+      if (raceQueue && !!raceQueue[0]) {
         raceQueue[0][flag] = true;
       }
       raceQueue?.splice(0);
