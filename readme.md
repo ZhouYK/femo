@@ -366,8 +366,9 @@ const onClick = () => {
 
 ```
 
-## <span id="useIndividualModel">useIndividualModel</span>
+## <span id="useIndividualModel">useIndividualModel</span>，短名称: useIM
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
+
 
  const [state, stateModel, stateModelWithStatus, { service, loading, successful, error }] = useIndividualModel(initState, service, deps, options)
 
