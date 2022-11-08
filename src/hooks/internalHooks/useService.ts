@@ -160,6 +160,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
 
   useEffect(() => {
     return () => {
+      cache.delete(susKey as string);
       cacheDeps.delete(susKey as string);
     };
   }, []);
