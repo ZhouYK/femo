@@ -35,7 +35,11 @@ export type GluerReturnFn<S> = {
   <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedDeps: GluerReturn<any>[][]): CR extends Promise<any> ? Promise<S> : S;
 }
 
-export type Service<T, D = any> = (state: T, data?: D) => Promise<T> | T;
+// index含义：index 为 undefined 表示不是依赖变化引起的 service 执行；
+// index 为空数组表示是 hook 第一次执行 service;
+// index 里面有数字（这里的数字是对应的当前的deps数组索引），表示是依赖变化引起 service 执行；
+// 数字对应的就是变化了的元素的位置（不定长的 deps 先不考虑）
+export type Service<T, D = any> = (state: T, data?: D, index?: number[]) => Promise<T> | T;
 
 export type Control<S = any> = GluerReturn<ServiceControl<S>>
 // Service 与 LocalService 返回保持一致

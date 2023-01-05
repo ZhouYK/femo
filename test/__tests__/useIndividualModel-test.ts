@@ -1,6 +1,6 @@
 import useIndividualModel from "../../src/hooks/useIndividualModel";
 import {act, renderHook} from "@testing-library/react-hooks";
-import {useState} from "react";
+import { useCallback, useRef, useState } from "react";
 
 
 describe('useIndividualModel test', () => {
@@ -76,12 +76,14 @@ describe('useIndividualModel test', () => {
 
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const service = (s: number) => {
-        if (count < 6) {
-          return Promise.resolve(count + 1);
+      const countRef = useRef(count);
+      countRef.current = count;
+      const service = useCallback(jest.fn((s: number,_, _index?: number[]) => {
+        if (countRef.current < 6) {
+          return Promise.resolve(countRef.current + 1);
         }
         return s;
-      };
+      }), []);
       const [state, model, clonedModel, { loading, successful }] = useIndividualModel(count, service, [count]);
       return {
         state,
@@ -90,12 +92,15 @@ describe('useIndividualModel test', () => {
         loading,
         updateCount,
         successful,
+        service,
       }
     });
     // 第一次渲染的时候就会发起异步请求
     expect(result.current.state).toBe(0);
     expect(result.current.loading).toBe(true);
     expect(result.current.successful).toBe(false);
+    expect(result.current.service.mock.calls.length).toBe(1);
+    expect(result.current.service.mock.calls[0][2]).toEqual([]);
     await waitForNextUpdate();
     expect(result.current.state).toBe(1);
     expect(result.current.loading).toBe(false);
@@ -109,6 +114,8 @@ describe('useIndividualModel test', () => {
     expect(result.current.state).toBe(1);
     expect(result.current.loading).toBe(true);
     expect(result.current.successful).toBe(false);
+    expect(result.current.service.mock.calls.length).toBe(2);
+    expect(result.current.service.mock.calls[1][2]).toEqual([0]);
     await waitForNextUpdate();
     expect(result.current.state).toBe(6);
     expect(result.current.loading).toBe(false);
@@ -122,13 +129,16 @@ describe('useIndividualModel test', () => {
     expect(result.current.state).toBe(6);
     expect(result.current.loading).toBe(false);
     expect(result.current.successful).toBe(false);
-
+    expect(result.current.service.mock.calls.length).toBe(3);
+    expect(result.current.service.mock.calls[2][2]).toEqual([0]);
     act(() => {
       // 执行 异步更新
       result.current.updateCount(1);
     });
     expect(result.current.loading).toBe(true);
     expect(result.current.successful).toBe(false);
+    expect(result.current.service.mock.calls.length).toBe(4);
+    expect(result.current.service.mock.calls[3][2]).toEqual([0]);
     act(() => {
       // 执行 同步更新
       // 该同步更新会让 上面那个 异步更新 无效
@@ -137,6 +147,8 @@ describe('useIndividualModel test', () => {
     expect(result.current.loading).toBe(false);
     expect(result.current.successful).toBe(false);
     expect(result.current.state).toBe(6);
+    expect(result.current.service.mock.calls.length).toBe(5);
+    expect(result.current.service.mock.calls[4][2]).toEqual([0]);
     act(() => {
       // 卸载时，会解绑model和state
       unmount();

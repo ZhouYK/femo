@@ -311,12 +311,12 @@ react hook返回的model都是经过包装的，不要对其进行订阅，订�
 
 const [state, stateModelWithStatus, { service, loading, successful, error }] = useModel(model, service, deps, options);
 
-| 入参                                 | 含义                                              |
-|:-----------------------------------|:------------------------------------------------|
-| model(必传)                          | gluer定义的模型                                      |
-| service(可选)                        | 形如: (state: S, params?: any) => S \ Promise\<S> |
-| deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据                   |        
-| <a href="#options">options(可选)</a> | 一些配置                                            |
+| 入参                                 | 含义                                                                |
+|:-----------------------------------|:------------------------------------------------------------------|
+| model(必传)                          | gluer定义的模型                                                        |
+| service(可选)                        | 形如: (state: S, params?: any, index?: number[]) => S \ Promise\<S> |
+| deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据                                     |        
+| <a href="#options">options(可选)</a> | 一些配置                                                              |
 
 | 返回                   | 含义                                                                                                                                                                                                                                                                                                                                                                                               |
 |:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -339,9 +339,10 @@ const [query] = useState({
   pageSize: 20,
 });
 
-const getList = (state, params) => {
+const getList = (state, params, index) => {
   console.log('state', state);
   console.log('params', params);
+  console.log('index', index);
   // 除了query作为入参来源，还可进行手动传入入参 params
   // 整合 query 和 params 可以根据场景来，这里做了简单的覆盖合并
   return get('/api/list', {
@@ -372,12 +373,12 @@ const onClick = () => {
 
  const [state, stateModel, stateModelWithStatus, { service, loading, successful, error }] = useIndividualModel(initState, service, deps, options)
 
-| 入参                                 | 含义                                             |
-|:-----------------------------------|:-----------------------------------------------|
-| initState(必传)                      | 可为函数， S / () => S                              |
-| service(可选)                        | 用于更新model的函数，形如 (state: S) => S / Promise\<S>; |
-| deps(可选)                           | 依赖数组，更新会驱动service更新model                       |
-| <a href="#options">options(可选)</a> | 一些配置                                           |
+| 入参                                 | 含义                                                                             |
+|:-----------------------------------|:-------------------------------------------------------------------------------|
+| initState(必传)                      | 可为函数， S / () => S                                                              |
+| service(可选)                        | 用于更新model的函数，形如 (state: S, params?: any, index?: number[]) => S / Promise\<S>; |
+| deps(可选)                           | 依赖数组，更新会驱动service更新model                                                       |
+| <a href="#options">options(可选)</a> | 一些配置                                                                           |
 
 
 | 返回                   | 含义                                                                                                                                                                                                                                                                                                                                                                                               |
@@ -393,9 +394,10 @@ const [query] = useState({
   pageSize: 20,
 });
 
-const getList = (state, params) => {
+const getList = (state, params, index) => {
   console.log('state', state);
   console.log('params', params);
+  console.log('index', index);
   // 除了query作为入参来源，还可进行手动传入入参 params
   // 整合 query 和 params 可以根据场景来，这里做了简单的覆盖合并
   return get('/api/list', {
@@ -547,9 +549,10 @@ const List = () => {
     pageSize: 20,
   });
 
-  const getList = (state, params) => {
+  const getList = (state, params, index) => {
     console.log('state', state);
     console.log('params', params);
+    console.log('index', index);
     // 除了query作为入参来源，还可进行手动传入入参 params
     // 整合 query 和 params 可以根据场景来，这里做了简单的覆盖合并
     return get('/api/list', {

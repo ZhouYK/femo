@@ -25,6 +25,24 @@ const depsDifferent = (source: any[] = [], target: any[] = []) => {
   return false;
 }
 
+const getDifferentIndex = (source: any[] = [], target: any[] = []) => {
+  const sl = source.length;
+  const tl = target.length;
+  const max = Math.max(sl, tl);
+  const min = Math.min(sl, tl);
+  const res = [];
+  let i = 0
+  for (; i < min; i += 1) {
+    if (!Object.is(source[i], target[i])) {
+      res.push(i);
+    }
+  }
+  for (; i < max; i += 1) {
+    res.push(i);
+  }
+  return res;
+}
+
 const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions): [LocalService<T, D>] => {
   const { suspenseKey, suspense, control } = options || {};
   const susKey = suspenseKey || suspense?.key;
@@ -94,7 +112,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
   // control：组件第一次挂载时，service的调用会被跳过
   if (firstRenderFlagRef.current && typeof service === 'function' && !isModel(control)) {
     firstRenderFlagRef.current = false;
-    const result = service(clonedModel());
+    const result = service(clonedModel(), undefined, []);
     if (isAsync(result)) {
       if (susKey) {
         const p: CustomerPromise = clonedModel.race(result).then((data) => {
@@ -128,7 +146,7 @@ const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, se
     if (susKey && susPersist && cache.has(susKey) && !depsIsDifferent) {
       cache.delete(susKey);
     } else if (typeof service === 'function') {
-        const result = service(clonedModel());
+        const result = service(clonedModel(), undefined, getDifferentIndex(depsRef.current, deps));
         if (isAsync(result)) {
           const p = clonedModel.race(result);
           if (susPersist && susKey) {
