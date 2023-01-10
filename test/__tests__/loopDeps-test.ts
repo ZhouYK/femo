@@ -130,38 +130,38 @@ describe('loop dependencies test', () => {
 
     b.onChange(() => {
       callback_mock_2();
-      c((_d, s) => {
+      c(( s) => {
         return s + 1;
       });
     });
 
     c.onChange(() => {
       callback_mock_2();
-      d((_d, s) => {
+      d((s) => {
         return s + 1;
       });
     });
 
     d.onChange(() => {
       callback_mock_2();
-      e((_d, s) => {
+      e((s) => {
         return s + 1;
       });
-      f((_d, s) => {
+      f((s) => {
         return s + 1;
       })
     });
 
     e.onChange(() => {
       callback_mock_2();
-      c((_d, s) => {
+      c(( s) => {
         return s + 1;
       });
     });
 
     f.onChange(() => {
       callback_mock_2();
-      d((_d, s) => {
+      d(( s) => {
         return s + 1;
       });
     });

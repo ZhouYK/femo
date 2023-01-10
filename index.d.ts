@@ -25,7 +25,7 @@ export interface ManualException {
   tryThrow: () => void;
 }
 
-export type HandleFunc<S, D, CR> = (data: D, state: S) => CR;
+export type HandleFunc<S, D, CR> = (state: S, data: D) => CR;
 
 export type GluerReturnFn<S> = {
   (): S;

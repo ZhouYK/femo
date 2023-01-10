@@ -1322,7 +1322,7 @@ describe('useModel test', () => {
     const model_2 = gluer(0);
     let p1: RacePromise | undefined;
     const onUpdate_1 = jest.fn(() => {
-      p1 = model_2.race((_, s) => {
+      p1 = model_2.race((s) => {
         return new Promise((resolve) => {
           setTimeout(() => {
             resolve(s + 1)
@@ -1337,7 +1337,7 @@ describe('useModel test', () => {
 
     let p0: RacePromise | undefined;
     const onUpdate_0 = jest.fn(() => {
-      p0 = model_1.race((_, s) => {
+      p0 = model_1.race((s) => {
         return new Promise((resolve) => {
           setTimeout(() => {
             resolve(s + 1);
@@ -1378,7 +1378,7 @@ describe('useModel test', () => {
 
     // 看是否能取消掉 onUpdate_1 中生成的 race promise
     // 预期是无法取消的
-    model.race((_, s) => {
+    model.race((s) => {
       return s;
     });
     // 直接调用 model.race 无法触发通过 useModel 注册的 onUpdate
@@ -1421,7 +1421,7 @@ describe('useModel test', () => {
       expect(onUpdate_1.mock.calls.length).toBe(2);
       // 此刻 model_2.race 已经调用，这时调用 model.race 看是否能取消 model_2.race 产生的 race promise
       // 预期是无法取消的
-      await model.race((_, s) => {
+      await model.race((s) => {
         return Promise.resolve(s);
       });
       // 直接调用 model.race 无法触发通过 useModel 注册的 onUpdate

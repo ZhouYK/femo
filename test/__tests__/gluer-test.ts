@@ -20,10 +20,10 @@ describe('gluer exception test', () => {
 
 describe('gluer update data test', () => {
   const name = gluer('小光');
-  const age = gluer((data: number, _state: number) => {
+  const age = gluer((_state: number, data: number) => {
     return data ** 2;
   });
-  const tall = gluer((data, state) => {
+  const tall = gluer((state, data) => {
     return data + state;
   }, 162);
 
@@ -31,14 +31,14 @@ describe('gluer update data test', () => {
     expect(name()).toBe('小光');
     name('小刚');
     expect(name()).toBe('小刚');
-    name((_data, state) => {
+    name((state) => {
       if (state === '小刚') {
         return '小刚很棒';
       }
       return state;
     });
     expect(name()).toBe('小刚很棒');
-    name('小李', (data, state) => {
+    name('小李', (state, data) => {
       if (data === '小李') {
         return `${data}也很棒`;
       }
@@ -51,13 +51,13 @@ describe('gluer update data test', () => {
     age(2);
     expect(age()).toBe(4);
 
-    age(3, (data, state) => {
+    age(3, (state, data) => {
       return data + state;
     });
 
     expect(age()).toBe(7);
 
-    age((_data: any, state: number) => {
+    age((state: number, _data: any) => {
       if (state === 7) {
         return 7 - 2;
       }
@@ -71,7 +71,7 @@ describe('gluer update data test', () => {
     tall(2);
     expect(tall()).toBe(164);
 
-    tall((_data, state) => {
+    tall((state, _data) => {
       if (state === 164) {
         return state * 6;
       }
@@ -80,7 +80,7 @@ describe('gluer update data test', () => {
 
     expect(tall()).toBe(984);
 
-    tall(10, (data, state) => {
+    tall(10, (state, data) => {
       let temp = data;
       if (data >= 10) {
         temp = data - 2;
@@ -111,7 +111,7 @@ describe('gluer update data test', () => {
     await agePromise;
     expect(age()).toBe(100);
 
-    tall(4, (data) => {
+    tall(4, (_state, data) => {
       return data;
     });
     const tallPromise = tall(async () => {
@@ -403,7 +403,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_1.mock.calls.length).toBe(0);
     expect(callback_2.mock.calls.length).toBe(0);
     expect(callback_3.mock.calls.length).toBe(0);
-    await model_3.race((_d, s) => {
+    await model_3.race(( s, _d,) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       });
@@ -426,7 +426,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_3.mock.calls.length).toBe(1);
     expect(callback_1.mock.calls.length).toBe(1);
 
-    await model_3.race((_d, s) => {
+    await model_3.race(( s, _d) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       })
@@ -437,7 +437,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(model_3()).toBe(2);
     expect(model_2()).toBe(1);
     expect(model_1()).toBe(1);
-    await model_3.race((_d, s) => {
+    await model_3.race(( s, _d) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       })
@@ -462,7 +462,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_3.mock.calls.length).toBe(3);
     expect(model_1()).toBe(3);
 
-    await model_3.race((_d, s) => {
+    await model_3.race(( s, _d) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       });
@@ -481,7 +481,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(model_2()).toBe(4);
     expect(model_1()).toBe(3);
 
-    await model_3.race((_d, s) => {
+    await model_3.race(( s, _d) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       })
@@ -547,7 +547,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_2.mock.calls.length).toBe(0);
     expect(callback_1.mock.calls.length).toBe(0);
 
-    await model_3.race((_d, s) => {
+    await model_3.race((s) => {
       return new Promise((resolve) => {
         resolve(s);
       });
@@ -576,7 +576,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_2.mock.calls.length).toBe(1);
     expect(callback_3.mock.calls.length).toBe(1);
 
-    await model_3.race((_, s) => {
+    await model_3.race(( s, _) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       })
@@ -589,7 +589,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_2.mock.calls.length).toBe(1);
     expect(callback_1.mock.calls.length).toBe(1);
 
-    await model_3.race((_, s) => {
+    await model_3.race(( s, _) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       });
@@ -622,7 +622,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_2.mock.calls.length).toBe(2);
     expect(callback_3.mock.calls.length).toBe(3);
 
-    await model_3.race((_, s) => {
+    await model_3.race(( s, _) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       })
@@ -644,7 +644,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_2.mock.calls.length).toBe(3);
     expect(callback_1.mock.calls.length).toBe(2);
 
-    await model_3.race((_, s) => {
+    await model_3.race(( s, _) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       })
@@ -676,7 +676,7 @@ describe('model onChange/onUpdate race condition test', () => {
     expect(callback_2.mock.calls.length).toBe(4);
     expect(callback_3.mock.calls.length).toBe(5);
 
-    await model_3.race((_, s) => {
+    await model_3.race((s) => {
       return new Promise((resolve) => {
         resolve(s + 1);
       })

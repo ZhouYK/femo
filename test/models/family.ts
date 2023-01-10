@@ -1,11 +1,11 @@
 import { gluer } from "../../src";
 
-export const name = gluer((data: string) => `蓝色的${data}`, '张三');
+export const name = gluer((_state, data: string) => `蓝色的${data}`, '张三');
 
-export const age = gluer((data: number) => 10 * data, 10);
+export const age = gluer((_state, data: number) => 10 * data, 10);
 
 
-export const papa = gluer((data: any, state: any) => {
+export const papa = gluer((state: any, data: any) => {
   return {
     ...state,
     ...data,
@@ -16,7 +16,7 @@ export const papa = gluer((data: any, state: any) => {
   job: '法官'
 });
 
-export const mama = gluer((data: any, state: any) => {
+export const mama = gluer((state: any, data: any) => {
 
   return {
     ...state,
@@ -28,7 +28,7 @@ export const mama = gluer((data: any, state: any) => {
   job: '律师'
 });
 
-export const pets = gluer((data: any, state: any) => {
+export const pets = gluer((state: any, data: any) => {
   return {
     ...state,
     ...data,

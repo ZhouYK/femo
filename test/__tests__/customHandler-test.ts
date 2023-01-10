@@ -2,7 +2,7 @@ import { gluer } from '../../src';
 
 describe('customHandler test', () => {
   test('customHandler should be called', () => {
-    const mockFn = jest.fn((data, state) => {
+    const mockFn = jest.fn((state, data) => {
       return { ...state, ...data };
     });
     const mobilePhone = gluer(mockFn, {
@@ -18,7 +18,7 @@ describe('customHandler test', () => {
     });
     expect(mockFn.mock.calls.length).toBe(1);
 
-    const customMockFn = jest.fn((data, state) => {
+    const customMockFn = jest.fn((state, data) => {
       return { ...state, ...data,  flag: 'custom' }
     });
 
@@ -37,18 +37,18 @@ describe('customHandler test', () => {
     expect(mockFn.mock.calls.length).toBe(1);
     expect(customMockFn.mock.calls.length).toBe(1);
 
-    expect(customMockFn.mock.calls[0][0]).toEqual(data);
-    expect(customMockFn.mock.calls[0][1]).toEqual({
+    expect(customMockFn.mock.calls[0][0]).toEqual({
       name: '小文',
       number: '10998762345'
     });
+    expect(customMockFn.mock.calls[0][1]).toEqual(data);
   });
   test('async customHandler test with async', async () => {
     const name = gluer('小明');
-    const age = gluer((data) => {
+    const age = gluer((_state, data) => {
       return data + 2;
     }, 10);
-    const weight = gluer(async (data) => {
+    const weight = gluer(async (_state, data) => {
       return data * 10;
     }, 100);
 
@@ -58,7 +58,7 @@ describe('customHandler test', () => {
     expect(final).toEqual('哈哈哈');
     expect(name()).toBe('哈哈哈');
 
-    const newAge = await age(5, async (data) => {
+    const newAge = await age(5, async (_state, data) => {
       return data + 1;
     });
     expect(newAge).toEqual(6);
@@ -72,10 +72,10 @@ describe('customHandler test', () => {
 
   test('async customerHandler test with promise', () => {
     const name = gluer('小明');
-    const age = gluer((data) => {
+    const age = gluer((_state, data) => {
       return data + 2;
     }, 10);
-    const weight = gluer(async (data) => {
+    const weight = gluer(async (_state, data) => {
       return data * 10;
     }, 100);
 
@@ -91,7 +91,7 @@ describe('customHandler test', () => {
       return Promise.resolve(data);
     }).catch((err: any) => Promise.reject(err))
 
-    const rejectPromise = name('promise reject', async (_d, s) => {
+    const rejectPromise = name('promise reject', async (s, _d) => {
       try {
         await Promise.reject('promise reject');
         return 'promise reject';
@@ -102,7 +102,7 @@ describe('customHandler test', () => {
 
     expect(rejectPromise).toEqual(Promise.resolve('promise reject'));
 
-    const newAge = age(5, async (data) => {
+    const newAge = age(5, async (_state, data) => {
       return data + 1;
     });
     expect(newAge).toEqual(Promise.resolve(6));
