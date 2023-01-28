@@ -132,14 +132,14 @@ const name = gluer('初始名字');
 
 同步函数
 ```js
-  name((data, state) => {
+  name((state, data) => {
     return '李四';
   });
 ```
 
 异步函数
 ```js
-  name(async (data, state) => {
+  name(async (state, data) => {
     return '王二';
   });
 ```
@@ -181,11 +181,11 @@ const raceQueue = genRaceQueue();
 // 然后将会出现竞争的异步promise放到同一个异步队列中
 
 // p1请求
-raceQueue.push(someModel(params, async (data, state) => {
+raceQueue.push(someModel(params, async (state, data) => {
                                       return await fetchRemote(data);
                                     }));
 // p2请求
-raceQueue.push(someModel(async (data, state) => { return await fetchRemote() }));
+raceQueue.push(someModel(async (state, data) => { return await fetchRemote() }));
 
 ```
 <strong>数据节点自身也提供了处理竞争的方法<a href="#race">race</a>。很多时候可以通过<a href="#race">race</a>方法来简化上面<a href="#genRaceQueue">genRaceQueue</a>的使用。</strong>
@@ -242,11 +242,11 @@ watch处理数据依赖更新是单向的。通常情况下适合处理结构上
 const a = gluer('');
 const b = gluer('');
 
-a.watch([b], (data, state) => {
+a.watch([b], (list, state) => {
   // todo
 });
 
-b.watch([a], (data, state) => {
+b.watch([a], (list, state) => {
   // todo
 })
 ```
@@ -283,11 +283,11 @@ unsubscribe();
 简化上面<a href="#genRaceQueue">genRaceQueue</a>的例子
 ```js
 // p1请求
-someModel.race(params, async (data, state) => {
+someModel.race(params, async (state, data) => {
   return await fetchRemote(data);
 });
 // p2请求
-someModel.race(async (data, state) => { return await fetchRemote() })
+someModel.race(async (state, data) => { return await fetchRemote() })
 ```
 
 ## 搭配React
