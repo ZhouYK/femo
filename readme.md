@@ -39,7 +39,7 @@ export default student;
 ```jsx
 // Student组件
 import { useModel } from 'femo';
-import model from './model.js';
+import model from './model';
 
 const Student = (props) => {
   const [student] = useModel(model);
@@ -58,10 +58,10 @@ export default Student;
 
 ```jsx
 // Student组件
-import { useIndividualModel } from 'femo';
+import { useModel } from 'femo';
 
 const Student = (props) => {
-  const [student, model] = useIndividualModel({
+  const [student, model] = useModel({
     name: '',
     age: 0,
   });
