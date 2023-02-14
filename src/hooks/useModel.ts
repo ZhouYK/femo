@@ -1,7 +1,9 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import { GluerReturn, Service, ServiceOptions, ServiceStatus, UnsubCallback } from '../../index';
+import gluer, { defaultReducer } from '../gluer';
 import runtimeVar from '../runtimeVar';
 import subscribe from '../subscribe';
+import { isModel } from '../tools';
 import useCloneModel from './internalHooks/useCloneModel';
 import useService from './internalHooks/useService';
 import {defaultServiceOptions} from '../constants';
@@ -20,11 +22,22 @@ let idAtom = 0;
  * control: GluerReturn<ServiceControl>;
  * } 每次函数运行都是取的最新的options的值
  */
-const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, D> ,deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T, D>] => {
+const useModel = <S = any, D = any>(initState: GluerReturn<S> | S | (() => S), service?: Service<S, D> ,deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>] => {
   const finalOptions = {
     ...defaultServiceOptions,
     ...options,
   };
+  let [model] = useState<GluerReturn<S>>(() => {
+    if (isModel(initState)) return initState as GluerReturn<S>;
+    if (typeof initState === 'function') {
+      return gluer(defaultReducer ,(initState as () => S)());
+    }
+    return gluer(initState);
+  });
+  // 需要将外部传入的模型更新到model
+  if (isModel(initState) && !Object.is(model, initState)) {
+    model = initState as GluerReturn<S>;
+  }
 
   const [idState] = useState(() => {
     const b = idAtom;
@@ -37,8 +50,8 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
   const optionsRef = useRef(finalOptions);
   optionsRef.current = finalOptions;
 
-  const [, updateState] = useState(0);
-  const subscribeCallback = useCallback((_modelData: T) => {
+  const [, updateState] = useState<any>(null);
+  const subscribeCallback = useCallback((_modelData: S) => {
     // 这里的回调并不会每次变更都执行，因为做了优化
     // 每次异步更新不同的数据成功时，都不会执行这里
     // 因为每次异步更新成功后，都有Loading状态更新来rerender组件
@@ -46,7 +59,7 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
     // 所以options中的onChange不应该放在这里
 
     // 修复bug：不应该用modelData来触发组件更新，因为有可能走到这个回调里面的modelData前后两次一样，因为中间model.silent更新了数据。
-    updateState((count) => count + 1);
+    updateState({});
   }, []);
 
   const modelRef = useRef<typeof model>();
@@ -59,7 +72,7 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
   const cachedOnChangeState = useRef(sta);
   const cachedOnUpdateState = useRef(sta);
 
-  const onChangeCallback = useCallback((state: T) => {
+  const onChangeCallback = useCallback((state: S) => {
     if (optionsRef.current.onChange) {
       const { current } = cachedOnChangeState;
       cachedOnChangeState.current = state;
@@ -67,7 +80,7 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
     }
   }, []);
 
-  const onUpdateCallback = useCallback((state: T) => {
+  const onUpdateCallback = useCallback((state: S) => {
     if (optionsRef.current.onUpdate) {
       const { current } = cachedOnUpdateState;
       cachedOnUpdateState.current = state;
@@ -111,7 +124,7 @@ const useModel = <T = any, D = any>(model: GluerReturn<T>, service?: Service<T, 
     return () => { unsubRef.current?.(); offChangeRef.current?.(); offUpdateRef.current?.(); }
   }, []);
 
-  return [model(), clonedModel, {
+  return [model(), model, clonedModel, {
     ...status,
     service: localService,
   }];

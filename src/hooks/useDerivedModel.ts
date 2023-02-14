@@ -1,4 +1,4 @@
-import useIndividualModel from './useIndividualModel';
+import useModel from './useModel';
 import useDerivedStateToModel from './rareHooks/useDerivedStateToModel';
 import { GluerReturn, LoadingStatus } from '../../index';
 
@@ -9,7 +9,7 @@ import { GluerReturn, LoadingStatus } from '../../index';
  * @param callback
  */
 const useDerivedModel = <S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S ): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus] => {
-  const [ ,model, clonedModel, status] = useIndividualModel(initState);
+  const [ ,model, clonedModel, status] = useModel(initState);
   const [state] = useDerivedStateToModel(source, model, callback);
   const { service, ...rest } = status;
 

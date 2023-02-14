@@ -157,8 +157,11 @@ export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) =
 export function genRaceQueue(): RaceQueueObj;
 
 export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T, D>];
+
+/**
+ * @deprecated 请使用 useModel 代替
+ */
 export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
-export function useIM<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
 export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
 

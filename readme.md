@@ -295,7 +295,7 @@ someModel.race(async (state, data) => { return await fetchRemote() })
 ### <span href="#react-hook">react hook</a>
 
 - <a href="#useModel">useModel</a>
-- <a href="#useIndividualModel">useIndividualModel</a>
+- <a href="#useIndividualModel">(废弃)~~useIndividualModel~~</a> 请使用 useModel 代替
 - <a href="#useDerivedState">useDerivedState</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
@@ -309,18 +309,19 @@ react hook返回的model都是经过包装的，不要对其进行订阅，订�
 
 用react hook的方式订阅并获取数据节点的内容
 
-const [state, stateModelWithStatus, { service, loading, successful, error }] = useModel(model, service, deps, options);
+const [state, stateModel, stateModelWithStatus, { service, loading, successful, error }] = useModel(state, service, deps, options);
 
-| 入参                                 | 含义                                                                |
-|:-----------------------------------|:------------------------------------------------------------------|
-| model(必传)                          | gluer定义的模型                                                        |
-| service(可选)                        | 形如: (state: S, params?: any, index?: number[]) => S \ Promise\<S> |
-| deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据                                     |        
-| <a href="#options">options(可选)</a> | 一些配置                                                              |
+| 入参                                 | 含义                                                                               |
+|:-----------------------------------|:---------------------------------------------------------------------------------|
+| state(必传)                          | gluer定义的模型 或者 S / () => S                                                        |
+| service(可选)                        | 形如: (state: S, params?: any, index?: number[]) => S \ Promise\<S>                |
+| deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据                                                    |        
+| <a href="#options">options(可选)</a> | 一些配置                                                                             |
 
 | 返回                   | 含义                                                                                                                                                                                                                                                                                                                                                                                               |
 |:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | state                | 数据                                                                                                                                                                                                                                                                                                                                                                                               |
+| stateModel           | 数据模型
 | stateModelWithStatus | 数据模型，和入参的 model 一样。只不过 stateModelWithStatus 绑定了 loading、successful、error 等状态，即 stateModelWithStatus 进行异步更新时会改变这些状态                                                                                                                                                                                                                                                                               |
 | status               | 形如 { service, loading, successful, error }。loading、successful、error 都是异步更新的状态；这里的 service 和 入参 service 在主要功能上是等效的，返回的 service 底层也是调用了入参 service。<br/> 二者的区别在于：<br/> 1. 返回的 service 入参最多只有一个，并且和作为入参的 service 的第二个参数等同（等同的意思是：二者是同一个，并且该参数最终可使用的地方是在作为入参的 service 里面）；<br/> 2. 返回的 service 和 state 以及 loading、successful、error 等状态进行了绑定，返回的 service 进行调用调用会影响到这些状态（其中异步的更新会影响所有状态，同步更新只会影响 state） |
 
@@ -352,7 +353,7 @@ const getList = (state, params, index) => {
 };
 
 // 监听 query 变化更新 listData
-const [listData, listModelWithStatus, { service, loading, successful, error }] = useModel(listModel, getList, [query], {
+const [listData, _listModel, listModelWithStatus, { service, loading, successful, error }] = useModel(listModel, getList, [query], {
   suspense: {
     key: 'list',
   },
@@ -367,7 +368,7 @@ const onClick = () => {
 
 ```
 
-## <span id="useIndividualModel">useIndividualModel</span>，短名称: useIM
+## (废弃)~~<span id="useIndividualModel">useIndividualModel</span>~~ (请使用 useModel 代替)
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
 
 

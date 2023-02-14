@@ -1,4 +1,4 @@
-import useIndividualModel from './useIndividualModel';
+import useModel from './useModel';
 import useDerivedStateWithModel from './rareHooks/useDerivedStateWithModel';
 
 /**
@@ -13,7 +13,7 @@ const useDerivedState = (...args: any[]) => {
     // useIndividualModel能区分对待函数或者直接量来进行初始化
     initState = callback;
   }
-  const [ ,model, clonedModel, status] = useIndividualModel(initState);
+  const [ ,model, clonedModel, status] = useModel(initState);
   const { service, ...rest } = status;
   const [state] = useDerivedStateWithModel(model, callback, deps, false);
   return [state, model, clonedModel, rest];
