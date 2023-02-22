@@ -156,7 +156,7 @@ export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialSta
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): UnsubCallback;
 export function genRaceQueue(): RaceQueueObj;
 
-export function useModel<T = any, D = any>(model: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions<T>): [T, GluerReturn<T>, ServiceStatus<T, D>];
+export function useModel<S = any, D = any>(initState: GluerReturn<S> | S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, ServiceStatus<S, D>];
 
 /**
  * @deprecated 请使用 useModel 代替
