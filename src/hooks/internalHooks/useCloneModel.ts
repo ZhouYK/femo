@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Callback,
-  GluerReturn,
+  FemoModel,
   LoadingStatus,
   RacePromise,
   ServiceControl,
@@ -11,10 +11,10 @@ import {
   promiseDeprecated,
   promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService,
   resolveCatchError,
-} from '../../constants';
-import { ErrorFlag, promiseDeprecatedError } from '../../genRaceQueue';
-import { defaultReducer } from '../../gluer';
-import runtimeVar from '../../runtimeVar';
+} from '../../core/constants';
+import { ErrorFlag, promiseDeprecatedError } from '../../core/genRaceQueue';
+import { defaultReducer } from '../../core/gluer';
+import runtimeVar from '../../core/runtimeVar';
 import { isAsync, isModel } from '../../tools';
 
 /**
@@ -46,19 +46,19 @@ export const isDeprecatedBySelf = (err: any, p: RacePromise, flags: ErrorFlag[])
  * @param mutedCallback 用于减少一次组件rerender，因为异步获取状态变更时会去更新loading，所以当loading变更时静默掉订阅的回调。clonedModel中所有异步更新都应该加上这个
  * @param options
  */
-const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback, options?: ServiceOptions<T>): [GluerReturn<T>, Omit<ServiceStatus<T>, 'service'>] => {
+const useCloneModel = <T = never>(model: FemoModel<T>, mutedCallback: Callback, options?: ServiceOptions<T>): [FemoModel<T>, Omit<ServiceStatus<T>, 'service'>] => {
   const { control } = options || {};
   const unmountedFlagRef = useRef(false);
-  const cacheControlRef = useRef<GluerReturn<ServiceControl>>();
+  const cacheControlRef = useRef<FemoModel<ServiceControl>>();
   const cacheControlOnChangeUnsub = useRef<() => void>();
-  const cacheModelRef = useRef<GluerReturn<T>>();
+  const cacheModelRef = useRef<FemoModel<T>>();
   const underControl = useRef(false);
 
 
   const [status, updateStatus] = useState<LoadingStatus>(() => {
     if (isModel(control)) {
       underControl.current = true;
-      const r = (control as GluerReturn<ServiceControl>)();
+      const r = (control as FemoModel<ServiceControl>)();
       if (r.successful) {
         model.silent(r.data);
       }
@@ -89,7 +89,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
     if (cacheControlOnChangeUnsub.current) {
       cacheControlOnChangeUnsub.current();
     }
-    cacheControlOnChangeUnsub.current = (control as GluerReturn<ServiceControl>).onChange((state) => {
+    cacheControlOnChangeUnsub.current = (control as FemoModel<ServiceControl>).onChange((state) => {
       if (state.successful) {
         model.silent(state.data);
       }
@@ -155,7 +155,7 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
 
     // ModelMethod<T>
     // @ts-ignore
-    const fn: GluerReturn<T> = (...args: never[]) => {
+    const fn: FemoModel<T> = (...args: never[]) => {
       // @ts-ignore
       const res = model.preTreat(...args);
       if (args.length === 0) return res;
@@ -187,11 +187,11 @@ const useCloneModel = <T = never>(model: GluerReturn<T>, mutedCallback: Callback
   };
 
   // @ts-ignore
-  const [clonedModel] = useState<GluerReturn<T>>(() => {
+  const [clonedModel] = useState<FemoModel<T>>(() => {
     return genClonedModel();
   });
 
-  const cacheClonedModelRef = useRef<GluerReturn<T>>(clonedModel);
+  const cacheClonedModelRef = useRef<FemoModel<T>>(clonedModel);
 
   if (!Object.is(model, cacheModelRef.current)) {
     cacheModelRef.current = model;

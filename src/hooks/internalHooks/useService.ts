@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { GluerReturn, LocalService, LocalServiceHasStatus, RaceFn, Service, ServiceOptions } from '../../../index';
+import { FemoModel, LocalService, LocalServiceHasStatus, RaceFn, Service, ServiceOptions } from '../../../index';
 import {
   promiseDeprecatedFromLocalService,
   promiseDeprecatedFromLocalServicePure,
   pureServiceKey
-} from '../../constants';
+} from '../../core/constants';
 import { isAsync, isModel } from '../../tools';
 import { runtimePromiseDeprecatedVarAssignment } from './useCloneModel';
 
@@ -43,7 +43,7 @@ const getDifferentIndex = (source: any[] = [], target: any[] = []) => {
   return res;
 }
 
-const useService = <T, D>(model: GluerReturn<T>, clonedModel: GluerReturn<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions): [LocalService<T, D>] => {
+const useService = <T, D>(model: FemoModel<T>, clonedModel: FemoModel<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions): [LocalService<T, D>] => {
   const { suspenseKey, suspense, control } = options || {};
   const susKey = suspenseKey || suspense?.key;
   const depsRef = useRef<any[] | undefined>(deps);

@@ -1,7 +1,7 @@
 import useModel from '../../src/hooks/useModel';
 import useIndividualModel from '../../src/hooks/useIndividualModel';
 import { act, renderHook } from "@testing-library/react-hooks";
-import gluer from "../../src/gluer";
+import gluer from "../../src/core/gluer";
 import {useState} from "react";
 import { RacePromise, ServiceControl } from "../../index";
 

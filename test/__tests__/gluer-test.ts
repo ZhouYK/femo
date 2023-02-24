@@ -1,4 +1,4 @@
-import gluer from '../../src/gluer';
+import gluer from '../../src/core/gluer';
 import {subscribe} from "../../src";
 
 describe('gluer normal test',  () => {

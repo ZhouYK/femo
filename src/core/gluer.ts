@@ -1,9 +1,9 @@
-import { BindType, Callback, GluerReturn, HandleFunc, RacePromise } from '../index';
+import { BindType, Callback, FemoModel, HandleFunc, RacePromise } from '../../index';
 import { gluerUniqueFlagKey, gluerUniqueFlagValue, promiseDeprecated, underModelCallbackContext, } from './constants';
 import genRaceQueue, { ErrorFlag, errorFlags, promiseDeprecatedError } from './genRaceQueue';
 import runtimeVar, { RuntimeUpdateOrigin } from './runtimeVar';
 import subscribe from './subscribe';
-import { isArray, isAsync, isTagged, tagPromise } from './tools';
+import { isArray, isAsync, isTagged, tagPromise } from '../tools';
 import { callbackToModelsMap, modelToCallbacksMap, modelToRacePromisesMap } from './unsubscribe';
 
 export const defaultReducer = (_state: any, data: any) => data;
@@ -87,9 +87,9 @@ interface Reducer {
  * @returns {function(): {action: *, reducer: *, initState: *}}
  * @param fn
  */
-function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
-function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
-function gluer<S, D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
+function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
+function gluer<S, D = any>(initialState: S) : FemoModel<S>;
+function gluer<S, D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
 function gluer(...args: any[]) {
   const [rd, initialState] = args;
   let reducerFnc: Reducer;
@@ -164,7 +164,7 @@ function gluer(...args: any[]) {
                 return;
               }
 
-              const mods = callbackToModelsMap.get(callback) as Set<GluerReturn<any>>;
+              const mods = callbackToModelsMap.get(callback) as Set<FemoModel<any>>;
               // mods里面不管有没有当前model都去执行callback
               // 这里可能出现callback对应的mods中没有当前model，什么情况下会出现这种情况？
               // 当同一个callback被绑定到不同的模型依赖数组上时，callback对应的模型依赖数组总以最后一个绑定的模型依赖数组为准。
@@ -247,7 +247,7 @@ function gluer(...args: any[]) {
     const [, ,mutedCallback] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
-      let forAsyncRuntimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
+      let forAsyncRuntimeDepsModelCollectedMap: Map<FemoModel<any>, number>;
       let forAsyncRuntimeUpdateOrigin: RuntimeUpdateOrigin | null;
       let forAsyncRuntimeRacePromisesCollectedSet: Set<RacePromise> | null;
       let forAsyncRuntimeBeginOriginId: number | null;
@@ -313,7 +313,7 @@ function gluer(...args: any[]) {
     fn(initState);
   }
 
-  fn.watch = (models: GluerReturn<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
+  fn.watch = (models: FemoModel<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
     if (!isArray(models) || models.length === 0) {
       throw new Error('dependencies should be Array, ant not empty');
     }

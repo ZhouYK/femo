@@ -1,12 +1,12 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import { GluerReturn, Service, ServiceOptions, ServiceStatus, UnsubCallback } from '../../index';
-import gluer, { defaultReducer } from '../gluer';
-import runtimeVar from '../runtimeVar';
-import subscribe from '../subscribe';
+import { FemoModel, Service, ServiceOptions, ServiceStatus, UnsubCallback } from '../../index';
+import gluer, { defaultReducer } from '../core/gluer';
+import runtimeVar from '../core/runtimeVar';
+import subscribe from '../core/subscribe';
 import { isModel } from '../tools';
 import useCloneModel from './internalHooks/useCloneModel';
 import useService from './internalHooks/useService';
-import {defaultServiceOptions} from '../constants';
+import {defaultServiceOptions} from '../core/constants';
 
 let idAtom = 0;
 
@@ -19,16 +19,16 @@ let idAtom = 0;
  * @param options {
  * suspenseKey: string（是否开启Suspense模式）；
  * onChange: (nextState, prevState) => void;
- * control: GluerReturn<ServiceControl>;
+ * control: FemoModel<ServiceControl>;
  * } 每次函数运行都是取的最新的options的值
  */
-const useModel = <S = any, D = any>(initState: GluerReturn<S> | S | (() => S), service?: Service<S, D> ,deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>] => {
+const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), service?: Service<S, D> ,deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>] => {
   const finalOptions = {
     ...defaultServiceOptions,
     ...options,
   };
-  let [model] = useState<GluerReturn<S>>(() => {
-    if (isModel(initState)) return initState as GluerReturn<S>;
+  let [model] = useState<FemoModel<S>>(() => {
+    if (isModel(initState)) return initState as FemoModel<S>;
     if (typeof initState === 'function') {
       return gluer(defaultReducer ,(initState as () => S)());
     }
@@ -36,7 +36,7 @@ const useModel = <S = any, D = any>(initState: GluerReturn<S> | S | (() => S), s
   });
   // 需要将外部传入的模型更新到model
   if (isModel(initState) && !Object.is(model, initState)) {
-    model = initState as GluerReturn<S>;
+    model = initState as FemoModel<S>;
   }
 
   const [idState] = useState(() => {

@@ -1,6 +1,6 @@
 import {useEffect, useRef} from 'react';
 import {ExceptionJudge, ManualException} from '../../../index';
-import {manualThrownError} from '../../constants';
+import {manualThrownError} from '../../core/constants';
 
 const useException = (...args: ExceptionJudge[]): ManualException => {
   const unmount = useRef(false);

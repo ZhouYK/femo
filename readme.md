@@ -103,6 +103,7 @@ unsubscribe();
 - <a href="#gluer">gluer</a>
 - <a href="#subscribe">subscribe</a>
 - <a href="#genRaceQueue">genRaceQueue</a>
+- <a href="#genRegister">genRegister</a>
 
 
 ### <span id="gluer">gluer</span>
@@ -189,6 +190,68 @@ raceQueue.push(someModel(async (state, data) => { return await fetchRemote() }))
 
 ```
 <strong>数据节点自身也提供了处理竞争的方法<a href="#race">race</a>。很多时候可以通过<a href="#race">race</a>方法来简化上面<a href="#genRaceQueue">genRaceQueue</a>的使用。</strong>
+
+
+### genRegister
+> 生成模型注册/消费工具。主要是用于解耦直接 import 模型。
+
+```typescript
+import { FemoModel } from 'femo';
+
+interface GlobalModel {
+  name: FemoModel<string>;
+  age: FemoModel<number>;
+  family: FemoModel<{ count: number }>
+}
+const { register, unregister, pick, useRegister, usePick } = genRegister<GlobalModel>();
+
+const name = gluer('小明');
+const age = gluer(0);
+const family = gluer({
+  count: 3,
+});
+
+register('name', name);
+register('age', age);
+register('family', family);
+
+const nameModel = pick('name');
+const ageModel = pick('age');
+const familyModel = pick('family');
+
+unregister('name');
+unregister('age', age);
+unregister('famliy');
+
+// name === nameModel -> true
+// age === ageModel -> true
+// family === familyModel -> true
+
+// react hook
+useRegister('name', name);
+useRegister('age', age);
+useRegister('family', family);
+
+const nameModel_1 = usePick('name');
+const ageModel_1 = usePick('age');
+const familyModel_1 = usePick('family');
+
+// name === nameModel_1 -> true
+// age === ageModel_1 -> true
+// family === familyModel_1 -> true
+
+
+// 方法详细说明
+/**
+ * register 注册 key/model，无返回
+ * pick 获取 key 对应的 model
+ * unregister 注销 key ；如果传入了 model，则需要 key 和 model 都匹配才会注销
+ * useRegister 注册 key/model 的 hook，无返回。如果传入的 key 或者 model 发生变化，会先注销之前的 key，然后再注册 key；组件卸载时会注销 key
+ * usePick 获取 key 赌赢的 model 的 hook
+ */
+
+```
+
 
 
 ### 节点方法

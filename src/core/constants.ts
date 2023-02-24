@@ -1,4 +1,4 @@
-import {ServiceOptions} from '../index';
+import {ServiceOptions} from '../../index';
 
 export const promiseDeprecated = 'promiseDeprecated';
 export const manualThrownError = 'manual thrown error';

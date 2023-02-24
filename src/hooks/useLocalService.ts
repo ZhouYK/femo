@@ -9,8 +9,8 @@ import {
   promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure,
   pureServiceKey,
   resolveCatchError
-} from '../constants';
-import { promiseDeprecatedError } from '../genRaceQueue';
+} from '../core/constants';
+import { promiseDeprecatedError } from '../core/genRaceQueue';
 import { isDeprecatedBySelf } from './internalHooks/useCloneModel';
 
 const defaultOptions: IndividualServiceOptions = {

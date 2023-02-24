@@ -1,5 +1,5 @@
-import subscribe from '../../src/subscribe';
-import gluer from '../../src/gluer';
+import subscribe from '../../src/core/subscribe';
+import gluer from '../../src/core/gluer';
 describe('loop dependencies test', () => {
   test('watch', () => {
     const callback_mock = jest.fn(() => {});

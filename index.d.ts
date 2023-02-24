@@ -6,8 +6,8 @@ import {
   promiseDeprecatedFromClonedModel,
   promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure,
   pureServiceKey
-} from './src/constants';
-import {ErrorFlag} from './src/genRaceQueue';
+} from './src/core/constants';
+import {ErrorFlag} from './src/core/genRaceQueue';
 
 
 export type Unpacked<T> = T extends Promise<infer U> ? U : T;
@@ -123,8 +123,13 @@ export type ModelMethod<S> = {
   preTreat: GluerReturnFn<S>;
 };
 
+/**
+ *
+ * @deprecated 请使用 FemoModel 代替
+ */
 export type GluerReturn<S> = GluerReturnFn<S> & ModelMethod<S>;
 
+export type FemoModel<S> = GluerReturnFn<S> & ModelMethod<S>;
 export interface InjectProps {
   suspenseKeys: string[];
 }
@@ -156,6 +161,14 @@ export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialSta
 export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): UnsubCallback;
 export function genRaceQueue(): RaceQueueObj;
 
+export function genRegister<M>(): {
+  register: <K extends keyof M>(key: K, model: M[K]) => void;
+  unregister: <K extends keyof M>(key: K, model?: M[K]) => void;
+  pick: <K extends keyof M>(key: K) => M[K];
+  useRegister: <K extends keyof M>(key: K, model: M[K]) => void;
+  usePick: <K extends keyof M>(key: K) => M[K];
+}
+
 export function useModel<S = any, D = any>(initState: GluerReturn<S> | S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
 
 /**
@@ -163,7 +176,7 @@ export function useModel<S = any, D = any>(initState: GluerReturn<S> | S | (() =
  */
 export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
 export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
-export function useBatchDerivedModel<S, D extends DerivedSpace<S, any>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
+export function useBatchDerivedModel<S, D extends DerivedSpace<S>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
 
 export function useLocalService<S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S, D>, LoadingStatus]
 
@@ -176,7 +189,7 @@ export function useLight(callback: () => any, deps: any[]): void;
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
 
 export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
-// export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
+// export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
 // export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
 // export function useSubscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
 // export function useException(...args: ExceptionJudge[]): ManualException;

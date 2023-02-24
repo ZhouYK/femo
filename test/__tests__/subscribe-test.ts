@@ -1,6 +1,6 @@
 import * as family from '../models/family';
 import {gluer, subscribe} from "../../src";
-import { modelToCallbacksMap, callbackToModelsMap } from '../../src/unsubscribe';
+import { modelToCallbacksMap, callbackToModelsMap } from '../../src/core/unsubscribe';
 
 beforeAll(() => {
   modelToCallbacksMap.clear();

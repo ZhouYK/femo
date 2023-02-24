@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {GluerReturn} from '../../../index';
+import {FemoModel} from '../../../index';
 import useModel from '../useModel';
 
 interface PreviousDerivedStatus<T = any> {
@@ -7,7 +7,7 @@ interface PreviousDerivedStatus<T = any> {
   prev: PreviousDerivedStatus;
   stateChanged?: boolean;
 }
-export interface DerivedSpace<S, T> {
+export interface DerivedSpace<S, T = any> {
   source: T;
   callback: (nextSource: T, prevSource: T, state: S, previousStatus: PreviousDerivedStatus) => S;
 }
@@ -17,7 +17,7 @@ export interface DerivedSpace<S, T> {
  * @param model
  * @param derivedSpace
  */
-const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S, any>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S] => {
+const useBatchDerivedStateToModel = <S , D extends DerivedSpace<S>[]>(model: FemoModel<S>, ...derivedSpace: D): [S] => {
   let state = model();
   const [flag] = useState(() => {
     return {

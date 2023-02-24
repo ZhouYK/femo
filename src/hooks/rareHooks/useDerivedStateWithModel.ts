@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useModel from '../useModel';
-import {GluerReturn} from '../../../index';
+import {FemoModel} from '../../../index';
 import {isArray, isModel} from '../../tools';
 
-const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
+const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
   const modelRef = useRef(model);
   modelRef.current = model;
 
@@ -36,7 +36,7 @@ const useDerivedStateWithModel = <S = any>( model: GluerReturn<S>, callback: (st
           map.get(d)();
         }
         // 绑定
-        map.set(d, (d as GluerReturn<any>).onChange(() => {
+        map.set(d, (d as FemoModel<any>).onChange(() => {
           callWhenChange(false);
         }))
       }

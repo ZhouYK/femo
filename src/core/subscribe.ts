@@ -1,8 +1,8 @@
-import { Callback, GluerReturn, UnsubCallback } from '../index';
+import { Callback, FemoModel, UnsubCallback } from '../../index';
 import {gluerUniqueFlagKey, gluerUniqueFlagValue} from './constants';
 import runtimeVar from './runtimeVar';
 import unsubscribe, { modelToCallbacksMap, callbackToModelsMap } from './unsubscribe';
-import {isArray} from './tools';
+import {isArray} from '../tools';
 
 export const callbackCount = {
   num: 0,
@@ -15,7 +15,7 @@ export const callbackCount = {
  * @param callWhenSub 是否在注册监听时执行一次监听回调
  * @param noCallbackWrapper false：进行包装；true：不进行包装
  */
-const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, noCallbackWrapper?: boolean): UnsubCallback => {
+const subscribe = (deps: FemoModel<any>[], cb: Callback, callWhenSub = true, noCallbackWrapper?: boolean): UnsubCallback => {
   if (!isArray(deps)) {
     throw new Error(`Error: the first param must be array！${ deps }`);
   }
@@ -68,7 +68,7 @@ const subscribe = (deps: GluerReturn<any>[], cb: Callback, callWhenSub = true, n
     // 每次绑定都重新设置callback对应的依赖数组
     // 所以如果有两次或两次以上同一callback的设置，对应的model会以最后一次设置的model数组为准
     // 但是由于 subscribe 内部对每一个传入的callback进行了一次包装，所以这里的callback永远不会重复。
-    callbackToModelsMap.set(callback, new Set<GluerReturn<any>>(copyDeps));
+    callbackToModelsMap.set(callback, new Set<FemoModel<any>>(copyDeps));
   }
 
   // 映射建立完毕之后，初始化时，执行一次回调，注入初始值

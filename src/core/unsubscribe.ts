@@ -1,13 +1,13 @@
-import { Callback, GluerReturn, RacePromise } from '../index';
-import { isArray } from './tools';
+import { Callback, FemoModel, RacePromise } from '../../index';
+import { isArray } from '../tools';
 
-export const modelToCallbacksMap = new Map<GluerReturn<any>, Set<Callback>>();
-export const callbackToModelsMap = new Map<Callback, Set<GluerReturn<any>>>();
+export const modelToCallbacksMap = new Map<FemoModel<any>, Set<Callback>>();
+export const callbackToModelsMap = new Map<Callback, Set<FemoModel<any>>>();
 // Set 前者表示 在 model change 回调中获取到的 race promises
 // Set 后者表示 在 model update 回调中获取到的 race promises
-export const modelToRacePromisesMap = new Map<GluerReturn<any>, Set<RacePromise>>();
+export const modelToRacePromisesMap = new Map<FemoModel<any>, Set<RacePromise>>();
 
-const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Callback[]) => {
+const unsubscribe = (targetDeps?: FemoModel<any>[], callback?: Callback | Callback[]) => {
   if (!targetDeps && !callback) {
     modelToCallbacksMap.clear();
     callbackToModelsMap.clear();
@@ -23,7 +23,7 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Call
     }
     const cl = callbacks.length;
 
-    const delCallback = (model: GluerReturn<any>, cbs?: Set<Callback>) => {
+    const delCallback = (model: FemoModel<any>, cbs?: Set<Callback>) => {
       if (cbs) {
         for (let j = 0; j < cl; j += 1) {
           const cb = callbacks[j];
@@ -53,7 +53,7 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Call
     const l = targetDeps?.length || 0;
     if (l) {
       for (let i = 0; i < l; i += 1) {
-        const model = targetDeps?.[i] as GluerReturn<any>;
+        const model = targetDeps?.[i] as FemoModel<any>;
         const set = modelToCallbacksMap.get(model);
         delCallback(model, set);
       }
@@ -68,7 +68,7 @@ const unsubscribe = (targetDeps?: GluerReturn<any>[], callback?: Callback | Call
 
   const l = targetDeps?.length ?? 0;
   for (let i = 0; i < l; i += 1) {
-    const model = targetDeps?.[i] as GluerReturn<any>;
+    const model = targetDeps?.[i] as FemoModel<any>;
     const set = modelToCallbacksMap.get(model);
     set?.forEach((cb) => {
       if (callbackToModelsMap.has(cb)) {

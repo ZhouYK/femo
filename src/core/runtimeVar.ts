@@ -1,4 +1,4 @@
-import { BindType, GluerReturn, ListenType, RacePromise } from '../index';
+import { BindType, FemoModel, ListenType, RacePromise } from '../../index';
 import { promiseDeprecated, underModelCallbackContext } from './constants';
 import {ErrorFlag} from './genRaceQueue';
 
@@ -11,7 +11,7 @@ export interface RuntimeUpdateOrigin {
 
 const runtimeVar: {
   runtimePromiseDeprecatedFlag: ErrorFlag;
-  runtimeDepsModelCollectedMap: Map<GluerReturn<any>, number>;
+  runtimeDepsModelCollectedMap: Map<FemoModel<any>, number>;
   runtimeRacePromiseContext: RacePromiseContext;
   runtimeUpdateOrigin: RuntimeUpdateOrigin | null;
   runtimeUpdateOriginId: number | null;

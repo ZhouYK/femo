@@ -4,7 +4,7 @@ import {
   promiseDeprecatedFromLocalService,
   promiseDeprecatedFromLocalServicePure
 } from './constants';
-import {RacePromise, RaceQueueObj} from '../index';
+import {RacePromise, RaceQueueObj} from '../../index';
 
 export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel | typeof promiseDeprecatedFromLocalService | typeof promiseDeprecatedFromLocalServicePure;
 export const errorFlags = [promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure];

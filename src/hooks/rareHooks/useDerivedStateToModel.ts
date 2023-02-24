@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import useModel from '../useModel';
-import {GluerReturn} from '../../../index';
+import {FemoModel} from '../../../index';
 
 /**
  * 背景知识：
@@ -12,7 +12,7 @@ import {GluerReturn} from '../../../index';
  * @param perf 是否开启source的潜比较，优化性能
  */
 
-const useDerivedStateToModel = <P, S>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf = false): [S] => {
+const useDerivedStateToModel = <P, S>(source: P, model: FemoModel<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf = false): [S] => {
 
   let state = model();
   const [cachedProps] = useState<{

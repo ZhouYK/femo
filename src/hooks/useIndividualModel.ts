@@ -1,6 +1,6 @@
 import { useState} from 'react';
-import gluer, {defaultReducer} from '../gluer';
-import {GluerReturn, ServiceStatus, Service, ServiceOptions} from '../../index';
+import gluer, {defaultReducer} from '../core/gluer';
+import {FemoModel, ServiceStatus, Service, ServiceOptions} from '../../index';
 import useModel from './useModel';
 
 /**
@@ -12,7 +12,7 @@ import useModel from './useModel';
  * @param deps (可选) 每次deps中的元素变更就会去获取更新一次model
  * @param options suspenseKey: string（是否开启Suspense模式）; onChange: (nextState, prevState) => void;
  */
-const useIndividualModel = <S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>] => {
+const useIndividualModel = <S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>] => {
   const [model] = useState(() => {
     if (typeof initState === 'function') {
       return gluer(defaultReducer ,(initState as () => S)());

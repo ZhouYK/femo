@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
-import {Callback, GluerReturn} from '../../../index';
-import subscribe from '../../subscribe';
+import {Callback, FemoModel} from '../../../index';
+import subscribe from '../../core/subscribe';
 
-const useSubscribe = (models: GluerReturn<any>[], callback: Callback, callWhenSub?: boolean) => {
+const useSubscribe = (models: FemoModel<any>[], callback: Callback, callWhenSub?: boolean) => {
 
   const [unsub] = useState(() => {
     return subscribe(models, (...args: any[]) => {

@@ -1,5 +1,5 @@
-import genRaceQueue, { promiseDeprecatedError } from "../../src/genRaceQueue";
-import gluer from "../../src/gluer";
+import genRaceQueue, { promiseDeprecatedError } from "../../src/core/genRaceQueue";
+import gluer from "../../src/core/gluer";
 
 interface Profile {
   name: string;

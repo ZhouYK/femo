@@ -1,7 +1,7 @@
 import useException from '../../src/hooks/rareHooks/useException';
 import {act, renderHook} from "@testing-library/react-hooks";
 import {useState} from "react";
-import {manualThrownError} from "../../src/constants";
+import {manualThrownError} from "../../src/core/constants";
 
 
 describe('useException test', () => {
