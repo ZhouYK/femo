@@ -32,7 +32,7 @@ export type GluerReturnFn<S> = {
   <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
   <D>(data: D): D extends Promise<any> ? Promise<S> : S;
   <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
-  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedDeps: GluerReturn<any>[][]): CR extends Promise<any> ? Promise<S> : S;
+  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedDeps: FemoModel<any>[][]): CR extends Promise<any> ? Promise<S> : S;
 }
 
 // index含义：index 为 undefined 表示不是依赖变化引起的 service 执行；
@@ -41,7 +41,7 @@ export type GluerReturnFn<S> = {
 // 数字对应的就是变化了的元素的位置（不定长的 deps 先不考虑）
 export type Service<T, D = any> = (state: T, data?: D, index?: number[]) => Promise<T> | T;
 
-export type Control<S = any> = GluerReturn<ServiceControl<S>>
+export type Control<S = any> = FemoModel<ServiceControl<S>>
 // Service 与 LocalService 返回保持一致
 // LocalService 内部默认会调用 Service
 // LocalService 是给外部使用的，所以返回是一个确定的 Promise<S>
@@ -87,7 +87,7 @@ export type RaceFn<S> = {
   <D = undefined>(customHandler: HandleFunc<S, D, S>): Promise<S>;
   <D>(data: D): Promise<S>;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>): Promise<S>;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>, mutedDeps: GluerReturn<any>[][]): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>, mutedDeps: FemoModel<any>[][]): Promise<S>;
 }
 
 export type BindType = 0 | 1; // 0 代表 model 直接绑定的；1 代表通过 useModel 绑定的
@@ -114,7 +114,7 @@ export interface OnCallback<S> {
 
 export type ModelMethod<S> = {
   reset: () => void;
-  watch: <T extends GluerReturn<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
+  watch: <T extends FemoModel<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
   onChange: (callback: OnCallback<S>) => UnsubCallback;
   onUpdate: (callback: OnCallback<S>) => UnsubCallback;
   silent: GluerReturnFn<S>;
@@ -154,11 +154,11 @@ export interface RaceQueueObj {
 
 export const promiseDeprecatedError: string;
 
-export function gluer<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : GluerReturn<S>;
-export function gluer<S, D = any>(initialState: S) : GluerReturn<S>;
-export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : GluerReturn<S>;
+export function gluer<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
+export function gluer<S, D = any>(initialState: S) : FemoModel<S>;
+export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
 
-export function subscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): UnsubCallback;
+export function subscribe(deps: FemoModel<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): UnsubCallback;
 export function genRaceQueue(): RaceQueueObj;
 
 export function genRegister<M>(): {
@@ -169,28 +169,28 @@ export function genRegister<M>(): {
   usePick: <K extends keyof M>(key: K) => M[K];
 }
 
-export function useModel<S = any, D = any>(initState: GluerReturn<S> | S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
+export function useModel<S = any, D = any>(initState: FemoModel<S> | S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>];
 
 /**
  * @deprecated 请使用 useModel 代替
  */
-export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, GluerReturn<S>, GluerReturn<S>, ServiceStatus<S, D>];
-export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
-export function useBatchDerivedModel<S, D extends DerivedSpace<S>[]>(initState: S | (() => S), ...derivedSpace: D): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
+export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>];
+export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
+export function useBatchDerivedModel<S, D extends DerivedSpace<S>[]>(initState: S | (() => S), ...derivedSpace: D): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
 
 export function useLocalService<S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S, D>, LoadingStatus]
 
-export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
-export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, GluerReturn<S>, GluerReturn<S>, LoadingStatus];
+export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
+export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
 
 export function useLight(callback: () => any, deps: any[]): void;
 
 
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
 
-export function useDerivedStateWithModel<S = any>(mode: GluerReturn<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
-// export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S>[]>(model: GluerReturn<S>, ...derivedSpace: D): [S];
-// export function useDerivedStateToModel<P = any, S = any>(source: P, model: GluerReturn<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
-// export function useSubscribe(deps: GluerReturn<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
+export function useDerivedStateWithModel<S = any>(mode: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
+// export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S>[]>(model: FemoModel<S>, ...derivedSpace: D): [S];
+// export function useDerivedStateToModel<P = any, S = any>(source: P, model: FemoModel<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
+// export function useSubscribe(deps: FemoModel<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
 // export function useException(...args: ExceptionJudge[]): ManualException;
 
