@@ -20,11 +20,17 @@ describe('gluer exception test', () => {
 
 describe('gluer update data test', () => {
   const name = gluer('小光');
-  const age = gluer((_state: number, data: number) => {
-    return data ** 2;
+  const age = gluer((state: number, data: number) => {
+    if (typeof data === 'number') {
+      return data ** 2;
+    }
+    return state;
   });
   const tall = gluer((state, data) => {
-    return data + state;
+    if (typeof data === 'number') {
+      return data + state;
+    }
+    return state;
   }, 162);
 
   test('normal test', () => {
@@ -55,30 +61,30 @@ describe('gluer update data test', () => {
       return data + state;
     });
 
-    expect(age()).toBe(7);
+    expect(age()).toBe(9);
 
     age((state: number, _data: any) => {
-      if (state === 7) {
-        return 7 - 2;
+      if (state === 9) {
+        return 9 - 2;
       }
       return state;
     });
 
-    expect(age()).toBe(5);
+    expect(age()).toBe(7);
 
     expect(tall()).toBe(162);
 
     tall(2);
-    expect(tall()).toBe(164);
+    expect(tall()).toBe(4);
 
     tall((state, _data) => {
-      if (state === 164) {
+      if (state === 4) {
         return state * 6;
       }
       return state;
     })
 
-    expect(tall()).toBe(984);
+    expect(tall()).toBe(24);
 
     tall(10, (state, data) => {
       let temp = data;
@@ -88,7 +94,7 @@ describe('gluer update data test', () => {
       return temp * 2 + state;
     });
 
-    expect(tall()).toBe(16 + 984);
+    expect(tall()).toBe(10 + 40);
 
   })
 
@@ -98,7 +104,6 @@ describe('gluer update data test', () => {
       return Promise.resolve('坏小孩小光');
     });
     expect(name()).toBe('小光');
-    expect.assertions(2);
     await namePromise;
     expect(name()).toBe('坏小孩小光');
 
@@ -107,7 +112,6 @@ describe('gluer update data test', () => {
       return 100;
     });
     expect(age()).toBe(4);
-    expect.assertions(2);
     await agePromise;
     expect(age()).toBe(100);
 
@@ -117,9 +121,8 @@ describe('gluer update data test', () => {
     const tallPromise = tall(async () => {
       return 1;
     });
-    expect(tall()).toBe(4);
+    expect(tall()).toBe(8);
 
-    expect.assertions(6);
     await tallPromise;
     expect(tall()).toBe(1);
   })
@@ -305,57 +308,60 @@ describe('unbind watch test', () => {
 })
 
 describe('test rest', () => {
-  const name = gluer('初始名字');
-  const callback = jest.fn((n) => {
-    return n;
-  });
-  const unsubscribe = subscribe([name], callback);
-  name('小红');
-  expect(callback.mock.calls[1][0]).toBe('小红');
-  expect(name()).toBe('小红');
-  name.reset();
-  expect(callback.mock.calls[2][0]).toBe('初始名字');
-  expect((name())).toBe('初始名字');
-  unsubscribe();
+  test('rest', () => {
+    const name = gluer('初始名字');
+    const callback = jest.fn((n) => {
+      return n;
+    });
+    const unsubscribe = subscribe([name], callback);
+    name('小红');
+    expect(callback.mock.calls[1][0]).toBe('小红');
+    expect(name()).toBe('小红');
+    name.reset();
+    expect(callback.mock.calls[2][0]).toBe('初始名字');
+    expect((name())).toBe('初始名字');
+    unsubscribe();
+  })
 })
 
 describe('onChange & unbind onChange test', () => {
-  const name = gluer('初始名字');
-  const callback = jest.fn((n) => n);
-  const unsub = name.onChange(callback);
-  expect(callback.mock.calls.length).toBe(0);
-  name('张三');
-  expect(callback.mock.calls.length).toBe(1);
-  name('张四');
-  expect(callback.mock.calls.length).toBe(2);
-  unsub();
-  name('张五');
-  expect(callback.mock.calls.length).toBe(2);
+  test('onChange', () => {
+    const name = gluer('初始名字');
+    const callback = jest.fn((n) => n);
+    const unsub = name.onChange(callback);
+    expect(callback.mock.calls.length).toBe(0);
+    name('张三');
+    expect(callback.mock.calls.length).toBe(1);
+    name('张四');
+    expect(callback.mock.calls.length).toBe(2);
+    unsub();
+    name('张五');
+    expect(callback.mock.calls.length).toBe(2);
 
-  const age = gluer(1);
-  const callback_1 = jest.fn((n) => n);
-  const callback_2 = jest.fn((n) => n);
-  const unsub_1 = age.onChange(callback_1);
-  const unsub_2 = age.onChange(callback_2);
+    const age = gluer(1);
+    const callback_1 = jest.fn((n) => n);
+    const callback_2 = jest.fn((n) => n);
+    const unsub_1 = age.onChange(callback_1);
+    const unsub_2 = age.onChange(callback_2);
 
-  age(2);
+    age(2);
 
-  expect(callback_1.mock.calls.length).toBe(1);
-  expect(callback_2.mock.calls.length).toBe(1);
+    expect(callback_1.mock.calls.length).toBe(1);
+    expect(callback_2.mock.calls.length).toBe(1);
 
-  unsub_1();
+    unsub_1();
 
-  age(3);
+    age(3);
 
-  expect(callback_1.mock.calls.length).toBe(1);
-  expect(callback_2.mock.calls.length).toBe(2);
+    expect(callback_1.mock.calls.length).toBe(1);
+    expect(callback_2.mock.calls.length).toBe(2);
 
-  unsub_2();
+    unsub_2();
 
-  age(4);
-  expect(callback_1.mock.calls.length).toBe(1);
-  expect(callback_2.mock.calls.length).toBe(2);
-
+    age(4);
+    expect(callback_1.mock.calls.length).toBe(1);
+    expect(callback_2.mock.calls.length).toBe(2);
+  })
 });
 
 describe('model onChange/onUpdate race condition test', () => {

@@ -10,16 +10,12 @@ test('Data consistency and integrity tests', () => {
   const papa = familyModel.papa();
   expect(papa).toEqual({
     name: '小李',
-    age: 'papa`s age',
-    job: '法官'
   });
   familyModel.papa({ name });
 
   const papa1 = familyModel.papa();
   expect(papa1).toEqual({
     name: '小刘',
-    age: 'papa`s age',
-    job: '法官'
   });
 
   expect(Object.is(papa, papa1)).toBe(false);
@@ -45,7 +41,6 @@ test('Data consistency and integrity tests', () => {
   expect(mama1).toEqual({
     name: '小黄',
     age: 3,
-    job: '律师',
   });
 
   expect(Object.is(mama, mama1)).toBe(false);

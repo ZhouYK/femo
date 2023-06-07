@@ -34,7 +34,7 @@ describe('customHandler test', () => {
       number: '18023482345',
       flag: 'custom'
     });
-    expect(mockFn.mock.calls.length).toBe(1);
+    expect(mockFn.mock.calls.length).toBe(2);
     expect(customMockFn.mock.calls.length).toBe(1);
 
     expect(customMockFn.mock.calls[0][0]).toEqual({
@@ -61,8 +61,8 @@ describe('customHandler test', () => {
     const newAge = await age(5, async (_state, data) => {
       return data + 1;
     });
-    expect(newAge).toEqual(6);
-    expect(age()).toBe(6);
+    expect(newAge).toEqual(7);
+    expect(age()).toBe(7);
 
     const newWeight = await weight(5);
     expect(newWeight).toBe(50);
@@ -105,11 +105,11 @@ describe('customHandler test', () => {
     const newAge = age(5, async (_state, data) => {
       return data + 1;
     });
-    expect(newAge).toEqual(Promise.resolve(6));
+    expect(newAge).toEqual(Promise.resolve(7));
     expect(age()).toBe(10);
 
     const newWeight = weight(5);
-    expect(newWeight).toEqual(Promise.resolve(100));
+    expect(newWeight).toEqual(Promise.resolve(50));
     expect(weight()).toBe(100);
   })
 })

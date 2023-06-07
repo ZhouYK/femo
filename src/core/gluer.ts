@@ -3,10 +3,11 @@ import { gluerUniqueFlagKey, gluerUniqueFlagValue, promiseDeprecated, underModel
 import genRaceQueue, { ErrorFlag, errorFlags, promiseDeprecatedError } from './genRaceQueue';
 import runtimeVar, { RuntimeUpdateOrigin } from './runtimeVar';
 import subscribe from './subscribe';
-import { isArray, isAsync, isTagged, tagPromise } from '../tools';
+import { composeReducer, isArray, isAsync, isTagged, tagPromise } from '../tools';
 import { callbackToModelsMap, modelToCallbacksMap, modelToRacePromisesMap } from './unsubscribe';
 
 export const defaultReducer = (_state: any, data: any) => data;
+export const defaultReducerLast = (state: any, _data: any) => state;
 const warning = '你只传入了一个函数参数给gluer，这会被认为是reducer函数而不是初始值。如果你想存储一个函数类型的初始值，请传入两个参数：reducer和初始值。' +
   'reducer可以是最简单：(data, state) => data。这个的意思是：传入的数据会直接用来更新state。';
 const getWarning = (rd: HandleFunc<any, any, any>) => `${warning}${rd.toString()}`;
@@ -97,12 +98,12 @@ function gluer(...args: any[]) {
   // 没有传入任何参数则默认生成一个reducer
   if (args.length === 0) {
     // 默认值reducer
-    reducerFnc = defaultReducer;
+    reducerFnc = defaultReducerLast;
   } else if (args.length === 1) {
     // 会被当做初始值处理
     if (typeof rd !== 'function') {
       // 默认生成一个reducer
-      reducerFnc = defaultReducer;
+      reducerFnc = defaultReducerLast;
       // 初始值
       initState = rd;
     } else {
@@ -223,8 +224,9 @@ function gluer(...args: any[]) {
       [payload, customHandler] = ags;
     }
 
-    const realHandler = customHandler || reducerFnc;
+    const tmpHandler = customHandler || defaultReducer;
 
+    const realHandler = composeReducer(tmpHandler, reducerFnc);
     return realHandler(gluerState, payload);
   }
   const basicLogic = (silent = false) => (...ags: any[]) => {
