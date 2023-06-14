@@ -1,15 +1,13 @@
 import * as family from '../models/family';
 import {gluer, subscribe} from "../../src";
-import { modelToCallbacksMap, callbackToModelsMap } from '../../src/core/unsubscribe';
+import unsubscribe, { modelToCallbacksMap, callbackToModelsMap } from '../../src/core/unsubscribe';
 
 beforeAll(() => {
-  modelToCallbacksMap.clear();
-  callbackToModelsMap.clear();
+  unsubscribe();
 });
 
 afterEach(() => {
-  modelToCallbacksMap.clear();
-  callbackToModelsMap.clear();
+  unsubscribe();
 })
 
 describe('subscribe tests', () => {

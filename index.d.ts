@@ -159,6 +159,8 @@ export function gluer<S, D = any>(initialState: S) : FemoModel<S>;
 export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
 
 export function subscribe(deps: FemoModel<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): UnsubCallback;
+export function unsubscribe(targetDeps?: FemoModel<any>[], callback?: Callback | Callback[]): void;
+
 export function genRaceQueue(): RaceQueueObj;
 
 export function genRegister<M>(): {

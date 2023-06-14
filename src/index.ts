@@ -1,6 +1,7 @@
 
 export { default as gluer } from './core/gluer';
 export { default as subscribe } from './core/subscribe';
+export { default as unsubscribe } from './core/unsubscribe';
 export { default as genRaceQueue, promiseDeprecatedError } from './core/genRaceQueue';
 export { default as genRegister } from './core/register';
 export { default as useModel } from './hooks/useModel';
