@@ -159,11 +159,11 @@ const useCloneModel = <T = never>(model: FemoModel<T>, mutedCallback: Callback, 
       // @ts-ignore
       const res = model.preTreat(...args);
       if (args.length === 0) return res;
-      // 只有异步数据才会传入modelDeps
+      // 只有异步数据才会传入 mutedCallback
       if (isAsync(res)) {
         // 目前最多三个参数
         // 如果第三个参数手动传了，以手动为准
-        // 没传，以传入的modelDeps为准
+        // 没传，以传入的 mutedCallback 为准
         return statusHandleFn(model(res, defaultReducer, args[2] || mutedCallback) as Promise<T>, true);
       }
       return model(res);

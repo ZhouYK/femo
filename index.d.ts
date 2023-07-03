@@ -32,7 +32,7 @@ export type GluerReturnFn<S> = {
   <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
   <D>(data: D): D extends Promise<any> ? Promise<S> : S;
   <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
-  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedDeps: FemoModel<any>[][]): CR extends Promise<any> ? Promise<S> : S;
+  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedCallback: Callback): CR extends Promise<any> ? Promise<S> : S;
 }
 
 // index含义：index 为 undefined 表示不是依赖变化引起的 service 执行；
@@ -87,7 +87,7 @@ export type RaceFn<S> = {
   <D = undefined>(customHandler: HandleFunc<S, D, S>): Promise<S>;
   <D>(data: D): Promise<S>;
   <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>): Promise<S>;
-  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>, mutedDeps: FemoModel<any>[][]): Promise<S>;
+  <D = Partial<S>>(data: D, customHandler: HandleFunc<S, D, S>, mutedCallback: Callback): Promise<S>;
 }
 
 export type BindType = 0 | 1; // 0 代表 model 直接绑定的；1 代表通过 useModel 绑定的

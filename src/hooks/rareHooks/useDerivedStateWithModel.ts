@@ -1,22 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import useModel from '../useModel';
-import {FemoModel} from '../../../index';
+import { defaultReducer } from '../../core/gluer';
+import subscribe from '../../core/subscribe';
+import { Callback, FemoModel } from '../../../index';
 import {isArray, isModel} from '../../tools';
 
 const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
   const modelRef = useRef(model);
   modelRef.current = model;
 
-  const updateState = useCallback((s: S, silent = true) => {
-    let result: any = s;
-    if (typeof s === 'function') {
-      result = () => s
-    }
+  const noticeChangeRef = useRef(model());
 
-    if (silent) {
-      modelRef.current.silent(result);
-    } else {
-      modelRef.current(result);
+  const [, refresh] = useState({});
+  const subscribeCallback = useCallback<Callback>((s) => {
+    noticeChangeRef.current = s;
+    refresh({});
+  }, []);
+
+  const updateState = useCallback((s: S, silent = true) => {
+    noticeChangeRef.current = s;
+    if (!silent) {
+      refresh({});
     }
   }, []);
 
@@ -77,8 +80,29 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
     }
     map.clear();
   }, []);
-  useModel(model);
-  return [model()]
+
+  useEffect(() => {
+    return subscribe([modelRef.current], subscribeCallback, false, true)
+  }, [modelRef.current]);
+
+  // 通知其他监听了 model 的地方
+  // 因为很可能有副作用，所以放 useEffect
+  useEffect(() => {
+    // noticeChangeRef.current 的变化来源
+    // 1. 依赖变更
+    // 2. 依赖里面有 dep model，依赖的 dep model 变更
+    // 3. model 在其他地方被改变
+    // 其中 1、2 这两种情况都会将最新的值赋值给 noticeChangeRef.current，而没有去更新 modelRef.current，因此需要手动调用一次 modelRef.current 去更新
+    // 情况 3 是，其他地方更新了 modelRef.current 的值，通知到了这里。在 subscribeCallback 中去更新了 noticeChangeRef.current，组件刷新。
+    // 此时 modelRef.current 内部的 state 和 noticeChangeRef.current 应该是一样的，不会引起 onChange
+    let result: any = noticeChangeRef.current;
+    if (typeof result === 'function') {
+      result = () => result;
+    }
+    modelRef.current.race(result, defaultReducer, subscribeCallback);
+  }, [noticeChangeRef.current]);
+
+  return [noticeChangeRef.current]
 }
 
 export default useDerivedStateWithModel;

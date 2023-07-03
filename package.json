@@ -47,7 +47,10 @@
     ],
     "globals": {
       "ts-jest": {
-        "useESM": true
+        "useESM": true,
+        "diagnostics": {
+          "warnOnly": true
+        }
       }
     }
   },

@@ -245,7 +245,7 @@ function gluer(...args: any[]) {
       }
     };
     // 不执行回调的依赖数组
-    // 第三个参数默认就是mutedDeps
+    // 第三个参数默认就是 mutedCallback
     const [, ,mutedCallback] = ags;
     // 如果是异步更新
     if (isAsync(tempResult)) {
@@ -376,10 +376,14 @@ function gluer(...args: any[]) {
       underModelCallbackContextRacePromises.clear();
       runtimeVar.runtimeRacePromisesCollectedSet = underModelCallbackContextRacePromises;
     }
+
+    // 不执行回调的依赖数组
+    // 第三个参数默认就是 mutedCallback
+    const [, ,mutedCallback] = as;
     if (realValueIsAsync) {
-      tmp = fn(realValue);
+      tmp = fn(realValue, defaultReducer, mutedCallback);
     } else {
-      fn(realValue);
+      fn(realValue, defaultReducer, mutedCallback);
     }
     if (iumcc && realValueIsAsync) {
       if (typeof runtimeVar.runtimeBeginOriginId === 'number') {

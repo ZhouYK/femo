@@ -43,7 +43,7 @@ describe('register test', () => {
     unregister('family');
     expect(pick('family')).toBe(undefined);
 
-    const { result, unmount } = renderHook(() => {
+    const {result, unmount } = renderHook(() => {
       const [count, updateCount] = useState(0);
       const [nm] = useDerivedState(() => {
         if (!count) return name;
