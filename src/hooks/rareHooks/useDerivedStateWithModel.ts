@@ -12,7 +12,8 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
   const unsubCallbackRef = useRef<() => void>();
 
   const [, refresh] = useState({});
-  const subscribeCallback = useCallback<Callback>(() => {
+  const subscribeCallback = useCallback<Callback>((s) => {
+    noticeChangeRef.current = s;
     refresh({});
   }, []);
 
