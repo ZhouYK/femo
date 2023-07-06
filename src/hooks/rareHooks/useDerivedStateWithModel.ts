@@ -5,16 +5,24 @@ import { Callback, FemoModel } from '../../../index';
 import {isArray, isModel} from '../../tools';
 
 const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
-  const modelRef = useRef(model);
-  modelRef.current = model;
+  const modelRef = useRef<FemoModel<S>>();
 
-  const noticeChangeRef = useRef(model());
+  const noticeChangeRef = useRef<S>(model());
+
+  const unsubCallbackRef = useRef<() => void>();
 
   const [, refresh] = useState({});
-  const subscribeCallback = useCallback<Callback>((s) => {
-    noticeChangeRef.current = s;
+  const subscribeCallback = useCallback<Callback>(() => {
     refresh({});
   }, []);
+
+  // 如果需要监听 model 变化
+  if (modelRef.current !== model) {
+    unsubCallbackRef.current?.();
+    unsubCallbackRef.current = subscribe([model], subscribeCallback, false, true);
+  }
+  modelRef.current = model;
+
 
   const updateState = useCallback((s: S, silent = true) => {
     noticeChangeRef.current = s;
@@ -24,7 +32,7 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
   }, []);
 
   const callWhenChange = (silent = true) => {
-    updateState(callback(modelRef.current()), silent);
+    updateState(callback((modelRef.current as FemoModel<S>)()), silent);
   };
 
   const [map] = useState(() => new Map());
@@ -81,10 +89,6 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
     map.clear();
   }, []);
 
-  useEffect(() => {
-    return subscribe([modelRef.current], subscribeCallback, false, true)
-  }, [modelRef.current]);
-
   // 通知其他监听了 model 的地方
   // 因为很可能有副作用，所以放 useEffect
   useEffect(() => {
@@ -99,7 +103,7 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
     if (typeof result === 'function') {
       result = () => result;
     }
-    modelRef.current.race(result, defaultReducer, subscribeCallback);
+    (modelRef.current as FemoModel<S>).race(result, defaultReducer, subscribeCallback);
   }, [noticeChangeRef.current]);
 
   return [noticeChangeRef.current]
