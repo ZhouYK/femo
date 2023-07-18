@@ -230,7 +230,14 @@ function gluer(...args: any[]) {
     return realHandler(gluerState, payload);
   }
   const basicLogic = (silent = false) => (...ags: any[]) => {
-    const tempResult = preTreat(...ags);
+    let tempResult;
+    if (runtimeVar.runtimeNoPreTreat) {
+      // runtimeVar.runtimeNoPreTreat 为 true 时，传入的第一个参数就是结果
+      [tempResult] = ags;
+      runtimeVar.runtimeNoPreTreat = false;
+    } else {
+      tempResult = preTreat(...ags);
+    }
     if (ags.length === 0) return tempResult;
     if (!silent) {
       // 如果在model的调用链中出现过，则中断循环更新，不再执行
@@ -380,6 +387,8 @@ function gluer(...args: any[]) {
     // 不执行回调的依赖数组
     // 第三个参数默认就是 mutedCallback
     const [, ,mutedCallback] = as;
+    // race 里面再次调用模型更新，不再做 preTreat 处理
+    runtimeVar.runtimeNoPreTreat = true;
     if (realValueIsAsync) {
       tmp = fn(realValue, defaultReducer, mutedCallback);
     } else {

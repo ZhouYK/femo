@@ -19,6 +19,7 @@ const runtimeVar: {
   runtimeBindType: BindType;
   runtimeListenType: ListenType;
   runtimeRacePromisesCollectedSet: Set<RacePromise> | null;
+  runtimeNoPreTreat: boolean,
 } = {
   runtimePromiseDeprecatedFlag: promiseDeprecated,
   runtimeDepsModelCollectedMap: new Map(),
@@ -28,7 +29,8 @@ const runtimeVar: {
   runtimeBeginOriginId: null,
   runtimeBindType: 0,
   runtimeListenType: 0,
-  runtimeRacePromisesCollectedSet: null
+  runtimeRacePromisesCollectedSet: null,
+  runtimeNoPreTreat: false,
 }
 
 export default runtimeVar;
