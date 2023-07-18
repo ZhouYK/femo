@@ -17,3 +17,4 @@ export { default as useException } from './hooks/rareHooks/useException';
 export { default as useLocalService } from './hooks/useLocalService';
 export { default as useLight } from './hooks/useLight';
 export { default as Inject } from './hoc/Inject';
+export { default as runtimeVar } from './core/runtimeVar';

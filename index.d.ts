@@ -1,5 +1,6 @@
 // gluer
 import {FC} from 'react';
+import { RuntimeVar } from './src/core/runtimeVar';
 import {DerivedSpace} from './src/hooks/rareHooks/useBatchDerivedStateToModel';
 import {
   promiseDeprecated,
@@ -191,8 +192,10 @@ export function useLight(callback: () => any, deps: any[]): void;
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
 
 export function useDerivedStateWithModel<S = any>(mode: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
+
 // export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S>[]>(model: FemoModel<S>, ...derivedSpace: D): [S];
 // export function useDerivedStateToModel<P = any, S = any>(source: P, model: FemoModel<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
 // export function useSubscribe(deps: FemoModel<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): void;
 // export function useException(...args: ExceptionJudge[]): ManualException;
 
+export const runtimeVar: RuntimeVar

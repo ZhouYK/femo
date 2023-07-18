@@ -9,7 +9,7 @@ export interface RuntimeUpdateOrigin {
   callbackIds: number[]; // 回调函数的唯一标识（ onUpdate、onChange、subscribe 注册的 callback 的 id）
 }
 
-const runtimeVar: {
+export interface RuntimeVar {
   runtimePromiseDeprecatedFlag: ErrorFlag;
   runtimeDepsModelCollectedMap: Map<FemoModel<any>, number>;
   runtimeRacePromiseContext: RacePromiseContext;
@@ -21,7 +21,9 @@ const runtimeVar: {
   runtimeRacePromisesCollectedSet: Set<RacePromise> | null;
   runtimeNoPreTreat: boolean;
   runtimeFromDerived: boolean;
-} = {
+}
+
+const runtimeVar: RuntimeVar = {
   runtimePromiseDeprecatedFlag: promiseDeprecated,
   runtimeDepsModelCollectedMap: new Map(),
   runtimeRacePromiseContext: '',
