@@ -231,6 +231,9 @@ function gluer(...args: any[]) {
     return realHandler(gluerState, payload);
   }
   const basicLogic = (silent = false) => (...ags: any[]) => {
+    // 获取不走预处理
+    if (ags.length === 0) return gluerState;
+
     let tempResult;
     if (runtimeVar.runtimeNoPreTreat) {
       // runtimeVar.runtimeNoPreTreat 为 true 时，传入的第一个参数就是结果
@@ -239,7 +242,6 @@ function gluer(...args: any[]) {
     } else {
       tempResult = preTreat(...ags);
     }
-    if (ags.length === 0) return tempResult;
     if (!silent) {
       // 如果在model的调用链中出现过，则中断循环更新，不再执行
       if (runtimeVar.runtimeDepsModelCollectedMap.has(fn)) return tempResult;
