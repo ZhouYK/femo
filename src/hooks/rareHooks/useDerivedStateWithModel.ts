@@ -29,7 +29,7 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
 
 
   const updateState = useCallback((s: S, silent = true) => {
-    noticeChangeRef.current = modelRef.current?.preTreat(() => s) as S;
+    noticeChangeRef.current = modelRef.current?.preTreat(s) as S;
     originalNoticeChangeRef.current = s;
     if (!silent) {
       refresh({});

@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import { FemoModel, Service, ServiceOptions, ServiceStatus, UnsubCallback } from '../../index';
-import gluer, { defaultReducer } from '../core/gluer';
+import gluer from '../core/gluer';
 import runtimeVar from '../core/runtimeVar';
 import subscribe from '../core/subscribe';
 import { isModel } from '../tools';
@@ -30,7 +30,8 @@ const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), ser
   let [model] = useState<FemoModel<S>>(() => {
     if (isModel(initState)) return initState as FemoModel<S>;
     if (typeof initState === 'function') {
-      return gluer(defaultReducer ,(initState as () => S)());
+      // @ts-ignore
+      return gluer(null, (initState as () => S)());
     }
     return gluer(initState);
   });

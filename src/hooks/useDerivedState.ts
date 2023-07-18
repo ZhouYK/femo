@@ -5,7 +5,7 @@ import useDerivedStateWithModel from './rareHooks/useDerivedStateWithModel';
  *
  * @param args
  */
-const useDerivedState = (...args: any[]) => {
+const useDerivedState = (...args: any[])=> {
   const { length } = args;
   let [initState, callback, deps] = args;
   if (length === 2) {

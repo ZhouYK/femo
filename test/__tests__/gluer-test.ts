@@ -11,12 +11,12 @@ describe('gluer normal test',  () => {
     expect(gr).toBeInstanceOf(Function);
   });
 });
-describe('gluer exception test', () => {
-  test('when pass two arguments, but the first isn`t function', () => {
-    // @ts-ignore
-    expect(() => gluer('123', 123)).toThrow('first argument must be function');
-  });
-});
+// describe('gluer exception test', () => {
+//   test('when pass two arguments, but the first isn`t function', () => {
+//     // @ts-ignore
+//     expect(() => gluer('123', 123)).toThrow('first argument must be function');
+//   });
+// });
 
 describe('gluer update data test', () => {
   const name = gluer('小光');

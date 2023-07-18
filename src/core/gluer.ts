@@ -112,10 +112,11 @@ function gluer(...args: any[]) {
         console.warn(getWarning(rd));
       }
     }
+  } else if (typeof rd !== 'function') {
+    // 放宽对 rd 的限制
+    reducerFnc = defaultReducerLast;
+    console.warn('gluer\'s first argument is not function');
   } else {
-    if (typeof rd !== 'function') {
-      throw new Error('first argument must be function');
-    }
     reducerFnc = rd;
   }
 
