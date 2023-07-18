@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { defaultReducer } from '../../core/gluer';
+import runtimeVar from '../../core/runtimeVar';
 import subscribe from '../../core/subscribe';
 import { Callback, FemoModel } from '../../../index';
 import {isArray, isModel} from '../../tools';
@@ -8,15 +9,12 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
   const modelRef = useRef<FemoModel<S>>();
 
   const noticeChangeRef = useRef<S>(model());
-  // 保留原始的 state 信息，因为需要去更新 model，model 的 reducer 里面有逻辑。
-  const originalNoticeChangeRef = useRef<S>(noticeChangeRef.current)
 
   const unsubCallbackRef = useRef<() => void>();
 
   const [, refresh] = useState({});
   const subscribeCallback = useCallback<Callback>((s) => {
     noticeChangeRef.current = s;
-    originalNoticeChangeRef.current = s;
     refresh({});
   }, []);
 
@@ -29,8 +27,9 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
 
 
   const updateState = useCallback((s: S, silent = true) => {
+    runtimeVar.runtimeFromDerived = true;
     noticeChangeRef.current = modelRef.current?.preTreat(s) as S;
-    originalNoticeChangeRef.current = s;
+    runtimeVar.runtimeFromDerived = false;
     if (!silent) {
       refresh({});
     }
@@ -104,12 +103,14 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
     // 其中 1、2 这两种情况都会将最新的值赋值给 noticeChangeRef.current，而没有去更新 modelRef.current，因此需要手动调用一次 modelRef.current 去更新
     // 情况 3 是，其他地方更新了 modelRef.current 的值，通知到了这里。在 subscribeCallback 中去更新了 noticeChangeRef.current，组件刷新。
     // 此时 modelRef.current 内部的 state 和 noticeChangeRef.current 应该是一样的，不会引起 onChange
-    let result: any = originalNoticeChangeRef.current;
+    let result: any = noticeChangeRef.current;
     if (typeof result === 'function') {
       result = () => result;
     }
+    runtimeVar.runtimeFromDerived = true;
     (modelRef.current as FemoModel<S>).race(result, defaultReducer, subscribeCallback);
-  }, [originalNoticeChangeRef.current]);
+    runtimeVar.runtimeFromDerived = false;
+  }, [noticeChangeRef.current]);
 
   return [noticeChangeRef.current]
 }

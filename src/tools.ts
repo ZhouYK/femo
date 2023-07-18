@@ -1,5 +1,6 @@
 import { HandleFunc } from '../index';
 import {promiseTouchedByModel, gluerUniqueFlagKey, gluerUniqueFlagValue} from './core/constants';
+import runtimeVar from './core/runtimeVar';
 
 export const getType = (arg: any) => Object.prototype.toString.call(arg);
 export const isPlainObject = (target: any) => getType(target) === '[object Object]';
@@ -36,7 +37,9 @@ export const composeReducer = <S, D, >(...args: HandleFunc<S, D, any>[]) => {
     return (state: S, data: D) => {
       const beforeState = pre(state, data);
       if (isAsync(beforeState)) {
+        const { runtimeFromDerived} = runtimeVar;
         return beforeState.then((s: S) => {
+          runtimeVar.runtimeFromDerived = runtimeFromDerived;
           return cur(s, data);
         })
       }
