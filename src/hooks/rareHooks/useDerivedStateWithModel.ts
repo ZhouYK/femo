@@ -5,16 +5,24 @@ import subscribe from '../../core/subscribe';
 import { Callback, FemoModel } from '../../../index';
 import {isArray, isModel} from '../../tools';
 
-const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true): [S] => {
+const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial = true, keepSilent = false): [S] => {
   const modelRef = useRef<FemoModel<S>>();
 
   const noticeChangeRef = useRef<S>(model());
 
   const unsubCallbackRef = useRef<() => void>();
 
+  const keepSilentRef = useRef(keepSilent);
+  keepSilentRef.current = keepSilent;
+
   const [, refresh] = useState({});
   const subscribeCallback = useCallback<Callback>((s) => {
     noticeChangeRef.current = s;
+
+    // 与其他带有 model 监听的 hook 搭配使用时，那么自身则不刷新
+    if (keepSilentRef.current) {
+      return;
+    }
     refresh({});
   }, []);
 
@@ -29,6 +37,16 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
   const updateState = useCallback((s: S, silent = true) => {
     runtimeVar.runtimeFromDerived = true;
     noticeChangeRef.current = modelRef.current?.preTreat(s) as S;
+    if (keepSilentRef.current) {
+      runtimeVar.runtimeNoPreTreat = true;
+      let result: any = noticeChangeRef.current;
+      if (typeof result === 'function') {
+        result = () => result;
+      }
+      modelRef.current?.silent(result);
+      runtimeVar.runtimeFromDerived = false;
+      return;
+    }
     runtimeVar.runtimeFromDerived = false;
     if (!silent) {
       refresh({});
@@ -96,6 +114,7 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
   // 通知其他监听了 model 的地方
   // 因为很可能有副作用，所以放 useEffect
   useEffect(() => {
+    if (keepSilentRef.current) return;
     // noticeChangeRef.current 的变化来源
     // 1. 依赖变更
     // 2. 依赖里面有 dep model，依赖的 dep model 变更
@@ -112,7 +131,7 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
     runtimeVar.runtimeFromDerived = false;
   }, [noticeChangeRef.current]);
 
-  return [noticeChangeRef.current]
+  return [keepSilentRef.current ? modelRef.current() : noticeChangeRef.current]
 }
 
 export default useDerivedStateWithModel;

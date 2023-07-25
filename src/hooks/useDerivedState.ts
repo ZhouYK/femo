@@ -15,7 +15,7 @@ const useDerivedState = (...args: any[])=> {
   }
   const [ ,model, clonedModel, status] = useModel(initState);
   const { service, ...rest } = status;
-  const [state] = useDerivedStateWithModel(model, callback, deps, false);
+  const [state] = useDerivedStateWithModel(model, callback, deps, false, true);
   return [state, model, clonedModel, rest];
 }
 

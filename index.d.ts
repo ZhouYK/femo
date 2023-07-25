@@ -191,7 +191,7 @@ export function useLight(callback: () => any, deps: any[]): void;
 
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
 
-export function useDerivedStateWithModel<S = any>(mode: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean): [S];
+export function useDerivedStateWithModel<S = any>(mode: FemoModel<S>, callback: (state: S) => S, deps: any[], callWhenInitial?: boolean, keepSilent?: boolean): [S];
 
 // export function useBatchDerivedStateToModel<S , D extends DerivedSpace<S>[]>(model: FemoModel<S>, ...derivedSpace: D): [S];
 // export function useDerivedStateToModel<P = any, S = any>(source: P, model: FemoModel<S>, callback: (nextSource: P, prevSource: P, state: S) => S, perf?: boolean): [S];
