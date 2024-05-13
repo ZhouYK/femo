@@ -1,5 +1,5 @@
 
-export { default as gluer } from './core/gluer';
+export { default as gluer } from './core/glue';
 export { default as subscribe } from './core/subscribe';
 export { default as unsubscribe } from './core/unsubscribe';
 export { default as genRaceQueue, promiseDeprecatedError } from './core/genRaceQueue';
@@ -15,6 +15,8 @@ export { default as useDerivedStateWithModel } from './hooks/rareHooks/useDerive
 export { default as useSubscribe } from './hooks/rareHooks/useSubscribe';
 export { default as useException } from './hooks/rareHooks/useException';
 export { default as useLocalService } from './hooks/useLocalService';
-export { default as useLight } from './hooks/useLight';
+// @deprecated please use useSkipMountEffect instead
+export { default as useLight } from './hooks/useSkipMountEffect';
+export { default as useSkipMountEffect } from './hooks/useSkipMountEffect';
 export { default as Inject } from './hoc/Inject';
 export { default as runtimeVar } from './core/runtimeVar';

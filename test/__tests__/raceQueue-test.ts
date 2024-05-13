@@ -1,5 +1,5 @@
 import genRaceQueue, { promiseDeprecatedError } from "../../src/core/genRaceQueue";
-import gluer from "../../src/core/gluer";
+import glue from "../../src/core/glue";
 
 interface Profile {
   name: string;
@@ -8,7 +8,7 @@ interface Profile {
 }
 
 
-const game = gluer<Game>({
+const game = glue<Game>({
   price: 0,
   name: '',
 });
@@ -18,7 +18,7 @@ interface Game {
   name: string;
 }
 
-const profile = gluer({
+const profile = glue({
   id: '',
   name: '',
   desc: '',

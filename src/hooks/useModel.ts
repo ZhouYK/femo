@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import { FemoModel, Service, ServiceOptions, ServiceStatus, UnsubCallback } from '../../index';
-import gluer from '../core/gluer';
+import glue from '../core/glue';
 import runtimeVar from '../core/runtimeVar';
 import subscribe from '../core/subscribe';
 import { isModel } from '../tools';
@@ -12,15 +12,10 @@ let idAtom = 0;
 
 /**
  * 将外部model注入到组件内部的自定义钩子函数，model生命周期不跟随组件，是共享数据
- * 区别于useIndividualModel
  * @param model 数据节点函数
  * @param service (可选) 更新model的服务
  * @param deps (可选) 每次deps中的元素变更就会去获取更新一次model
- * @param options {
- * suspenseKey: string（是否开启Suspense模式）；
- * onChange: (nextState, prevState) => void;
- * control: FemoModel<ServiceControl>;
- * } 每次函数运行都是取的最新的options的值
+ * @param options 详见 ServiceOptions 每次函数运行都是取的最新的options的值
  */
 const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), service?: Service<S, D> ,deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>] => {
   const finalOptions = {
@@ -31,9 +26,9 @@ const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), ser
     if (isModel(initState)) return initState as FemoModel<S>;
     if (typeof initState === 'function') {
       // @ts-ignore
-      return gluer(null, (initState as () => S)());
+      return glue(null, (initState as () => S)());
     }
-    return gluer(initState);
+    return glue(initState);
   });
   // 需要将外部传入的模型更新到model
   if (isModel(initState) && !Object.is(model, initState)) {

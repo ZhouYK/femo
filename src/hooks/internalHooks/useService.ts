@@ -44,7 +44,7 @@ const getDifferentIndex = (source: any[] = [], target: any[] = []) => {
 }
 
 const useService = <T, D>(model: FemoModel<T>, clonedModel: FemoModel<T>, service?: Service<T, D>, deps?: any[], options?: ServiceOptions): [LocalService<T, D>] => {
-  const { suspenseKey, suspense, control } = options || {};
+  const { suspenseKey, suspense, control, autoLoad, } = options || {};
   const susKey = suspenseKey || suspense?.key;
   const depsRef = useRef<any[] | undefined>(deps);
   const serviceRef = useRef(service);
@@ -112,32 +112,35 @@ const useService = <T, D>(model: FemoModel<T>, clonedModel: FemoModel<T>, servic
   // control：组件第一次挂载时，service的调用会被跳过
   if (firstRenderFlagRef.current && typeof service === 'function' && !isModel(control)) {
     firstRenderFlagRef.current = false;
-    const result = service(clonedModel(), undefined, []);
-    if (isAsync(result)) {
-      if (susKey) {
-        const p: CustomerPromise = clonedModel.race(result).then((data) => {
-          p.success = true;
-          p.data = data;
-        }).catch((err) => {
-          p.success = false;
-          return Promise.reject(err);
-        });
-        cache.set(susKey, p);
-        cacheDeps.set(susKey, deps);
-        throw p
+    // 只有开启了 autoLoad 才会去主动发请求
+    if (autoLoad) {
+      const result = service(clonedModel(), undefined, []);
+      if (isAsync(result)) {
+        if (susKey) {
+          const p: CustomerPromise = clonedModel.race(result).then((data) => {
+            p.success = true;
+            p.data = data;
+          }).catch((err) => {
+            p.success = false;
+            return Promise.reject(err);
+          });
+          cache.set(susKey, p);
+          cacheDeps.set(susKey, deps);
+          throw p
+        }
+        // 这里更新了loading，会跳过当次渲染
+        clonedModel.race(result);
+      } else if (depsIsDifferent) {
+        // 首次渲染出现了suspense状态下依赖变更的情况，这时会跳过上面的throw逻辑，重新执行一遍首次的请求逻辑
+        // 当发现这次请求不是异步更新时，为了避免首次数据出现重置的情况（重置是发生suspense组件的特性），需要将上一次的promise throw出去以保证首次渲染时有数据
+        if (promise?.success) {
+          clonedModel.silent(promise.data);
+        } else if (promise?.success === undefined ) {
+          throw promise;
+        }
+      } else {
+        clonedModel.race(result);
       }
-      // 这里更新了loading，会跳过当次渲染
-      clonedModel.race(result);
-    } else if (depsIsDifferent) {
-      // 首次渲染出现了suspense状态下依赖变更的情况，这时会跳过上面的throw逻辑，重新执行一遍首次的请求逻辑
-      // 当发现这次请求不是异步更新时，为了避免首次数据出现重置的情况（重置是发生suspense组件的特性），需要将上一次的promise throw出去以保证首次渲染时有数据
-      if (promise?.success) {
-        clonedModel.silent(promise.data);
-      } else if (promise?.success === undefined ) {
-        throw promise;
-      }
-    } else {
-      clonedModel.race(result);
     }
   }
 
@@ -146,31 +149,33 @@ const useService = <T, D>(model: FemoModel<T>, clonedModel: FemoModel<T>, servic
     if (susKey && susPersist && cache.has(susKey) && !depsIsDifferent) {
       cache.delete(susKey);
     } else if (typeof service === 'function') {
-        const result = service(clonedModel(), undefined, getDifferentIndex(depsRef.current, deps));
-        if (isAsync(result)) {
-          const p = clonedModel.race(result);
-          if (susPersist && susKey) {
-            const tmpP: CustomerPromise = p.then((data) => {
-              tmpP.success = true;
-              tmpP.data = data;
-            }).catch((err) => {
-              tmpP.success = false;
-              return Promise.reject(err);
-            });
-            cache.set(susKey, tmpP);
-            cacheDeps.set(susKey, deps);
-            throw tmpP;
+        // 只有开启了 autoLoad 才会主动发请求
+        if (autoLoad) {
+          const result = service(clonedModel(), undefined, getDifferentIndex(depsRef.current, deps));
+          if (isAsync(result)) {
+            const p = clonedModel.race(result);
+            if (susPersist && susKey) {
+              const tmpP: CustomerPromise = p.then((data) => {
+                tmpP.success = true;
+                tmpP.data = data;
+              }).catch((err) => {
+                tmpP.success = false;
+                return Promise.reject(err);
+              });
+              cache.set(susKey, tmpP);
+              cacheDeps.set(susKey, deps);
+              throw tmpP;
+            }
+          } else if (depsIsDifferent) {
+            // 如果当次是非异步更新且上一次是suspense状态，不管上一个promise有没有更新成功，都将其竞争掉
+            cache.delete(susKey as string);
+            clonedModel.race(result);
+          } else {
+            // 现在 race 可作用于非异步数据
+            clonedModel.race(result);
           }
-        } else if (depsIsDifferent) {
-          // 如果当次是非异步更新且上一次是suspense状态，不管上一个promise有没有更新成功，都将其竞争掉
-          cache.delete(susKey as string);
-          clonedModel.race(result);
-        } else {
-          // 现在 race 可作用于非异步数据
-          clonedModel.race(result);
         }
       }
-
     depsRef.current = [...(deps || [])];
   } else if (susKey && cache.has(susKey)) {
     cache.delete(susKey);

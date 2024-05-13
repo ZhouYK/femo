@@ -1,9 +1,9 @@
 import subscribe from '../../src/core/subscribe';
-import gluer from '../../src/core/gluer';
+import glue from '../../src/core/glue';
 describe('loop dependencies test', () => {
   test('watch', () => {
     const callback_mock = jest.fn(() => {});
-    const a = gluer(0);
+    const a = glue(0);
     a.watch([a], ([aData]) => {
       callback_mock();
       return aData + 1;
@@ -14,10 +14,10 @@ describe('loop dependencies test', () => {
     expect(callback_mock.mock.calls.length).toBe(0);
     expect(a()).toBe(1);
 
-    const b = gluer(1);
-    const c = gluer(2);
-    const d = gluer(3);
-    const e = gluer(4);
+    const b = glue(1);
+    const c = glue(2);
+    const d = glue(3);
+    const e = glue(4);
     const callback_mock_1 = jest.fn(() => {});
     b.watch([e], ([eData]) => {
       callback_mock_1();
@@ -51,7 +51,7 @@ describe('loop dependencies test', () => {
 
     expect(callback_mock_1.mock.calls.length).toBe(3);
 
-    const f = gluer(9);
+    const f = glue(9);
 
     f.watch([e], ([eData]) => {
       callback_mock_1();
@@ -110,7 +110,7 @@ describe('loop dependencies test', () => {
 
   test('onChange', () => {
     const callback_mock_1 = jest.fn(() => {});
-    const a = gluer(1);
+    const a = glue(1);
     a.onChange((s) => {
       callback_mock_1();
       a(s+1);
@@ -122,11 +122,11 @@ describe('loop dependencies test', () => {
     expect(callback_mock_1.mock.calls.length).toBe(1);
 
     const callback_mock_2 = jest.fn(() => {});
-    const b = gluer(2);
-    const c = gluer(3);
-    const d = gluer(4);
-    const e = gluer(5);
-    const f = gluer(6);
+    const b = glue(2);
+    const c = glue(3);
+    const d = glue(4);
+    const e = glue(5);
+    const f = glue(6);
 
     b.onChange(() => {
       callback_mock_2();
@@ -203,7 +203,7 @@ describe('loop dependencies test', () => {
     const callback_mock_1 = jest.fn(() => {});
     const callback_mock_2 = jest.fn(() => {});
     const callback_mock_3 = jest.fn(() => {});
-    const a = gluer(1);
+    const a = glue(1);
     a.watch([a], ([aData]) => {
       callback_mock_1();
       return aData + 1;
@@ -242,11 +242,11 @@ describe('loop dependencies test', () => {
 
     const callback_mock_4 = jest.fn(() => {});
     const callback_mock_5 = jest.fn(() => {});
-    const b = gluer(2);
-    const c = gluer(3);
-    const d = gluer(4);
-    const e = gluer(5);
-    const f = gluer(6);
+    const b = glue(2);
+    const c = glue(3);
+    const d = glue(4);
+    const e = glue(5);
+    const f = glue(6);
 
     b.onChange((bData) => {
       callback_mock_4();

@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react-hooks";
 import { useState } from 'react';
-import gluer from '../../src/core/gluer';
+import glue from '../../src/core/glue';
 import useDerivedState from '../../src/hooks/useDerivedState';
 import { FemoModel } from '../../index';
 import { genRegister } from '../../src/index'
@@ -15,9 +15,9 @@ describe('register test', () => {
     }
     const { register, unregister, pick, useRegister, usePick } = genRegister<GlobalModel>();
 
-    const name = gluer('小明');
-    const age = gluer(0);
-    const family = gluer({
+    const name = glue('小明');
+    const age = glue(0);
+    const family = glue({
       count: 3,
     });
 
@@ -35,7 +35,7 @@ describe('register test', () => {
     unregister('name');
     expect(pick('name')).toBe(undefined);
     // key 和 model 都要相同才会被注销
-    unregister('age', gluer(2));
+    unregister('age', glue(2));
     expect(pick('age')).toBe(age);
 
     unregister('age', age);
@@ -47,7 +47,7 @@ describe('register test', () => {
       const [count, updateCount] = useState(0);
       const [nm] = useDerivedState(() => {
         if (!count) return name;
-        return gluer('小张');
+        return glue('小张');
       }, [count]);
 
       useRegister('name', nm);

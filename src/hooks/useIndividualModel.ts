@@ -1,5 +1,5 @@
 import { useState} from 'react';
-import gluer, {defaultReducer} from '../core/gluer';
+import glue, {defaultReducer} from '../core/glue';
 import {FemoModel, ServiceStatus, Service, ServiceOptions} from '../../index';
 import useModel from './useModel';
 
@@ -15,9 +15,9 @@ import useModel from './useModel';
 const useIndividualModel = <S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>] => {
   const [model] = useState(() => {
     if (typeof initState === 'function') {
-      return gluer(defaultReducer ,(initState as () => S)());
+      return glue(defaultReducer ,(initState as () => S)());
     }
-    return gluer(initState);
+    return glue(initState);
   });
 
   return useModel(model, service, deps, options);

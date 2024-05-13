@@ -88,10 +88,10 @@ interface Reducer {
  * @returns {function(): {action: *, reducer: *, initState: *}}
  * @param fn
  */
-function gluer<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
-function gluer<S, D = any>(initialState: S) : FemoModel<S>;
-function gluer<S, D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
-function gluer(...args: any[]) {
+function glue<S, D = any, R = S>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
+function glue<S, D = any>(initialState: S) : FemoModel<S>;
+function glue<S, D = any, R = S>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
+function glue(...args: any[]) {
   const [rd, initialState] = args;
   let reducerFnc: Reducer;
   let initState = initialState;
@@ -419,4 +419,4 @@ function gluer(...args: any[]) {
   return fn;
 }
 
-export default gluer;
+export default glue;

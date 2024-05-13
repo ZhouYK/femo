@@ -1,17 +1,17 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useState } from 'react';
-import useLight from '../../src/hooks/useLight';
+import useSkipMountEffect from '../../src/hooks/useSkipMountEffect';
 
 
-describe('useLight test', () => {
+describe('useSkipMountEffect test', () => {
 
-  test('useLight basic', () => {
+  test('useSkipMountEffect basic', () => {
 
     const callbackMock = jest.fn(() => {});
     const { result, unmount } = renderHook(() => {
       const [count, updateCount] = useState(0);
       const [, updateAge] = useState(0);
-      useLight(callbackMock, [count]);
+      useSkipMountEffect(callbackMock, [count]);
       return {
         count,
         updateCount,

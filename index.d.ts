@@ -1,4 +1,3 @@
-// gluer
 import {FC} from 'react';
 import { RuntimeVar } from './src/core/runtimeVar';
 import {DerivedSpace} from './src/hooks/rareHooks/useBatchDerivedStateToModel';
@@ -28,7 +27,16 @@ export interface ManualException {
 
 export type HandleFunc<S, D, CR> = (state: S, data: D) => CR;
 
+// @deprecated please use GlueReturnFn instead
 export type GluerReturnFn<S> = {
+  (): S;
+  <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
+  <D>(data: D): D extends Promise<any> ? Promise<S> : S;
+  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
+  <D = Partial<S>, CR = S>(data: D, customHandler: HandleFunc<S, D, CR>, mutedCallback: Callback): CR extends Promise<any> ? Promise<S> : S;
+}
+
+export type GlueReturnFn<S> = {
   (): S;
   <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
   <D>(data: D): D extends Promise<any> ? Promise<S> : S;
@@ -82,6 +90,7 @@ export interface ServiceOptions<S = any> {
   control?: Control<S>; // 外部传入的 model 用于同步状态
   onChange?: (nextState: S, prevState: S) => void; // 节点数据变更时向外通知，一般对组件外使用（组件内的有useDerivedxxx系列）
   onUpdate?: (nextState: S, prevState: S) => void; // 节点数据更新（state 不一定变了）时向外通知，一般对组件外使用
+  autoLoad?: boolean; // 是否自动请求
 }
 
 export type RaceFn<S> = {
@@ -118,19 +127,19 @@ export type ModelMethod<S> = {
   watch: <T extends FemoModel<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
   onChange: (callback: OnCallback<S>) => UnsubCallback;
   onUpdate: (callback: OnCallback<S>) => UnsubCallback;
-  silent: GluerReturnFn<S>;
+  silent: GlueReturnFn<S>;
   race: RaceFn<S>;
   __race__?: RaceFn<S>;
-  preTreat: GluerReturnFn<S>;
+  preTreat: GlueReturnFn<S>;
 };
 
 /**
  *
  * @deprecated 请使用 FemoModel 代替
  */
-export type GluerReturn<S> = GluerReturnFn<S> & ModelMethod<S>;
+export type GluerReturn<S> = GlueReturnFn<S> & ModelMethod<S>;
 
-export type FemoModel<S> = GluerReturnFn<S> & ModelMethod<S>;
+export type FemoModel<S> = GlueReturnFn<S> & ModelMethod<S>;
 export interface InjectProps {
   suspenseKeys: string[];
 }
@@ -155,9 +164,16 @@ export interface RaceQueueObj {
 
 export const promiseDeprecatedError: string;
 
+// @deprecated please use glue instead
 export function gluer<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
+// @deprecated please use glue instead
 export function gluer<S, D = any>(initialState: S) : FemoModel<S>;
+// @deprecated please use glue instead
 export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
+
+export function glue<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
+export function glue<S, D = any>(initialState: S) : FemoModel<S>;
+export function glue<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
 
 export function subscribe(deps: FemoModel<any>[], callback: (...args: any[]) => void, callWhenSub?: boolean): UnsubCallback;
 export function unsubscribe(targetDeps?: FemoModel<any>[], callback?: Callback | Callback[]): void;
@@ -186,8 +202,9 @@ export function useLocalService<S, D>(service: LocalService<S, D>, options?: Ind
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
 export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
 
+// @deprecated please use useSkipMountEffect instead
 export function useLight(callback: () => any, deps: any[]): void;
-
+export function useSkipMountEffect(callback: () => any, deps: any[]): void;
 
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
 

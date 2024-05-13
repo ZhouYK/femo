@@ -25,9 +25,9 @@ yarn add femo
 
 ```js
 // model.js
-import { gluer } from 'femo';
+import { glue } from 'femo';
 
-const student = gluer({
+const student = glue({
   name: '',
   age: 0,
 });
@@ -81,8 +81,8 @@ export default Student;
 脱离react后，就不能使用react hooks了
 
 ```js
-import { gluer, subscribe } from 'femo';
-const name = gluer('初始名字');
+import { glue, subscribe } from 'femo';
+const name = glue('初始名字');
 
 const unsubscribe = subscribe([name], (nameData) => { console.log(nameData) });
 name('张胜男');
@@ -100,21 +100,21 @@ unsubscribe();
 
 ### 核心函数
 
-- <a href="#gluer">gluer</a>
+- <a href="#glue">glue</a>
 - <a href="#subscribe">subscribe</a>
 - <a href="#genRaceQueue">genRaceQueue</a>
 - <a href="#genRegister">genRegister</a>
 
 
-### <span id="gluer">gluer</span>
+### <span id="glue">glue</span>
 
 > 定义数据节点
 
 #### 数据节点定义：
 ```js
-import { gluer } from 'femo';
+import { glue } from 'femo';
 
-const name = gluer('初始名字');
+const name = glue('初始名字');
 
 ```
 节点数据可以使任意类型。一旦定义，节点的数据类型就确定了，后续不能改变。数据类型不变性只是用了typescript的类型做约束，请遵守这一约束，让数据更清晰和可预测。
@@ -151,9 +151,9 @@ const name = gluer('初始名字');
 
 数据节点被订阅过后，其数据的变化会通知到订阅的回调函数里面。
 ```js
-import { gluer, subscribe } from 'femo';
+import { glue, subscribe } from 'femo';
 
-const name = gluer('初始名字');
+const name = glue('初始名字');
 
 const unsubscribe = subscribe([name], (nameData) => { console.log(nameData) });
 name('张胜男');
@@ -205,9 +205,9 @@ interface GlobalModel {
 }
 const { register, unregister, pick, useRegister, usePick } = genRegister<GlobalModel>();
 
-const name = gluer('小明');
-const age = gluer(0);
-const family = gluer({
+const name = glue('小明');
+const age = glue(0);
+const family = glue({
   count: 3,
 });
 
@@ -267,23 +267,19 @@ const familyModel_1 = usePick('family');
 适用的场景：多个数据节点的变化都可引起一个数据节点更新，多对一的关系。
 
 ```javascript
-const demo1 = gluer(null);
-const demo2 = gluer(null);
-const demo3 = gluer(null);
-
-const demo = gluer(null);
-
-const unsubscribe = demo.watch([demo1, demo2, demo3], (data, state) => 
-{
- // data[0] 为 demo1的值
- // data[1] 为 demo2的值
- // data[2] 为 demo3的值
- // state 为 demo的值
- // 需要返回demo的最新值
+const demo1 = glue(null);
+const demo2 = glue(null);
+const demo3 = glue(null);
+const demo = glue(null);
+const unsubscribe = demo.watch([demo1, demo2, demo3], (data, state) => {
+  // data[0] 为 demo1的值
+  // data[1] 为 demo2的值
+  // data[2] 为 demo3的值
+  // state 为 demo的值
+  // 需要返回demo的最新值
   const newState = { ...state };
   return newState;
 });
-
 // 解除依赖
 unsubscribe();
 ```
@@ -301,14 +297,13 @@ model.watch(models, callback)
 watch处理数据依赖更新是单向的。通常情况下适合处理结构上没有嵌套的彼此独立的模型。
 
 需要注意的是，如果是要处理数据的双向依赖，比如：
-```javascript
-const a = gluer('');
-const b = gluer('');
 
+```javascript
+const a = glue('');
+const b = glue('');
 a.watch([b], (list, state) => {
   // todo
 });
-
 b.watch([a], (list, state) => {
   // todo
 })
@@ -323,10 +318,10 @@ b.watch([a], (list, state) => {
 | callback函数(必填) | 节点数据发生变化时会执行的回调 |
 
 ```javascript
-const model = gluer('');
-
-const unsubscribe = model.onChange((state) => { console.log(state) });
-
+const model = glue('');
+const unsubscribe = model.onChange((state) => {
+  console.log(state)
+});
 // 解除变化监听
 unsubscribe();
 
@@ -362,7 +357,8 @@ someModel.race(async (state, data) => { return await fetchRemote() })
 - <a href="#useDerivedState">useDerivedState</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
-- <a href="#useLight">useLight</a>
+- <a href="#useSkipMountEffect">(废弃)~~useLight~~</a> 请使用 useSkipMountEffect 代替
+- <a href="#useSkipMountEffect">useSkipMountEffect</a>
 - <a href="#useLocalService">useLocalService</a>
 
 react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
@@ -376,7 +372,7 @@ const [state, stateModel, stateModelWithStatus, { service, loading, successful, 
 
 | 入参                                 | 含义                                                                               |
 |:-----------------------------------|:---------------------------------------------------------------------------------|
-| state(必传)                          | gluer定义的模型 或者 S / () => S                                                        |
+| state(必传)                          | glue定义的模型 或者 S / () => S                                                        |
 | service(可选)                        | 形如: (state: S, params?: any, index?: number[]) => S \ Promise\<S>                |
 | deps(可选)                           | 依赖数组，如有变化会去执行service更新model数据                                                    |        
 | <a href="#options">options(可选)</a> | 一些配置                                                                             |
@@ -396,7 +392,7 @@ interface List {
   list: any[];
 }
 // 定义一个节点
-const listModel = gluer<List>({ page: 1, size: 20, total: 0, list: [] });
+const listModel = glue<List>({ page: 1, size: 20, total: 0, list: [] });
 
 const [query] = useState({
   pageIndex: 1,
@@ -551,14 +547,14 @@ useBatchDerivedModel(initState, {
     callback: (nextSource, prevSource, state, )
 })
 
-### <span id="useLight">useLight</span>
+### <span id="useSkipMountEffect">useSkipMountEffect</span>
 > ⚠️ 首次挂载并不会执行 callback，首次之后如果 deps 变了就会执行
 
-useLight(callback, deps);
+useSkipMountEffect(callback, deps);
 
 ```typescript
 // 如果传入的是空数组依赖，则 callback 永远不会执行
-useLight(() => {
+useSkipMountEffect(() => {
   console.log('1');
 }, []);
 
@@ -566,7 +562,7 @@ const [count, updateCount] = useState(0);
 
 // 组件首次挂载时并不会执行 callback
 // 首次挂载后，后续 count 变化会引起 callback 执行
-useLight(() => {
+useSkipMountEffect(() => {
   console.log(count);
 }, [count]);
 
@@ -684,16 +680,24 @@ export interface SuspenseOptions {
 
 #### control
 
-> GluerReturn<{ loading: boolean; successful: boolean; error?: any; key?: string; data?: any; }>
+> GlueReturn<{ loading: boolean; successful: boolean; error?: any; key?: string; data?: any; }>
 
 
-必须是由gluer定义的model。用来控制 useModel 和 useIndividualModel 返回的status，以及在首次组件渲染禁止调用service。
+必须是由glue定义的model。用来控制 useModel 和 useIndividualModel 返回的status，以及在首次组件渲染禁止调用service。
 
 其中key是control的标识，消费control的业务代码可以根据key值来决定是否使用control的数据和状态。
 
 需要说明的是：如果传入了control model，组件首次渲染时不会调用service；control model会一直控制useModel和useIndividualModel
 返回的status，直到调用service进行了一次异步更新(注意是异步更新，同步更新不会解除control model的控制)。
 
+#### autoLoad
+bool 类型，默认为 true；如果设置为 false，service 不会自动执行
+
+```typescript
+const [state] = useModel(initState, service, deps, {
+  autoLoad: false,
+})
+```
 
 ### 循环依赖
 

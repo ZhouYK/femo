@@ -14,4 +14,5 @@ export const resolveCatchError = 'resolvePromiseCatchError';
 export const underModelCallbackContext = 'underModelChangeContext';
 
 export const defaultServiceOptions: ServiceOptions = {
+  autoLoad: true,
 };

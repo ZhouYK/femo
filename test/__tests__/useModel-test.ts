@@ -1,11 +1,11 @@
 import useModel from '../../src/hooks/useModel';
 import useIndividualModel from '../../src/hooks/useIndividualModel';
 import { act, renderHook } from "@testing-library/react-hooks";
-import gluer from "../../src/core/gluer";
+import glue from "../../src/core/glue";
 import {useState} from "react";
-import { RacePromise, ServiceControl } from "../../index";
+import { RacePromise, Service, ServiceControl } from "../../index";
 
-const model = gluer(0);
+const model = glue(0);
 
 describe('useModel test', () => {
   beforeEach(() => {
@@ -398,7 +398,7 @@ describe('useModel test', () => {
   });
 
   test('useModel control', async () => {
-    const model1 = gluer(0);
+    const model1 = glue(0);
     const service_call_mock = jest.fn(() => {
     });
     const { result: result1, unmount: unmount1, waitForNextUpdate: waitForNextUpdate1 } = renderHook(() => {
@@ -421,13 +421,13 @@ describe('useModel test', () => {
     });
 
 
-    const controlModel = gluer<ServiceControl>({
+    const controlModel = glue<ServiceControl>({
       loading: false,
       successful: false,
     });
     const service_control_call_mock = jest.fn(() => {
     });
-    const model2 = gluer(0);
+    const model2 = glue(0);
     const { result: result2, unmount: unmount2 } = renderHook(() => {
       const [count, updateCount] = useState(0);
       const service = () => {
@@ -1319,7 +1319,7 @@ describe('useModel test', () => {
 
   test('useModel race canceled by self', async () => {
 
-    const model_2 = gluer(0);
+    const model_2 = glue(0);
     let p1: RacePromise | undefined;
     const onUpdate_1 = jest.fn(() => {
       p1 = model_2.race((s) => {
@@ -1331,7 +1331,7 @@ describe('useModel test', () => {
       })
     })
 
-    const model_1 = gluer(0);
+    const model_1 = glue(0);
     const unmount_1 = model_1.onUpdate(onUpdate_1);
 
 
@@ -1501,5 +1501,54 @@ describe('useModel test', () => {
     });
 
     unmount_1();
+  });
+
+  test('useModel autoLoad', async () => {
+
+
+    const service = jest.fn((s: number, data?: number) => {
+      if (typeof data === 'number') return data;
+      return s + 1;
+    });
+
+    const { result, unmount } = renderHook(() => {
+      const [count, updateCount] = useState(0);
+      const [age,,, {
+        service: ageService,
+      }] = useModel(0, service as Service<number>, [count], {
+        autoLoad: false,
+      });
+
+      return {
+        age,
+        ageService,
+        count,
+        updateCount
+      }
+    });
+
+    expect(result.current.count).toBe(0);
+    expect(result.current.age).toBe(0);
+    expect(service.mock.calls.length).toBe(0);
+
+    act(() => {
+      result.current.updateCount((cnt) => cnt + 1);
+    });
+
+    expect(result.current.count).toBe(1);
+    expect(result.current.age).toBe(0);
+    expect(service.mock.calls.length).toBe(0);
+
+    act(() => {
+      result.current.ageService(100)
+    })
+
+    expect(result.current.count).toBe(1);
+    expect(result.current.age).toBe(100);
+    expect(service.mock.calls.length).toBe(1);
+
+    act(() => {
+      unmount();
+    })
   })
 });

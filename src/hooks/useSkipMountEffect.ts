@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-const useLight = (callback: () => void, deps: any[]) => {
+const useSkipMountEffect = (callback: () => void, deps: any[]) => {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
@@ -25,4 +25,4 @@ const useLight = (callback: () => void, deps: any[]) => {
   }
 }
 
-export default useLight;
+export default useSkipMountEffect;

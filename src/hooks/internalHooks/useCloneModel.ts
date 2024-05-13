@@ -13,7 +13,7 @@ import {
   resolveCatchError,
 } from '../../core/constants';
 import { ErrorFlag, promiseDeprecatedError } from '../../core/genRaceQueue';
-import { defaultReducer } from '../../core/gluer';
+import { defaultReducer } from '../../core/glue';
 import runtimeVar from '../../core/runtimeVar';
 import { isAsync, isModel } from '../../tools';
 

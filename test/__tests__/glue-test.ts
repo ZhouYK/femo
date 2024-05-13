@@ -1,13 +1,13 @@
-import gluer from '../../src/core/gluer';
+import glue from '../../src/core/glue';
 import {subscribe} from "../../src";
 
 describe('gluer normal test',  () => {
   test('gluer => function', () => {
-    expect(gluer).toBeInstanceOf(Function);
+    expect(glue).toBeInstanceOf(Function);
   });
 
   test('gluer`s return => function', () => {
-    const gr = gluer(0);
+    const gr = glue(0);
     expect(gr).toBeInstanceOf(Function);
   });
 });
@@ -19,14 +19,14 @@ describe('gluer normal test',  () => {
 // });
 
 describe('gluer update data test', () => {
-  const name = gluer('小光');
-  const age = gluer((state: number, data: number) => {
+  const name = glue('小光');
+  const age = glue((state: number, data: number) => {
     if (typeof data === 'number') {
       return data ** 2;
     }
     return state;
   });
-  const tall = gluer((state, data) => {
+  const tall = glue((state, data) => {
     if (typeof data === 'number') {
       return data + state;
     }
@@ -131,8 +131,8 @@ describe('gluer update data test', () => {
 
 describe('watch test', () => {
   test('normal test', () => {
-    const name = gluer('小军');
-    const person = gluer({
+    const name = glue('小军');
+    const person = glue({
       name: name(),
       age: 22
     });
@@ -191,9 +191,9 @@ describe('watch test', () => {
   });
 
   test('async test', () => {
-    const name = gluer('张清');
+    const name = glue('张清');
 
-    const person = gluer({
+    const person = glue({
       name: name(),
       age: 20,
     });
@@ -240,9 +240,9 @@ describe('unbind watch test', () => {
         name: result[0],
       }
     });
-    const name = gluer('小明');
-    const age = gluer(10);
-    const student = gluer({
+    const name = glue('小明');
+    const age = glue(10);
+    const student = glue({
       name: name(),
       age: age(),
     });
@@ -284,9 +284,9 @@ describe('unbind watch test', () => {
   test('async test', async () => {
 
     const callback = jest.fn((n) => n);
-    const name = gluer('张清');
+    const name = glue('张清');
 
-    const person = gluer({
+    const person = glue({
       name: name(),
       age: 20,
     });
@@ -309,7 +309,7 @@ describe('unbind watch test', () => {
 
 describe('test rest', () => {
   test('rest', () => {
-    const name = gluer('初始名字');
+    const name = glue('初始名字');
     const callback = jest.fn((n) => {
       return n;
     });
@@ -326,7 +326,7 @@ describe('test rest', () => {
 
 describe('onChange & unbind onChange test', () => {
   test('onChange', () => {
-    const name = gluer('初始名字');
+    const name = glue('初始名字');
     const callback = jest.fn((n) => n);
     const unsub = name.onChange(callback);
     expect(callback.mock.calls.length).toBe(0);
@@ -338,7 +338,7 @@ describe('onChange & unbind onChange test', () => {
     name('张五');
     expect(callback.mock.calls.length).toBe(2);
 
-    const age = gluer(1);
+    const age = glue(1);
     const callback_1 = jest.fn((n) => n);
     const callback_2 = jest.fn((n) => n);
     const unsub_1 = age.onChange(callback_1);
@@ -365,9 +365,9 @@ describe('onChange & unbind onChange test', () => {
 });
 
 describe('model onChange/onUpdate race condition test', () => {
-  const model_1 = gluer(0);
-  const model_2 = gluer(0);
-  const model_3 = gluer(0);
+  const model_1 = glue(0);
+  const model_2 = glue(0);
+  const model_3 = glue(0);
 
   beforeEach(() => {
     model_1.reset();

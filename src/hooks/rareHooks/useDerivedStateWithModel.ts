@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { defaultReducer } from '../../core/gluer';
+import { defaultReducer } from '../../core/glue';
 import runtimeVar from '../../core/runtimeVar';
 import subscribe from '../../core/subscribe';
 import { Callback, FemoModel } from '../../../index';
