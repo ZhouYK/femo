@@ -12,7 +12,7 @@ import {
   promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService,
   resolveCatchError,
 } from '../../core/constants';
-import { ErrorFlag, promiseDeprecatedError } from '../../core/genRaceQueue';
+import { ErrorFlag, isRaceError, } from '../../core/genRaceQueue';
 import { defaultReducer } from '../../core/glue';
 import runtimeVar from '../../core/runtimeVar';
 import { isAsync, isModel } from '../../tools';
@@ -32,7 +32,7 @@ export const runtimePromiseDeprecatedVarAssignment = <P>(callback: () => Promise
 }
 
 export const isDeprecatedBySelf = (err: any, p: RacePromise, flags: ErrorFlag[]) => {
-  const isDeprecatedError = err === promiseDeprecatedError;
+  const isDeprecatedError = isRaceError(err);
   let deprecatedBySelf = false;
   const l = flags.length;
   for (let i = 0; i < l; i += 1) {
@@ -134,11 +134,11 @@ const useCloneModel = <T = never>(model: FemoModel<T>, mutedCallback: Callback, 
         // 如果不是异步竞争引起的异常或者不是clonedModel(包含了local service)引起的异步竞争，则需要设置loading状态
         // 这里关键是要确定 loading 和 promise 的对应关系，如果 promise 对应的是这里的 loading，则不用设置状态，因为已经上面👆🏻promise外设置了。
         // 详细信息请看上面的 runtimePromiseDeprecatedVarAssignment 注释
-        if (err !== promiseDeprecatedError || !isDeprecatedBySelf(err, p, [promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService])) {
+        if (!isRaceError(err) || !isDeprecatedBySelf(err, p, [promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService])) {
           syncUpdateStatus({
             loading: false,
             successful: false,
-            error: err === promiseDeprecatedError ? null : err,
+            error: isRaceError(err) ? null : err,
           });
         }
         return resolveCatchError;

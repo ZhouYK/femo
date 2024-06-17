@@ -10,7 +10,7 @@ import {
   pureServiceKey,
   resolveCatchError
 } from '../core/constants';
-import { promiseDeprecatedError } from '../core/genRaceQueue';
+import { isRaceError, } from '../core/genRaceQueue';
 import { isDeprecatedBySelf } from './internalHooks/useCloneModel';
 
 const defaultOptions: IndividualServiceOptions = {
@@ -52,7 +52,7 @@ const useLocalService = <S, D>(service: LocalService<S, D>, options?: Individual
       if (unmountedFlagRef.current) return resolveCatchError;
       // 如果不是异步竞争引起的异常，则需要设置loading状态
       // 详细信息请看 useCloneModel
-      if (err !== promiseDeprecatedError || !isDeprecatedBySelf(err, p, [promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure])) {
+      if (!isRaceError(err) || !isDeprecatedBySelf(err, p, [promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure])) {
         updateStatus((prevState) => {
           return {
             ...prevState,

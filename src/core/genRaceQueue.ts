@@ -10,6 +10,7 @@ export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromC
 export const errorFlags = [promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure];
 
 export const promiseDeprecatedError = 'the promise is deprecated by race condition';
+export const isRaceError = (error: any) =>  error === promiseDeprecatedError;
 
 const genRaceQueue = (deprecatedError?: ErrorFlag): RaceQueueObj => {
   const errorFlag = deprecatedError || promiseDeprecated;

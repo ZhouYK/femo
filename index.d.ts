@@ -27,7 +27,9 @@ export interface ManualException {
 
 export type HandleFunc<S, D, CR> = (state: S, data: D) => CR;
 
-// @deprecated please use GlueReturnFn instead
+/**
+ * @deprecated please use GlueReturnFn instead
+  */
 export type GluerReturnFn<S> = {
   (): S;
   <D = undefined, CR = S>(customHandler: HandleFunc<S, D, CR>): CR extends Promise<any> ? Promise<S> : S;
@@ -164,11 +166,17 @@ export interface RaceQueueObj {
 
 export const promiseDeprecatedError: string;
 
-// @deprecated please use glue instead
+/**
+ * @deprecated please use glue instead
+ */
 export function gluer<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
-// @deprecated please use glue instead
+/**
+ * @deprecated please use glue instead
+ */
 export function gluer<S, D = any>(initialState: S) : FemoModel<S>;
-// @deprecated please use glue instead
+/**
+ * @deprecated please use glue instead
+ */
 export function gluer<S , D = any, R = any>(fn:  HandleFunc<S, D, R>, initialState: S) : FemoModel<S>;
 
 export function glue<S, D = any, R = any>(fn: HandleFunc<S, D, R>) : FemoModel<S>;
@@ -202,7 +210,9 @@ export function useLocalService<S, D>(service: LocalService<S, D>, options?: Ind
 export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
 export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
 
-// @deprecated please use useSkipMountEffect instead
+/**
+ * @deprecated please use useSkipMountEffect instead
+ */
 export function useLight(callback: () => any, deps: any[]): void;
 export function useSkipMountEffect(callback: () => any, deps: any[]): void;
 
