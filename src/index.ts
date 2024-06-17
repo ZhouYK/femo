@@ -15,8 +15,10 @@ export { default as useDerivedStateWithModel } from './hooks/rareHooks/useDerive
 export { default as useSubscribe } from './hooks/rareHooks/useSubscribe';
 export { default as useException } from './hooks/rareHooks/useException';
 export { default as useLocalService } from './hooks/useLocalService';
-// @deprecated please use useSkipMountEffect instead
-export { default as useLight } from './hooks/useSkipMountEffect';
-export { default as useSkipMountEffect } from './hooks/useSkipMountEffect';
+/**
+ * @deprecated please use useSkipOnce instead
+ */
+export { default as useLight } from './hooks/useSkipOnce';
+export { default as useSkipOnce } from './hooks/useSkipOnce';
 export { default as Inject } from './hoc/Inject';
 export { default as runtimeVar } from './core/runtimeVar';

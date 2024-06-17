@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useState } from 'react';
-import useSkipMountEffect from '../../src/hooks/useSkipMountEffect';
+import useSkipOnce from '../../src/hooks/useSkipOnce';
 
 
 describe('useSkipMountEffect test', () => {
@@ -11,7 +11,7 @@ describe('useSkipMountEffect test', () => {
     const { result, unmount } = renderHook(() => {
       const [count, updateCount] = useState(0);
       const [, updateAge] = useState(0);
-      useSkipMountEffect(callbackMock, [count]);
+      useSkipOnce(callbackMock, [count]);
       return {
         count,
         updateCount,
