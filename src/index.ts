@@ -1,5 +1,8 @@
-
+/**
+ * @deprecated please use glue instead
+ */
 export { default as gluer } from './core/glue';
+export { default as glue } from './core/glue';
 export { default as subscribe } from './core/subscribe';
 export { default as unsubscribe } from './core/unsubscribe';
 export { default as genRaceQueue, promiseDeprecatedError } from './core/genRaceQueue';
