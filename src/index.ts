@@ -5,7 +5,7 @@ export { default as gluer } from './core/glue';
 export { default as glue } from './core/glue';
 export { default as subscribe } from './core/subscribe';
 export { default as unsubscribe } from './core/unsubscribe';
-export { default as genRaceQueue, promiseDeprecatedError } from './core/genRaceQueue';
+export { default as genRaceQueue, promiseDeprecatedError, isRaceError } from './core/genRaceQueue';
 export { default as genRegister } from './core/register';
 export { default as useModel } from './hooks/useModel';
 export { default as useIndividualModel } from './hooks/useIndividualModel';

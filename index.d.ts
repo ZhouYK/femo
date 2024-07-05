@@ -187,6 +187,7 @@ export function subscribe(deps: FemoModel<any>[], callback: (...args: any[]) => 
 export function unsubscribe(targetDeps?: FemoModel<any>[], callback?: Callback | Callback[]): void;
 
 export function genRaceQueue(): RaceQueueObj;
+export function isRaceError<E>(error: E): boolean;
 
 export function genRegister<M>(): {
   register: <K extends keyof M>(key: K, model: M[K]) => void;

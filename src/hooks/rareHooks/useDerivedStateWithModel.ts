@@ -35,6 +35,11 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
 
 
   const updateState = useCallback((s: S, silent = true) => {
+    // silent 是控制 deps 中 model 的变更刷新的
+    // 只有 deps 中的 model 才会是 false，这时允许刷新组件
+    if (!silent) {
+      refresh({});
+    }
     runtimeVar.runtimeFromDerived = true;
     noticeChangeRef.current = modelRef.current?.preTreat(s) as S;
     if (keepSilentRef.current) {
@@ -48,9 +53,6 @@ const useDerivedStateWithModel = <S = any>( model: FemoModel<S>, callback: (stat
       return;
     }
     runtimeVar.runtimeFromDerived = false;
-    if (!silent) {
-      refresh({});
-    }
   }, []);
 
   const callWhenChange = (silent = true) => {
