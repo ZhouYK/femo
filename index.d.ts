@@ -212,10 +212,15 @@ export function useDerivedState<S = any>(initState: S | (() => S), callback: (st
 export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
 
 /**
- * @deprecated please use useSkipOnce instead
+ * @deprecated please use useUpdateEffect instead
  */
 export function useLight(callback: () => any, deps: any[]): void;
+/**
+ * @deprecated please use useUpdateEffect instead
+ */
 export function useSkipOnce(callback: () => any, deps: any[]): void;
+
+export function useUpdateEffect(callback: () => any, deps: any): void;
 
 export function Inject<P extends InjectProps>(WrappedComponent: FC<P>): (count: number) => FC<Omit<P, 'suspenseKeys'>>;
 

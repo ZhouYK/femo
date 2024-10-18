@@ -357,8 +357,9 @@ someModel.race(async (state, data) => { return await fetchRemote() })
 - <a href="#useDerivedState">useDerivedState</a>
 - <a href="#useDerivedModel">useDerivedModel</a>
 - <a href="#useBatchDerivedModel">useBatchDerivedModel</a>
-- <a href="#useSkipOnce">(废弃)~~useLight~~</a> 请使用 useSkipOnce 代替
-- <a href="#useSkipOnce">useSkipOnce</a>
+- <a href="#useUpdateEffect">(废弃)~~useLight~~</a> 请使用 useSkipOnce 代替
+- <a href="#useUpdateEffect">(废弃)~~useSkipOnce~~</a> 请使用 useUpdateEffect 代替
+- <a href="#useUpdateEffect">useUpdateEffect</a>
 - <a href="#useLocalService">useLocalService</a>
 
 react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
@@ -547,14 +548,14 @@ useBatchDerivedModel(initState, {
     callback: (nextSource, prevSource, state, )
 })
 
-### <span id="useSkipOnce">useSkipOnce</span>
+### <span id="useUpdateEffect">useUpdateEffect</span>
 > ⚠️ 首次挂载并不会执行 callback，首次之后如果 deps 变了就会执行
 
-useSkipOnce(callback, deps);
+useUpdateEffect(callback, deps);
 
 ```typescript
 // 如果传入的是空数组依赖，则 callback 永远不会执行
-useSkipOnce(() => {
+useUpdateEffect(() => {
   console.log('1');
 }, []);
 
@@ -562,7 +563,7 @@ const [count, updateCount] = useState(0);
 
 // 组件首次挂载时并不会执行 callback
 // 首次挂载后，后续 count 变化会引起 callback 执行
-useSkipOnce(() => {
+useUpdateEffect(() => {
   console.log(count);
 }, [count]);
 
