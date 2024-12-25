@@ -260,6 +260,7 @@ const familyModel_1 = usePick('family');
 - <a href="#onChange">onChange</a>
 - <a href="#silent">silent</a>
 - <a href="#race">race</a>
+- <a href="#config">config</a>
 
 ### <span id="watch">watch</span>
 > 声明节点的依赖，并注册回调
@@ -347,6 +348,16 @@ someModel.race(params, async (state, data) => {
 // p2请求
 someModel.race(async (state, data) => { return await fetchRemote() })
 ```
+
+### <span id="config">config</span>
+> 节点配置方法
+
+```js
+someModel.config({
+  updatePolicy: 'merge', // 数据更新策略：merge 表示合并，replace 表示替换，默认为 replace
+})
+```
+
 
 ## 搭配React
 

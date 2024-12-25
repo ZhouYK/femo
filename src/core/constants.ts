@@ -1,4 +1,4 @@
-import {ServiceOptions} from '../../index';
+import { GlueConfig, ServiceOptions } from '../../index';
 
 export const promiseDeprecated = 'promiseDeprecated';
 export const manualThrownError = 'manual thrown error';
@@ -16,3 +16,13 @@ export const underModelCallbackContext = 'underModelChangeContext';
 export const defaultServiceOptions: ServiceOptions = {
   autoLoad: true,
 };
+export const GlueConflictPolicy: {
+  [k: string]: GlueConfig['updatePolicy'];
+} = {
+  replace: 'replace',
+  merge: 'merge',
+}
+
+export const defaultGlueConfig: GlueConfig = {
+  updatePolicy: GlueConflictPolicy.replace,
+}

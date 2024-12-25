@@ -3,7 +3,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true, // 这个开关为true代表和babel import行为一致，为false代表需要import * as xx
     "module": "esnext", // 使用 esnext 模块
-    "target": "ES5", // 编译成 esnext (Babel 将做剩下的事情) https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+    "target": "es2020", // 编译成 esnext (Babel 将做剩下的事情) https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
     "allowSyntheticDefaultImports": true, // 看下面
     "baseUrl": ".", // 可以相对这个目录 import 文件
     "sourceMap": false, // 使 TypeScript 生成 sourcemaps

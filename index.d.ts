@@ -124,6 +124,14 @@ export interface OnCallback<S> {
   // __listen_type?: ListenType;
 }
 
+export interface GlueConfig {
+  updatePolicy?: 'replace' | 'merge';
+}
+
+export interface GlueConfigFn {
+  (config?: GlueConfig): GlueConfig;
+}
+
 export type ModelMethod<S> = {
   reset: () => void;
   watch: <T extends FemoModel<any>[]>(model: T, callback: (data: Copy<T>, state: S ) => S | Promise<S>) => () => void;
@@ -131,6 +139,7 @@ export type ModelMethod<S> = {
   onUpdate: (callback: OnCallback<S>) => UnsubCallback;
   silent: GlueReturnFn<S>;
   race: RaceFn<S>;
+  config: GlueConfigFn;
   __race__?: RaceFn<S>;
   preTreat: GlueReturnFn<S>;
 };
@@ -158,9 +167,12 @@ export type RacePromise = Promise<any> & {
 };
 
 export interface RaceQueueObj {
-  push: <T = any>(p: RacePromise, customerErrorFlag?: ErrorFlag) => void;
+  push: (p: RacePromise, customerErrorFlag?: ErrorFlag) => void;
   clear: (customerErrorFlag?: ErrorFlag) => void;
   destroy: (customerErrorFlag?: ErrorFlag) => void;
+  getIndex: (p: Promise<any>) => number;
+  replace: (p: Promise<any>, by?: any) => void;
+  slice: (start: number, end?: number) => Promise<any>[]
   __UNSAFE__getQueue: () => (Promise<any>[]) | null
 }
 

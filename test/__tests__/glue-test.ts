@@ -730,5 +730,141 @@ describe('model onChange/onUpdate race condition test', () => {
   })
 
 
+  test('model conflict policy merge', async () => {
+    const monkey = glue({
+      name: '山涧',
+      age: 1,
+      height: 10,
+    });
+    monkey.config({
+      updatePolicy: 'merge',
+    });
+
+    monkey({
+      age: 10,
+    });
+
+    expect(monkey()).toMatchObject({
+      name: '山涧',
+      age: 10,
+      height: 10,
+    });
+
+    // 更新非对象数据会直接替换原数据
+    monkey(10);
+    expect(monkey()).toBe(10);
+
+    monkey({
+      name: '明月',
+      age: 1,
+      height: 1
+    });
+    expect(monkey()).toMatchObject({
+      name: '明月',
+      age: 1,
+      height: 1,
+    });
+
+    // 数组也被认为不是 [Object object]
+    // 实际上是 [Object Array]
+    monkey([1]);
+    expect(monkey()).toMatchObject([1]);
+
+    monkey({
+      name: '林风',
+      age: 2,
+      height: 2,
+    });
+
+    expect(monkey()).toMatchObject({
+      name: '林风',
+      age: 2,
+      height: 2,
+    });
+
+    monkey.race(() => {
+      return {
+        name: '草露',
+      }
+    });
+    expect(monkey()).toMatchObject({
+      name: '草露',
+      age: 2,
+      height: 2,
+    });
+
+    monkey.race(async () => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            name: '月光',
+            age: 10,
+            height: 20,
+          })
+        }, 3000);
+      })
+    });
+
+    monkey.race(async () => {
+      return {
+        age: 11,
+      }
+    });
+
+    monkey.race(async () => {
+      return {
+        height: 99,
+      }
+    });
+
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(1);
+      }, 4000);
+    });
+
+    expect(monkey()).toMatchObject({
+      name: '月光',
+      height: 99,
+      age: 11,
+    });
+
+    monkey.race(async () => {
+      return {
+        name: '月寒',
+      }
+    });
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(1);
+      }, 1000);
+    })
+    expect(monkey()).toMatchObject({
+      name: '月寒',
+      height: 99,
+      age: 11,
+    });
+
+    // 非 race 异步更新，由于没有保证时序，这种更新会比较随机
+    monkey(Promise.resolve({
+      name: '日暖',
+    }));
+
+    monkey({
+      name: '天宽',
+    });
+
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(1);
+      }, 1000);
+    });
+
+    expect(monkey()).toMatchObject({
+      name: '日暖',
+      age: 11,
+      height: 99,
+    });
+  })
 })
 

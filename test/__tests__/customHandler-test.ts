@@ -70,7 +70,7 @@ describe('customHandler test', () => {
 
   });
 
-  test('async customerHandler test with promise', () => {
+  test('async customerHandler test with promise', async () => {
     const name = gluer('小明');
     const age = gluer((_state, data) => {
       return data + 2;
@@ -91,6 +91,11 @@ describe('customHandler test', () => {
       return Promise.resolve(data);
     }).catch((err: any) => Promise.reject(err))
 
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(undefined);
+      }, 1000);
+    });
     const rejectPromise = name('promise reject', async (s, _d) => {
       try {
         await Promise.reject('promise reject');
