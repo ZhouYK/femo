@@ -1,10 +1,11 @@
+import { RacePromise, RaceQueueObj } from '../../index';
+import { isAsync, isPromise } from '../tools';
 import {
   promiseDeprecated,
   promiseDeprecatedFromClonedModel,
   promiseDeprecatedFromLocalService,
   promiseDeprecatedFromLocalServicePure
 } from './constants';
-import {RacePromise, RaceQueueObj} from '../../index';
 
 export type ErrorFlag = typeof promiseDeprecated | typeof promiseDeprecatedFromClonedModel | typeof promiseDeprecatedFromLocalService | typeof promiseDeprecatedFromLocalServicePure;
 export const errorFlags = [promiseDeprecated, promiseDeprecatedFromClonedModel, promiseDeprecatedFromLocalService, promiseDeprecatedFromLocalServicePure];
@@ -18,37 +19,69 @@ const genRaceQueue = (deprecatedError?: ErrorFlag): RaceQueueObj => {
 
   return {
     push: (p: RacePromise, customerErrorFlag?: ErrorFlag ) => {
-      if (!(p instanceof Promise)) {
+      if (!isPromise(p)) {
         throw new Error('The race queue item should be Promise');
       }
       const flag = customerErrorFlag || errorFlag;
-      const t = raceQueue?.[0];
-      if (t) {
-        // @ts-ignore
-        if (!errorFlags.some((ef) => t[ef])) {
-          t[flag] = true;
+      // 不管什么策略 replace/merge 都打上标记
+      // 只是在处理的地方区分就行了
+      raceQueue?.forEach((t) => {
+        if (t) {
+          // @ts-ignore
+          if (!errorFlags.some((ef) => t?.[ef])) {
+            t[flag] = true;
+          }
         }
+      })
+      // 如果现存的元素没有 promise，则清空
+      if (
+        !(raceQueue?.some((rqp) => {
+          return isPromise(rqp);
+        }))
+      ) {
+        raceQueue?.splice(0);
       }
-      raceQueue?.splice(0);
       raceQueue?.push(p);
       return p;
     },
 
     clear: (customerErrorFlag?: ErrorFlag) => {
       const flag = customerErrorFlag || errorFlag;
-      if (raceQueue && !!raceQueue[0]) {
-        raceQueue[0][flag] = true;
-      }
+      raceQueue?.forEach((rp) => {
+        if (isAsync(rp)) {
+          rp[flag] = true;
+        }
+      })
       raceQueue?.splice(0);
     },
 
     destroy: (customerErrorFlag?: ErrorFlag) => {
       const flag = customerErrorFlag || errorFlag;
-      if (raceQueue && !!raceQueue[0]) {
-        raceQueue[0][flag] = true;
-      }
+      raceQueue?.forEach((rp) => {
+        if (isAsync(rp)) {
+          rp[flag] = true;
+        }
+      })
       raceQueue?.splice(0);
       raceQueue = null;
+    },
+
+    getIndex: (p: Promise<any>) => {
+      return (raceQueue || [])?.indexOf(p);
+    },
+
+    slice: (...args: any[]) => {
+      return (raceQueue || [])?.slice(...args)
+    },
+
+    replace: (...args: any[]) => {
+      const [p, by] = args;
+      const index = (raceQueue || [])?.indexOf(p);
+      if (args.length === 1) {
+        raceQueue?.splice(index, 1);
+        return;
+      }
+      raceQueue?.splice(index, 1, by);
     },
 
     __UNSAFE__getQueue: () => raceQueue,

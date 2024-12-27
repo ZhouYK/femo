@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-const useSkipOnce = (callback: () => void, deps: any[]) => {
+const useUpdateEffect = (callback: () => void, deps: any[]) => {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
 
@@ -25,4 +25,4 @@ const useSkipOnce = (callback: () => void, deps: any[]) => {
   }
 }
 
-export default useSkipOnce;
+export default useUpdateEffect;

@@ -1,9 +1,15 @@
 import { BindType, Callback, FemoModel, HandleFunc, RacePromise } from '../../index';
-import { gluerUniqueFlagKey, gluerUniqueFlagValue, promiseDeprecated, underModelCallbackContext, } from './constants';
+import { composeReducer, isArray, isAsync, isTagged, mergeCurToPre, tagPromise } from '../tools';
+import {
+  defaultGlueConfig, GlueConflictPolicy,
+  gluerUniqueFlagKey,
+  gluerUniqueFlagValue,
+  promiseDeprecated,
+  underModelCallbackContext,
+} from './constants';
 import genRaceQueue, { ErrorFlag, errorFlags, promiseDeprecatedError } from './genRaceQueue';
 import runtimeVar, { RuntimeUpdateOrigin } from './runtimeVar';
 import subscribe from './subscribe';
-import { composeReducer, isArray, isAsync, isTagged, tagPromise } from '../tools';
 import { callbackToModelsMap, modelToCallbacksMap, modelToRacePromisesMap } from './unsubscribe';
 
 export const defaultReducer = (_state: any, data: any) => data;
@@ -115,16 +121,17 @@ function glue(...args: any[]) {
   } else if (typeof rd !== 'function') {
     // 放宽对 rd 的限制
     reducerFnc = defaultReducerLast;
-    console.warn('gluer\'s first argument is not function');
   } else {
     reducerFnc = rd;
   }
 
-  let gluerState = initState;
+  let glueState = initState;
+  let glueConfig = defaultGlueConfig;
 
-  const rq = genRaceQueue();
 
   let fn: any;
+
+  const rq = genRaceQueue();
 
   // mutedCallback：不执的回调
   const updateFn = (data: any, silent: boolean, mutedCallback: Callback) => {
@@ -155,8 +162,8 @@ function glue(...args: any[]) {
 
       const onUpdateListenTypeCallback: Callback[] = [];
       const cbs = modelToCallbacksMap.get(fn) as Set<Callback>;
-      if (!(Object.is(data, gluerState))) {
-        gluerState = data;
+      if (!(Object.is(data, glueState))) {
+        glueState = data;
         cbs?.forEach((callback) => {
           if (callback !== mutedCallback) {
             if (callbackToModelsMap.has(callback)) {
@@ -189,7 +196,7 @@ function glue(...args: any[]) {
       // 如果有值，则表示上面已经处理过了，直接执行就好
       if (onUpdateListenTypeCallback.length) {
         onUpdateListenTypeCallback.forEach((callback) => {
-          callback(gluerState);
+          callback(glueState);
         })
       } else {
         // 如果没有，则要自己筛选
@@ -197,14 +204,14 @@ function glue(...args: any[]) {
           if (callback !== mutedCallback) {
             if (isOnUpdateListenTypeCallback(callback)) {
               if (isInvalidCallback(callback)) return;
-              callback(gluerState);
+              callback(glueState);
             }
           }
         })
       }
       runtimeVar.runtimeRacePromiseContext = '';
-    } else if (!(Object.is(data, gluerState))) {
-        gluerState = data;
+    } else if (!(Object.is(data, glueState))) {
+        glueState = data;
     }
   };
 
@@ -213,7 +220,7 @@ function glue(...args: any[]) {
     let customHandler;
     if (ags.length === 0) {
       // 直接返回
-      return gluerState;
+      return glueState;
     } if (ags.length === 1) {
       // 只有一个传参
       if (typeof ags[0] === 'function') {
@@ -228,11 +235,11 @@ function glue(...args: any[]) {
     const tmpHandler = customHandler || defaultReducer;
 
     const realHandler = composeReducer(tmpHandler, reducerFnc);
-    return realHandler(gluerState, payload);
+    return realHandler(glueState, payload);
   }
   const basicLogic = (silent = false) => (...ags: any[]) => {
     // 获取不走预处理
-    if (ags.length === 0) return gluerState;
+    if (ags.length === 0) return glueState;
 
     let tempResult;
     if (runtimeVar.runtimeNoPreTreat) {
@@ -280,15 +287,53 @@ function glue(...args: any[]) {
         forAsyncRuntimeDepsModelCollectedMap = null;
       };
       const errorFlag = runtimeVar.runtimePromiseDeprecatedFlag;
+
       const promise: any = (tempResult as Promise<any>).catch(e => {
         // 有可能 promise 没有在 onChange 和 onUpdate 的回调中被失效，而是自己正常完结的
         deleteRacePromise(promise); // TODO 有问题
+
+        // 如果冲突处理是 merge 策略，不用做竞态抛错处理，直接抛出原始错误信息
+        if (glueConfig?.updatePolicy === GlueConflictPolicy.merge) {
+          // merge 模式原位替换
+          rq.replace(promise, null);
+          return Promise.reject(e);
+        }
+        // 从原始数组删除 promise
+        rq.replace(promise);
         raceHandle(promise, depsClearCallback, errorFlag);
         return Promise.reject(e);
-      }).then((data) => {
+      }).then(async (data) => {
+        let tmpData = data;
         // 有可能 promise 没有在 onChange 和 onUpdate 的回调中被失效，而是自己正常完结的
         deleteRacePromise(promise);
-        raceHandle(promise, depsClearCallback, errorFlag);
+
+        // 如果冲突处理是 merge 策略，不做竞态判断
+        if (glueConfig?.updatePolicy === GlueConflictPolicy.merge) {
+          const pIndex = rq.getIndex(promise);
+          const arrBefore = rq.slice(0, pIndex < 0 ? 0 : pIndex);
+          // merge 模式原位替换
+          rq.replace(promise, tmpData);
+          // 不处于数组的开始，则需要等待前面的数据 ready
+          if (arrBefore?.length) {
+            const dataArr = await Promise.allSettled(arrBefore);
+            const values: any[] = [];
+            // 失败的结果不参与更新
+            dataArr?.forEach((d) => {
+              if (d.status === 'fulfilled') {
+                values.push(d?.value);
+              }
+            })
+            tmpData = mergeCurToPre([glueState, ...values, tmpData])
+          } else {
+            // 处于数组的开始，前面没有可更新的数据，则可以直接更新 state
+            // 或者异常情况：promise 不存在于数组中，还是去更新 state
+            tmpData = mergeCurToPre([glueState, tmpData]);
+          }
+        } else {
+          // 从原始数组删除 promise
+          rq.replace(promise);
+          raceHandle(promise, depsClearCallback, errorFlag);
+        }
         if (!silent) {
           // 异步回调中延续依赖
           runtimeVar.runtimeDepsModelCollectedMap = forAsyncRuntimeDepsModelCollectedMap;
@@ -296,7 +341,7 @@ function glue(...args: any[]) {
           runtimeVar.runtimeRacePromisesCollectedSet = forAsyncRuntimeRacePromisesCollectedSet;
           runtimeVar.runtimeBeginOriginId = forAsyncRuntimeBeginOriginId;
         }
-        updateFn(data, silent, mutedCallback);
+        updateFn(tmpData, silent, mutedCallback);
         if (!silent) {
           // 每次异步回调都相当于是一个开始，所以需要在异步回调执行完成时将依赖清空
           runtimeVar.runtimeDepsModelCollectedMap.clear();
@@ -304,8 +349,9 @@ function glue(...args: any[]) {
           runtimeVar.runtimeRacePromisesCollectedSet = null;
           runtimeVar.runtimeBeginOriginId = null;
         }
-        return data;
+        return tmpData;
       });
+
       if (process.env.NODE_ENV === 'development') {
         tagPromise(promise);
       }
@@ -313,10 +359,16 @@ function glue(...args: any[]) {
       // 返回函数处理结果
       return promise;
     }
-    updateFn(tempResult, silent, mutedCallback);
+    let finalTempResult = tempResult;
+    // merge 策略也对同步生效
+    if (glueConfig?.updatePolicy === GlueConflictPolicy.merge) {
+      finalTempResult = mergeCurToPre([glueState, tempResult]);
+    }
+
+    updateFn(finalTempResult, silent, mutedCallback);
     deleteSelf();
     // 返回函数处理结果
-    return tempResult;
+    return finalTempResult;
   }
 
   fn = basicLogic(false);
@@ -325,7 +377,7 @@ function glue(...args: any[]) {
     fn(initState);
   }
 
-  fn.watch = (models: FemoModel<any>[], callback: (data: any[], state: typeof gluerState) => any) => {
+  fn.watch = (models: FemoModel<any>[], callback: (data: any[], state: typeof glueState) => any) => {
     if (!isArray(models) || models.length === 0) {
       throw new Error('dependencies should be Array, ant not empty');
     }
@@ -338,7 +390,7 @@ function glue(...args: any[]) {
     return subscribe(models, subCallback, false);
   };
 
-  fn.onChange = (callback: (state: typeof gluerState) => void) => {
+  fn.onChange = (callback: (state: typeof glueState) => void) => {
     if (typeof callback !== 'function') {
       throw new Error('callback should be function');
     }
@@ -346,7 +398,7 @@ function glue(...args: any[]) {
     return subscribe([fn], callback, false);
   }
 
-  fn.onUpdate = (callback: (state: typeof gluerState) => void) => {
+  fn.onUpdate = (callback: (state: typeof glueState) => void) => {
     if (typeof callback !== 'function') {
       throw new Error('callback should be function');
     }
@@ -367,11 +419,14 @@ function glue(...args: any[]) {
       // 需要在 fn 被解绑监听时删除掉，所有绑定都没有了才删
       modelToRacePromisesMap.set(fn, new Set());
     }
+    // 这是收集：以当前 model 作为起点的、自当前 model 变更而起的在回调（onChange/onUpdate）里面引发的其他 model.race 的竞态 promise，只收集回调里面引发的竞态 promise
+    // 这个是为了解决不同 model 间链式的竞态问题。model_1.race -> onChange -> model_2.race
     const underModelCallbackContextRacePromises = modelToRacePromisesMap.get(fn) as Set<RacePromise>;
     const iumcc = isUnderModelCallbackContext();
     if (typeof runtimeVar.runtimeBeginOriginId !== 'number') {
       runtimeVar.runtimeBeginOriginId = runtimeVar.runtimeUpdateOriginId;
     }
+    // 当不在回调上下文时，当前 model 就是起点，则将以该 model 为起点的 race promise 全部置为失效，因为这是开启新一次竞态更新了，得把上一次还未完成的清理掉
     if (!iumcc) {
       // 不是在回调环境的，则将之前收集到的所有 race promise 置为失效
       // 每次异步调用 race ，都视为一次新开始（同循环依赖判断）
@@ -397,6 +452,7 @@ function glue(...args: any[]) {
     } else {
       fn(realValue, defaultReducer, mutedCallback);
     }
+    // 如果是在回调上下文中执行的 model.race，说明当前 model 是其他 model.race 回调的一环，需要添加到 runtimeRacePromisesCollectedSet 中去
     if (iumcc && realValueIsAsync) {
       if (typeof runtimeVar.runtimeBeginOriginId === 'number') {
         tmp.originId = runtimeVar.runtimeBeginOriginId;
@@ -408,6 +464,12 @@ function glue(...args: any[]) {
   };
 
   fn.preTreat = (...as: any) => preTreat(...as);
+
+  fn.config = (...as: any[]) => {
+    if (as.length === 0) return glueConfig;
+    [glueConfig] = as;
+    return glueConfig;
+  }
 
   Object.defineProperty(fn, gluerUniqueFlagKey, {
     value: gluerUniqueFlagValue,

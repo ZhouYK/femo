@@ -4,7 +4,11 @@ import runtimeVar from './core/runtimeVar';
 
 export const getType = (arg: any) => Object.prototype.toString.call(arg);
 export const isPlainObject = (target: any) => getType(target) === '[object Object]';
-export const isAsync = (target: any) => getType(target) === '[object AsyncFunction]' || getType(target) === '[object Promise]';
+export const isPromise = (target: any) => getType(target) === '[object Promise]';
+export const isAsync = (target: any) => {
+  const type = getType(target);
+  return type === '[object AsyncFunction]' || type === '[object Promise]'
+};
 export const isArray = (target: any) => getType(target) === '[object Array]';
 
 export const tagPromise = (p: Promise<any>) => {
@@ -46,4 +50,21 @@ export const composeReducer = <S, D, >(...args: HandleFunc<S, D, any>[]) => {
       return cur(beforeState, data);
     }
   }, args[0]);
+}
+
+/**
+ * 脚标越小，数据越老；大脚标元素覆盖小脚标元素，即新数据合并到老数据
+ * @param arr
+ */
+export const mergeCurToPre = <T>(arr: T[]) => {
+  return (arr || []).reduce((pre, cur) => {
+    if (isPlainObject(pre) && isPlainObject(cur) && !Object.is(pre, cur)) {
+      return {
+        ...pre,
+        ...cur
+      }
+    }
+    return cur;
+  }, {});
+
 }
