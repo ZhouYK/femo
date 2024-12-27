@@ -10,6 +10,7 @@ module.exports = (api) => {
       ['@babel/preset-react', {
         runtime: 'automatic',
       }],
-    ]
+    ],
+    plugins: ['@babel/plugin-transform-runtime'],
   }
 };

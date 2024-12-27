@@ -26,7 +26,7 @@ export default {
     commonjs(),
     resolve(),
     babel({
-      babelHelpers: 'bundled',
+      babelHelpers: 'runtime',
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
     } ),
     terser(),

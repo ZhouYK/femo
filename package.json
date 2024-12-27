@@ -73,6 +73,7 @@
   "devDependencies": {
     "@babel/cli": "~7.13.10",
     "@babel/core": "~7.13.10",
+    "@babel/plugin-transform-runtime": "~7.25.9",
     "@babel/preset-env": "~7.13.10",
     "@babel/preset-react": "~7.16.7",
     "@babel/preset-typescript": "~7.16.7",
@@ -108,6 +109,9 @@
     "ts-jest": "~27.0.3",
     "tslib": "~2.4.0",
     "typescript": "~4.3.5"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.8.4"
   },
   "files": [
     "src",
