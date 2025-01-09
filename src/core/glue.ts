@@ -460,7 +460,8 @@ function glue(...args: any[]) {
       runtimeVar.runtimeRacePromisesCollectedSet?.add(tmp);
     }
     runtimeVar.runtimeBeginOriginId = null;
-    return rq.push(tmp, runtimeVar.runtimePromiseDeprecatedFlag);
+    rq.push(realValueIsAsync ? tmp : realValue, runtimeVar.runtimePromiseDeprecatedFlag);
+    return tmp;
   };
 
   fn.preTreat = (...as: any) => preTreat(...as);

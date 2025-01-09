@@ -18,15 +18,12 @@ const genRaceQueue = (deprecatedError?: ErrorFlag): RaceQueueObj => {
   let raceQueue: RacePromise[] | null = [];
 
   return {
-    push: (p: RacePromise, customerErrorFlag?: ErrorFlag ) => {
-      if (!isPromise(p)) {
-        throw new Error('The race queue item should be Promise');
-      }
+    push: (p: RacePromise | any, customerErrorFlag?: ErrorFlag ) => {
       const flag = customerErrorFlag || errorFlag;
       // 不管什么策略 replace/merge 都打上标记
       // 只是在处理的地方区分就行了
       raceQueue?.forEach((t) => {
-        if (t) {
+        if (isPromise(t)) {
           // @ts-ignore
           if (!errorFlags.some((ef) => t?.[ef])) {
             t[flag] = true;
