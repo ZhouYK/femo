@@ -33,3 +33,7 @@ export { default as useSkipOnce } from './hooks/useUpdateEffect';
 export { default as useUpdateEffect } from './hooks/useUpdateEffect';
 export { default as Inject } from './hoc/Inject';
 export { default as runtimeVar } from './core/runtimeVar';
+
+export { GlueConflictPolicy } from './core/constants';
+
+export { mergeCurToPre } from './tools';

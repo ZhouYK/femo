@@ -244,3 +244,9 @@ export function useDerivedStateWithModel<S = any>(mode: FemoModel<S>, callback: 
 // export function useException(...args: ExceptionJudge[]): ManualException;
 
 export const runtimeVar: RuntimeVar
+
+export const GlueConflictPolicy: {
+  [k: string]: GlueConfig['updatePolicy'];
+}
+
+export function mergeCurToPre<T>(arr: T[]): T;
