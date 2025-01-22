@@ -68,3 +68,7 @@ export const mergeCurToPre = <T>(arr: T[]) => {
   }, {});
 
 }
+
+export const isDevelopment = () => {
+  return process.env.NODE_ENV === 'development';
+}

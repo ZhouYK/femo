@@ -3,7 +3,7 @@ import { FemoModel, Service, ServiceOptions, ServiceStatus, UnsubCallback } from
 import glue from '../core/glue';
 import runtimeVar from '../core/runtimeVar';
 import subscribe from '../core/subscribe';
-import { isModel } from '../tools';
+import { isDevelopment, isModel } from '../tools';
 import useCloneModel from './internalHooks/useCloneModel';
 import useService from './internalHooks/useService';
 import {defaultServiceOptions} from '../core/constants';
@@ -84,9 +84,7 @@ const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), ser
     }
   }, []);
 
-  // model 引用变了，先解绑，再绑定
-  // 需要在 useService 和 useCloneModel 之前用，因为可能会设置 model 的值
-  if (!Object.is(modelRef.current, model)) {
+  const modelBind = () => {
     offChangeRef.current?.();
     offUpdateRef.current?.();
     unsubRef.current?.();
@@ -102,8 +100,13 @@ const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), ser
     // subscribe 不包含进来
     unsubRef.current = subscribe([model], subscribeCallback, false, true);
     modelRef.current = model;
-
   }
+  // model 引用变了，先解绑，再绑定
+  // 需要在 useService 和 useCloneModel 之前用，因为可能会设置 model 的值
+  if (!Object.is(modelRef.current, model)) {
+    modelBind();
+  }
+
 
   const [clonedModel, status] = useCloneModel(model, subscribeCallback, finalOptions);
 
@@ -115,6 +118,12 @@ const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), ser
   const [localService] = useService(model, clonedModel, service, deps, finalOptions);
   runtimeVar.runtimeUpdateOrigin = null;
   runtimeVar.runtimeUpdateOriginId = null;
+
+  useEffect(() => {
+    if (isDevelopment()) {
+      modelBind();
+    }
+  }, [model]);
 
   useEffect(() => {
     return () => { unsubRef.current?.(); offChangeRef.current?.(); offUpdateRef.current?.(); }

@@ -1,5 +1,5 @@
 import { BindType, Callback, FemoModel, HandleFunc, RacePromise } from '../../index';
-import { composeReducer, isArray, isAsync, isTagged, mergeCurToPre, tagPromise } from '../tools';
+import { composeReducer, isArray, isAsync, isDevelopment, isTagged, mergeCurToPre, tagPromise } from '../tools';
 import {
   defaultGlueConfig, GlueConflictPolicy,
   gluerUniqueFlagKey,
@@ -114,7 +114,7 @@ function glue(...args: any[]) {
       initState = rd;
     } else {
       reducerFnc = rd;
-      if (process.env.NODE_ENV === 'development') {
+      if (isDevelopment()) {
         console.warn(getWarning(rd));
       }
     }
@@ -276,7 +276,7 @@ function glue(...args: any[]) {
         forAsyncRuntimeRacePromisesCollectedSet = runtimeVar.runtimeRacePromisesCollectedSet ?? null;
         forAsyncRuntimeBeginOriginId = runtimeVar.runtimeBeginOriginId;
       }
-      if (process.env.NODE_ENV === 'development' && isTagged(tempResult)) {
+      if (isDevelopment() && isTagged(tempResult)) {
         console.warn('传入的promise已经被model使用了，请勿重复传入相同的promise，这样可能导致异步竞争，从而取消promise！')
       }
       // promise失败的情况则不用关心 forAsyncRuntimeDepsModelCollectedMap
@@ -352,7 +352,7 @@ function glue(...args: any[]) {
         return tmpData;
       });
 
-      if (process.env.NODE_ENV === 'development') {
+      if (isDevelopment()) {
         tagPromise(promise);
       }
       deleteSelf();
