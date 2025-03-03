@@ -13,7 +13,7 @@ describe('useModel test', () => {
   });
   test('useModel basic', async () => {
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
-      const [age, _, clonedModel, { loading }] = useModel(model);
+      const [age, clonedModel, { loading }] = useModel(model);
       return {
         age,
         clonedModel,
@@ -76,7 +76,7 @@ describe('useModel test', () => {
         }
         return s;
       };
-      const [age, _, clonedModel, { loading, successful }] = useModel(model, service, [count]);
+      const [age, clonedModel, { loading, successful }] = useModel(model, service, [count]);
       return {
         age,
         clonedModel,
@@ -158,7 +158,7 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, _, clonedModel, { loading }] = useModel(model, service, [count], { onChange: onChange_mock });
+      const [age, clonedModel, { loading }] = useModel(model, service, [count], { onChange: onChange_mock });
       return {
         age,
         clonedModel,
@@ -245,7 +245,7 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, _, clonedModel, { loading, successful }] = useModel(model,  service,[count]);
+      const [age,clonedModel, { loading, successful }] = useModel(model,  service,[count]);
       return {
         age,
         clonedModel,
@@ -324,7 +324,7 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, _, clonedModel, { loading, service, successful }] = useModel(model,  serviceFn,[count]);
+      const [age, clonedModel, { loading, service, successful }] = useModel(model,  serviceFn,[count]);
       return {
         age,
         clonedModel,
@@ -411,7 +411,7 @@ describe('useModel test', () => {
         }
         return count;
       };
-      const [age, _, clonedModel, { loading }] = useModel(model1, service, [count]);
+      const [age, clonedModel, { loading }] = useModel(model1, service, [count]);
       return {
         age,
         clonedModel,
@@ -438,7 +438,7 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, _, clonedModel, { loading, successful, }] = useModel(model2, service, [count], { control: controlModel });
+      const [age, clonedModel, { loading, successful, }] = useModel(model2, service, [count], { control: controlModel });
       return {
         age,
         clonedModel,
@@ -556,7 +556,7 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, _, clonedModel, { loading, successful }] = useModel(model,  service,[count], {
+      const [age, clonedModel, { loading, successful }] = useModel(model,  service,[count], {
         onUpdate: updateCallback_mock,
         onChange: changeCallback_mock,
       });
@@ -655,7 +655,7 @@ describe('useModel test', () => {
     })
 
     const { result: result_1, unmount: unmount_1, waitForNextUpdate: waitForNextUpdate_1 } = renderHook(() => {
-      const [state, model, modelWithStatus, { loading, successful }] = useIndividualModel<number>(0, (s) => {
+      const [state, modelWithStatus, { loading, successful }] = useIndividualModel<number>(0, (s) => {
         return s;
       }, [], {
         onUpdate: onUpdateMock_1,
@@ -663,7 +663,6 @@ describe('useModel test', () => {
 
       return {
         state,
-        model,
         modelWithStatus,
         loading,
         successful,
@@ -695,7 +694,7 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, _, clonedModel, { loading, successful }] = useModel(model, service, [count], {
+      const [age, clonedModel, { loading, successful }] = useModel(model, service, [count], {
         onUpdate: onUpdateMock,
         // onChange: onChangeMock,
       });
@@ -1005,7 +1004,7 @@ describe('useModel test', () => {
     })
 
     const { result: result_1, unmount: unmount_1, waitForNextUpdate: waitForNextUpdate_1 } = renderHook(() => {
-      const [state, model, modelWithStatus, { loading, successful }] = useIndividualModel<number>(0, (s) => {
+      const [state, modelWithStatus, { loading, successful }] = useIndividualModel<number>(0, (s) => {
         return s;
       }, [], {
         onChange: onChangeMock_1,
@@ -1013,7 +1012,6 @@ describe('useModel test', () => {
 
       return {
         state,
-        model,
         modelWithStatus,
         loading,
         successful,
@@ -1045,7 +1043,7 @@ describe('useModel test', () => {
         return count;
       };
 
-      const [age, _, clonedModel, { loading, successful }] = useModel(model, service, [count], {
+      const [age, clonedModel, { loading, successful }] = useModel(model, service, [count], {
         onChange: onChangeMock_3,
       });
 
@@ -1347,7 +1345,7 @@ describe('useModel test', () => {
     });
     const { result, unmount, waitForNextUpdate } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const [age, _, clonedModel, { loading, successful }] = useModel(model, () => {
+      const [age, clonedModel, { loading, successful }] = useModel(model, () => {
         return Promise.resolve(count + 1);
       }, [count], {
         onUpdate: onUpdate_0,
@@ -1513,7 +1511,7 @@ describe('useModel test', () => {
 
     const { result, unmount } = renderHook(() => {
       const [count, updateCount] = useState(0);
-      const [age,,, {
+      const [age,, {
         service: ageService,
       }] = useModel(0, service as Service<number>, [count], {
         autoLoad: false,

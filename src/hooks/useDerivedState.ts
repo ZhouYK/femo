@@ -13,10 +13,10 @@ const useDerivedState = (...args: any[])=> {
     // useIndividualModel能区分对待函数或者直接量来进行初始化
     initState = callback;
   }
-  const [ ,model, clonedModel, status] = useModel(initState);
+  const [ , clonedModel, status] = useModel(initState);
   const { service, ...rest } = status;
-  const [state] = useDerivedStateWithModel(model, callback, deps, false, true);
-  return [state, model, clonedModel, rest];
+  const [state] = useDerivedStateWithModel(clonedModel, callback, deps, false, true);
+  return [state, clonedModel, rest];
 }
 
 export default useDerivedState;

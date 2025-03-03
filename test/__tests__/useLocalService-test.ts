@@ -20,7 +20,7 @@ describe('useLocalService:useModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age, _, clonedModel, { loading, service }] = useModel(model, getAge);
+      const [age, clonedModel, { loading, service }] = useModel(model, getAge);
       const [localService, { loading: localLoading }] = useLocalService(service);
       return {
         age,
@@ -80,7 +80,7 @@ describe('useLocalService:useModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age, _, clonedModel, { loading, service }] = useModel(model, getAge, [count]);
+      const [age, clonedModel, { loading, service }] = useModel(model, getAge, [count]);
       const [localService, { loading: localLoading }] = useLocalService(service, { bubble: true });
       return {
         age,
@@ -142,7 +142,7 @@ describe('useLocalService:useModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age, _, clonedModel, { loading, successful, service }] = useModel(model, getAge, [count]);
+      const [age, clonedModel, { loading, successful, service }] = useModel(model, getAge, [count]);
       const [localService, { loading: localLoading, successful: localSuccessful }] = useLocalService(service);
       return {
         age,
@@ -241,7 +241,7 @@ describe('useLocalService:useModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age, _, clonedModel, { loading, successful, service }] = useModel(model, getAge, [count]);
+      const [age, clonedModel, { loading, successful, service }] = useModel(model, getAge, [count]);
       const [localService, { loading: localLoading, successful: localSuccessful }] = useLocalService(service, {
         bubble: true,
       });
@@ -342,7 +342,7 @@ describe('useLocalService:useIndividualModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age,, clonedModel, { loading, service }] = useIndividualModel(0, getAge);
+      const [age, clonedModel, { loading, service }] = useIndividualModel(0, getAge);
       const [localService, { loading: localLoading }] = useLocalService(service);
       return {
         age,
@@ -402,7 +402,7 @@ describe('useLocalService:useIndividualModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age, , clonedModel, { loading, service }] = useIndividualModel(0, getAge, [count]);
+      const [age, clonedModel, { loading, service }] = useIndividualModel(0, getAge, [count]);
       const [localService, { loading: localLoading }] = useLocalService(service, { bubble: true });
       return {
         age,
@@ -464,7 +464,7 @@ describe('useLocalService:useIndividualModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age, , clonedModel , { loading, successful, service }] = useIndividualModel(0, getAge, [count]);
+      const [age, clonedModel , { loading, successful, service }] = useIndividualModel(0, getAge, [count]);
       const [localService, { loading: localLoading, successful: localSuccessful }] = useLocalService(service);
       return {
         age,
@@ -563,7 +563,7 @@ describe('useLocalService:useIndividualModel:test', () => {
         return Promise.resolve(s + 1);
       }
 
-      const [age, , clonedModel, { loading, successful, service }] = useIndividualModel(0, getAge, [count]);
+      const [age, clonedModel, { loading, successful, service }] = useIndividualModel(0, getAge, [count]);
       const [localService, { loading: localLoading, successful: localSuccessful }] = useLocalService(service, {
         bubble: true,
       });

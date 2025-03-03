@@ -17,7 +17,7 @@ let idAtom = 0;
  * @param deps (可选) 每次deps中的元素变更就会去获取更新一次model
  * @param options 详见 ServiceOptions 每次函数运行都是取的最新的options的值
  */
-const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), service?: Service<S, D> ,deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>] => {
+const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), service?: Service<S, D> ,deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, ServiceStatus<S, D>] => {
   const finalOptions = {
     ...defaultServiceOptions,
     ...options,
@@ -129,7 +129,7 @@ const useModel = <S = any, D = any>(initState: FemoModel<S> | S | (() => S), ser
     return () => { unsubRef.current?.(); offChangeRef.current?.(); offUpdateRef.current?.(); }
   }, []);
 
-  return [model(), model, clonedModel, {
+  return [model(), clonedModel, {
     ...status,
     service: localService,
   }];

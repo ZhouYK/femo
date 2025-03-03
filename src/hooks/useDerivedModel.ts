@@ -8,12 +8,12 @@ import { FemoModel, LoadingStatus } from '../../index';
  * @param source
  * @param callback
  */
-const useDerivedModel = <S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S ): [S, FemoModel<S>, FemoModel<S>, LoadingStatus] => {
-  const [ ,model, clonedModel, status] = useModel(initState);
-  const [state] = useDerivedStateToModel(source, model, callback);
+const useDerivedModel = <S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S ): [S, FemoModel<S>, LoadingStatus] => {
+  const [ , clonedModel, status] = useModel(initState);
+  const [state] = useDerivedStateToModel(source, clonedModel, callback);
   const { service, ...rest } = status;
 
-  return [state, model, clonedModel, rest];
+  return [state, clonedModel, rest];
 }
 
 export default useDerivedModel;

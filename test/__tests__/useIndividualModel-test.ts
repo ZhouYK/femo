@@ -15,15 +15,15 @@ describe('useIndividualModel test', () => {
     // state
     expect(result.current[0]).toBe(1);
     // status中的loading
-    expect(result.current[3].loading).toBe(false);
+    expect(result.current[2].loading).toBe(false);
 
     act(() => {
       // 克隆的model
-      result.current[2](2);
+      result.current[1](2);
     });
     // state
     expect(result.current[0]).toBe(2);
-    expect(result.current[3].loading).toBe(false);
+    expect(result.current[2].loading).toBe(false);
 
     act(() => {
       // 原始model异步更新
@@ -32,8 +32,8 @@ describe('useIndividualModel test', () => {
 
     // 此时异步更新未生效
     expect(result.current[0]).toBe(2);
-    // 原始model异步更新不会触发loading变化
-    expect(result.current[3].loading).toBe(false);
+    // 原始model异步更新会触发loading变化
+    expect(result.current[2].loading).toBe(true);
 
     await waitForNextUpdate();
 
@@ -42,19 +42,19 @@ describe('useIndividualModel test', () => {
 
     act(() => {
       // 克隆model异步更新
-      result.current[2](Promise.resolve(4));
+      result.current[1](Promise.resolve(4));
     });
 
     // 此时异步更新未生效
     expect(result.current[0]).toBe(3);
     // 克隆model异步更新会触发loading变化
-    expect(result.current[3].loading).toBe(true);
+    expect(result.current[2].loading).toBe(true);
 
     await waitForNextUpdate();
 
     // 异步更新结束，数据为最新
     expect(result.current[0]).toBe(4);
-    expect(result.current[3].loading).toBe(false);
+    expect(result.current[2].loading).toBe(false);
 
     act(() => {
       // 卸载时会触发解绑数据
@@ -84,10 +84,9 @@ describe('useIndividualModel test', () => {
         }
         return s;
       }), []);
-      const [state, model, clonedModel, { loading, successful }] = useIndividualModel(count, service, [count]);
+      const [state,  clonedModel, { loading, successful }] = useIndividualModel(count, service, [count]);
       return {
         state,
-        model,
         clonedModel,
         loading,
         updateCount,
@@ -156,12 +155,12 @@ describe('useIndividualModel test', () => {
 
     act(() => {
       // 此时更新model
-      result.current.model(3);
+      result.current.clonedModel(3);
     });
 
     expect(result.current.state).toBe(6);
     // model中的值会是最新的
-    expect(result.current.model()).toBe(3);
+    expect(result.current.clonedModel()).toBe(3);
 
   })
 

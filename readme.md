@@ -373,14 +373,13 @@ someModel.config({
 - <a href="#useUpdateEffect">useUpdateEffect</a>
 - <a href="#useLocalService">useLocalService</a>
 
-react hook返回的model都是经过包装的，不要对其进行订阅，订阅了不会有效果。
 
 ## <span id="useModel">useModel</span>
 > 自定义hook，用于消费节点数据
 
 用react hook的方式订阅并获取数据节点的内容
 
-const [state, stateModel, stateModelWithStatus, { service, loading, successful, error }] = useModel(state, service, deps, options);
+const [state, stateModelWithStatus, { service, loading, successful, error }] = useModel(state, service, deps, options);
 
 | 入参                                 | 含义                                                                               |
 |:-----------------------------------|:---------------------------------------------------------------------------------|
@@ -392,8 +391,7 @@ const [state, stateModel, stateModelWithStatus, { service, loading, successful, 
 | 返回                   | 含义                                                                                                                                                                                                                                                                                                                                                                                               |
 |:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | state                | 数据                                                                                                                                                                                                                                                                                                                                                                                               |
-| stateModel           | 数据模型
-| stateModelWithStatus | 数据模型，和入参的 model 一样。只不过 stateModelWithStatus 绑定了 loading、successful、error 等状态，即 stateModelWithStatus 进行异步更新时会改变这些状态                                                                                                                                                                                                                                                                               |
+| stateModelWithStatus | 数据模型，和入参的 model 不一样，stateModelWithStatus 绑定了 loading、successful、error 等状态，即 stateModelWithStatus 进行异步更新时会改变这些状态                                                                                                                                                                                                                                                                                  |
 | status               | 形如 { service, loading, successful, error }。loading、successful、error 都是异步更新的状态；这里的 service 和 入参 service 在主要功能上是等效的，返回的 service 底层也是调用了入参 service。<br/> 二者的区别在于：<br/> 1. 返回的 service 入参最多只有一个，并且和作为入参的 service 的第二个参数等同（等同的意思是：二者是同一个，并且该参数最终可使用的地方是在作为入参的 service 里面）；<br/> 2. 返回的 service 和 state 以及 loading、successful、error 等状态进行了绑定，返回的 service 进行调用调用会影响到这些状态（其中异步的更新会影响所有状态，同步更新只会影响 state） |
 
 ```typescript
@@ -424,7 +422,7 @@ const getList = (state, params, index) => {
 };
 
 // 监听 query 变化更新 listData
-const [listData, _listModel, listModelWithStatus, { service, loading, successful, error }] = useModel(listModel, getList, [query], {
+const [listData, listModelWithStatus, { service, loading, successful, error }] = useModel(listModel, getList, [query], {
   suspense: {
     key: 'list',
   },
@@ -443,7 +441,7 @@ const onClick = () => {
 > 和useModel类似，只是不再依赖外部传入model，而是内部生成一个跟随组件生命周期的model。
 
 
- const [state, stateModel, stateModelWithStatus, { service, loading, successful, error }] = useIndividualModel(initState, service, deps, options)
+ const [state, stateModelWithStatus, { service, loading, successful, error }] = useIndividualModel(initState, service, deps, options)
 
 | 入参                                 | 含义                                                                             |
 |:-----------------------------------|:-------------------------------------------------------------------------------|
@@ -456,8 +454,7 @@ const onClick = () => {
 | 返回                   | 含义                                                                                                                                                                                                                                                                                                                                                                                               |
 |:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | state                | 数据                                                                                                                                                                                                                                                                                                                                                                                               |
-| stateModel           | 数据模型                                                                                                                                                                                                                                                                                                                                                                                             
-| stateModelWithStatus | 数据模型，和返回的 stateModel 一样，都能改变 state 的值。只不过 stateModelWithStatus 绑定了 loading、successful、error 等状态，即 stateModelWithStatus 进行异步更新时会改变这些状态                                                                                                                                                                                                                                                            |
+| stateModelWithStatus | 数据模型，能改变 state 的值。stateModelWithStatus 绑定了 loading、successful、error 等状态，即 stateModelWithStatus 进行异步更新时会改变这些状态                                                                                                                                                                                                                                                            |
 | status               | 形如 { service, loading, successful, error }。loading、successful、error 都是异步更新的状态；这里的 service 和 入参 service 在主要功能上是等效的，返回的 service 底层也是调用了入参 service。<br/> 二者的区别在于：<br/> 1. 返回的 service 入参最多只有一个，并且和作为入参的 service 的第二个参数等同（等同的意思是：二者是同一个，并且该参数最终可使用的地方是在作为入参的 service 里面）；<br/> 2. 返回的 service 和 state 以及 loading、successful、error 等状态进行了绑定，返回的 service 进行调用调用会影响到这些状态（其中异步的更新会影响所有状态，同步更新只会影响 state） |
 
 ```typescript
@@ -479,7 +476,7 @@ const getList = (state, params, index) => {
 };
 
 // 监听 query 变化更新 listData
-const [listData, listModel, listModelWithStatus, { service, loading, successful, error }] = useIndividualModel({
+const [listData, listModelWithStatus, { service, loading, successful, error }] = useIndividualModel({
   page: 1,
   size: 20,
   list: [],
@@ -518,10 +515,10 @@ useDerivedState(callback, deps) // 此时callback充当initState，并且承担�
 ```javascript
 const { count } = props;
 
-const [value, valueModel, valueModelWithStatus, { loading, successful, error }] = useDerivedState(count, (s: number) => count, [count]);
+const [value, valueModelWithStatus, { loading, successful, error }] = useDerivedState(count, (s: number) => count, [count]);
 
 // 其实可以简写为
-const [value, valueModel, valueModelWithStatus, { loading, successful, error }] = useDerivedState((s: number) => count, [count]);
+const [value, valueModelWithStatus, { loading, successful, error }] = useDerivedState((s: number) => count, [count]);
 
 ```
 
@@ -540,7 +537,7 @@ useDerivedModel(initState, source, callback)
 | callback  | 形如：(nextSource, prevSource, state: S) => S，根据前后两次记录的衍生来源，结合当前state，更新model |
 ```javascript
 
-const [value, valueModel, valueModelWithStatus, {  loading, successful, error }] = useDerivedModel(props.defaultValue ?? 0, props, (nextSource, prevSource, state) => {
+const [value, valueModelWithStatus, {  loading, successful, error }] = useDerivedModel(props.defaultValue ?? 0, props, (nextSource, prevSource, state) => {
   if (nextSource !== prevSource) {
     if ('value' in nextSource) {
       return nextSource.value;
@@ -634,7 +631,7 @@ const List = () => {
   };
 
   // 监听 query 变化更新 listData
-  const [listData, listModel, listModelWithStatus, { service, loading, successful, error }] = useIndividualModel({
+  const [listData, listModelWithStatus, { service, loading, successful, error }] = useIndividualModel({
     page: 1,
     size: 20,
     list: [],

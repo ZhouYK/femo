@@ -209,19 +209,19 @@ export function genRegister<M>(): {
   usePick: <K extends keyof M>(key: K) => M[K];
 }
 
-export function useModel<S = any, D = any>(initState: FemoModel<S> | S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>];
+export function useModel<S = any, D = any>(initState: FemoModel<S> | S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, ServiceStatus<S, D>];
 
 /**
  * @deprecated 请使用 useModel 代替
  */
-export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, FemoModel<S>, ServiceStatus<S, D>];
-export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
-export function useBatchDerivedModel<S, D extends DerivedSpace<S>[]>(initState: S | (() => S), ...derivedSpace: D): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
+export function useIndividualModel<S = any, D = any>(initState: S | (() => S), service?: Service<S, D>, deps?: any[], options?: ServiceOptions<S>): [S, FemoModel<S>, ServiceStatus<S, D>];
+export function useDerivedModel<S = any, P = any>(initState: S | (() => S), source: P, callback: (nextSource: P, prevSource: P, state: S) => S): [S, FemoModel<S>, LoadingStatus];
+export function useBatchDerivedModel<S, D extends DerivedSpace<S>[]>(initState: S | (() => S), ...derivedSpace: D): [S, FemoModel<S>, LoadingStatus];
 
 export function useLocalService<S, D>(service: LocalService<S, D>, options?: IndividualServiceOptions): [LocalService<S, D>, LoadingStatus]
 
-export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
-export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, FemoModel<S>, LoadingStatus];
+export function useDerivedState<S = any>(initState: S | (() => S), callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, LoadingStatus];
+export function useDerivedState<S = any>(callback: (state: S) => S, deps: any[]): [S, FemoModel<S>, LoadingStatus];
 
 /**
  * @deprecated please use useUpdateEffect instead
