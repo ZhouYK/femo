@@ -249,4 +249,4 @@ export const GlueConflictPolicy: {
   [k: string]: GlueConfig['updatePolicy'];
 }
 
-export function mergeCurToPre<T>(arr: T[]): T;
+export function mergeCurToPre<T extends Record<string, any>>(arr: T[]): T;

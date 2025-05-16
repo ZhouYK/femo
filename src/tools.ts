@@ -56,7 +56,7 @@ export const composeReducer = <S, D, >(...args: HandleFunc<S, D, any>[]) => {
  * 脚标越小，数据越老；大脚标元素覆盖小脚标元素，即新数据合并到老数据
  * @param arr
  */
-export const mergeCurToPre = <T>(arr: T[]) => {
+export const mergeCurToPre = <T extends Record<string, any>>(arr: T[]) => {
   return (arr || []).reduce((pre, cur) => {
     if (isPlainObject(pre) && isPlainObject(cur) && !Object.is(pre, cur)) {
       return {
